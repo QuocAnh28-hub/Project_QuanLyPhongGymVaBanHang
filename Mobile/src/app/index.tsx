@@ -4,6 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomTabInset } from '@/constants/theme';
 
+import { FontAwesome } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 const images = {
   hero: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=85',
   strength: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=700&q=85',
@@ -12,11 +17,11 @@ const images = {
 };
 
 const workouts = [
-  { icon: '↗', value: '100+', label: 'Thiết bị tối tân', color: '#d9ff00' },
-  { icon: '♨', value: 'Sauna & Spa', label: 'Không gian thư giãn', color: '#8cebd2' },
-  { icon: '↟', value: 'InBody 770', label: 'Đo cơ thể miễn phí', color: '#8fb7ff' },
-  { icon: '▣', value: 'Free Bar', label: 'Nạp năng lượng lành mạnh', color: '#d9ff00' },
-];
+  { icon: <MaterialCommunityIcons name="check-circle"/>, value: '100+', label: 'Thiết bị tối tân', color: '#d9ff00' },
+  { icon: <MaterialCommunityIcons name="hot-tub"/>, value: 'Sauna & Spa', label: 'Không gian thư giãn', color: '#8cebd2' },
+  { icon: <Ionicons name="body" />, value: 'InBody 770', label: 'Đo cơ thể miễn phí', color: '#8fb7ff' },
+  { icon: <Ionicons name="fast-food"/>, value: 'Free Bar', label: 'Nạp năng lượng lành mạnh', color: '#d9ff00' },
+]; 
 
 function SectionTitle({ title, action }: { title: string; action?: string }) {
   return <View style={styles.sectionTitle}><Text style={styles.sectionHeading}>{title}</Text>{action && <Text style={styles.sectionAction}>{action}</Text>}</View>;
@@ -33,18 +38,20 @@ function WorkoutCard({ image, title, detail, tag }: { image: string; title: stri
     <View style={styles.workoutTag}><Text style={styles.workoutTagText}>{tag}</Text></View>
     <View style={styles.workoutCopy}><Text style={styles.workoutTitle}>{title}</Text><Text style={styles.workoutDetail}>{detail}</Text><Text style={styles.workoutLink}>Khám phá khu vực →</Text></View>
   </View>;
-}
+} 
 
 export default function HomeScreen() {
   return <View style={styles.container}>
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <View><Text style={styles.brand}>QA-GYM<Text style={styles.brandDot}>.</Text></Text><Text style={styles.location}>◉  Cầu Giấy, Hà Nội</Text></View>
-          <View style={styles.headerActions}><Text style={styles.headerIcon}>♧</Text><View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View></View>
-        </View>
+          <View><Text style={styles.brand}><MaterialCommunityIcons name="dumbbell" size={24} color="white" />QA-GYM<Text style={styles.brandDot}>.</Text></Text><Text style={styles.location}><FontAwesome name="map-marker" size={12} color="#7b7c7d"/>  Khoái Châu, Hưng Yên</Text></View>
+          
+          <View style={styles.headerActions}> <FontAwesome name="bell" size={24} color="#cfcfcf"/><View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View></View>
+          
+        </View> 
 
-        <View style={styles.greeting}><Text style={styles.kicker}>CHÀO BUỔI SÁNG, MINH</Text><Text style={styles.greetingTitle}>Sẵn sàng bứt phá?</Text><Text style={styles.greetingCopy}>Hôm nay là một ngày tuyệt vời để chăm sóc cơ thể.</Text></View>
+        <View style={styles.greeting}><Text style={styles.kicker}>Wellcome</Text><Text style={styles.greetingTitle}>Sẵn sàng bứt phá?</Text><Text style={styles.greetingCopy}>Hôm nay là một ngày tuyệt vời để chăm sóc cơ thể.</Text></View>
 
         <View style={styles.heroCard}>
           <Image source={{ uri: images.hero }} style={styles.heroImage} contentFit="cover" /><View style={styles.heroShade} />
@@ -85,7 +92,7 @@ const styles = StyleSheet.create({
   heroCard: { height: 204, borderRadius: 14, overflow: 'hidden', marginBottom: 26 }, heroImage: { ...StyleSheet.absoluteFill }, heroShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(8, 15, 10, .62)' }, heroCopy: { flex: 1, padding: 18, justifyContent: 'center' },
   pill: { alignSelf: 'flex-start', backgroundColor: '#c8ed00', borderRadius: 4, paddingHorizontal: 8, paddingVertical: 5, marginBottom: 10 }, pillText: { color: '#192000', fontSize: 9, fontWeight: '900' }, heroTitle: { color: '#fff', fontSize: 24, fontWeight: '900', lineHeight: 26 }, heroDetail: { color: '#d4dbcf', fontSize: 11, marginTop: 7 }, heroButton: { backgroundColor: '#d9ff00', paddingHorizontal: 13, paddingVertical: 9, borderRadius: 4, alignSelf: 'flex-start', marginTop: 13 }, heroButtonText: { color: '#152000', fontSize: 10, fontWeight: '900' },
   sectionTitle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }, sectionHeading: { color: '#f2f6ea', fontSize: 15, fontWeight: '800' }, sectionAction: { color: '#c9ed00', fontSize: 9, fontWeight: '900' },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 26 }, statCard: { backgroundColor: '#1c211d', borderRadius: 8, padding: 11, width: '48.8%', minHeight: 82, borderWidth: 1, borderColor: '#2c322c' }, statIcon: { fontSize: 16, fontWeight: '900', marginBottom: 4 }, statValue: { color: '#f0f4e8', fontSize: 12, fontWeight: '800' }, statLabel: { color: '#8e978d', fontSize: 9, marginTop: 3 },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 26 }, statCard: { backgroundColor: '#1c211d', borderRadius: 8, padding: 11, width: '48.8%', minHeight: 82, borderWidth: 1, borderColor: '#2c322c' }, statIcon: { fontSize: 16, fontWeight: '900', marginBottom: 4 }, statValue: { color: '#f0f4e8', fontSize: 12, fontWeight: '800' }, statLabel: { color: '#8e978d', fontSize: 9, marginTop: 3 },
   horizontalList: { gap: 10, paddingBottom: 26 }, workoutCard: { width: 180, height: 174, borderRadius: 10, overflow: 'hidden', backgroundColor: '#1d231e' }, workoutImage: { ...StyleSheet.absoluteFill }, workoutOverlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(7, 12, 8, .52)' }, workoutTag: { position: 'absolute', top: 10, left: 10, backgroundColor: '#d9ff00', paddingHorizontal: 6, paddingVertical: 4, borderRadius: 3 }, workoutTagText: { color: '#172000', fontSize: 7, fontWeight: '900' }, workoutCopy: { position: 'absolute', left: 12, right: 10, bottom: 11 }, workoutTitle: { color: '#fff', fontSize: 14, fontWeight: '900' }, workoutDetail: { color: '#d0d8ce', fontSize: 9, marginTop: 4, lineHeight: 13 }, workoutLink: { color: '#d9ff00', fontSize: 9, fontWeight: '800', marginTop: 7 },
   schedule: { backgroundColor: '#1b201c', borderRadius: 9, paddingHorizontal: 12, marginBottom: 24 }, scheduleRow: { minHeight: 61, flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#2c322c', gap: 11 }, scheduleTime: { color: '#d9ff00', fontSize: 11, fontWeight: '900', width: 39 }, scheduleInfo: { flex: 1 }, scheduleTitle: { color: '#ecf2e7', fontSize: 11, fontWeight: '800' }, scheduleRoom: { color: '#858e84', fontSize: 9, marginTop: 4 }, seatPill: { backgroundColor: '#2a3328', borderRadius: 4, paddingHorizontal: 7, paddingVertical: 5 }, seatText: { color: '#bde000', fontSize: 8, fontWeight: '800' },
   reviewCard: { backgroundColor: '#1d231e', borderRadius: 9, padding: 14, marginBottom: 24 }, stars: { color: '#d9ff00', fontSize: 13, letterSpacing: 1 }, rating: { color: '#e8eee2', fontSize: 11, letterSpacing: 0 }, reviewQuote: { color: '#d9ded5', fontSize: 11, lineHeight: 17, marginTop: 8 }, reviewAuthor: { color: '#899288', fontSize: 9, marginTop: 7 },
