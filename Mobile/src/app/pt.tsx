@@ -59,7 +59,7 @@ function Header() {
       <Text style={styles.brand}><MaterialCommunityIcons name="dumbbell" size={24} color="white" />QA-GYM<Text style={styles.brandDot}>.</Text></Text>
       <Text style={styles.location}><FontAwesome name="map-marker" size={12} color="#7b7c7d" />  Khoái Châu, Hưng Yên</Text>
     </View>
-    <View style={styles.headerActions}><FontAwesome name="bell" size={24} color="#cfcfcf" /><View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View></View>
+    <View style={styles.headerActions}><FontAwesome name="bell" size={24} color="#cfcfcf" /><View style={styles.shoppingCart}><FontAwesome name="shopping-cart" size={24} color="#f5f9ed" /></View></View>
   </View>;
 }
 
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#101210' }, safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' }, content: { paddingHorizontal: 16, paddingBottom: BottomTabInset + 24 },
   header: { flexDirection: 'row', alignItems: 'center', paddingTop: 12, paddingBottom: 21 }, brandBlock: { flexShrink: 1, paddingRight: 76 }, brand: { color: '#f3f5ec', fontSize: 21, fontWeight: '900', letterSpacing: 1.2 }, 
   brandDot: { color: '#d9ff00' }, location: { color: '#899083', fontSize: 10, marginTop: 5 }, headerActions: { position: 'absolute', top: 20.5, right: 0, flexDirection: 'row', alignItems: 'center', gap: 14 }, 
-  avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#6b7c61', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#b4c7a7' }, avatarText: { color: '#f5f9ed', fontWeight: '800' },
+  shoppingCart: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   intro: { marginBottom: 12 }, kicker: { color: '#c1da00', fontSize: 9, fontWeight: '900', letterSpacing: 0.6 }, title: { color: '#f4f7ee', fontSize: 20, lineHeight: 24, fontWeight: '900', marginTop: 7 }, 
   subtitle: { color: '#9ca599', fontSize: 10, lineHeight: 14, marginTop: 7 }, filterList: { gap: 7, paddingBottom: 15 }, filterChip: { backgroundColor: '#242925', borderRadius: 12, paddingHorizontal: 13, paddingVertical: 7 }, 
   filterChipActive: { backgroundColor: '#d9ff00' }, filterText: { color: '#abb5a8', fontSize: 8, fontWeight: '800' }, filterTextActive: { color: '#172000' },

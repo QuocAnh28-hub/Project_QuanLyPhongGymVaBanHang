@@ -26,7 +26,7 @@ function Header() {
       <Text style={styles.brand}><MaterialCommunityIcons name="dumbbell" size={24} color="white" />QA-GYM<Text style={styles.brandDot}>.</Text></Text>
       <Text style={styles.location}><FontAwesome name="map-marker" size={12} color="#7b7c7d" />  Khoái Châu, Hưng Yên</Text>
     </View>
-    <View style={styles.headerActions}><FontAwesome name="bell" size={24} color="#cfcfcf" /><View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View></View>
+    <View style={styles.headerActions}><FontAwesome name="bell" size={24} color="#cfcfcf" /><View style={styles.shoppingCart}><FontAwesome name="shopping-cart" size={24} color="#f5f9ed" /></View></View>
   </View>;
 }
 
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#101210' }, safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' }, content: { paddingHorizontal: 16, paddingBottom: BottomTabInset + 24 },
   header: { flexDirection: 'row', alignItems: 'center', paddingTop: 12, paddingBottom: 22 }, brandBlock: { flexShrink: 1, paddingRight: 76 }, brand: { color: '#f3f5ec', fontSize: 21, fontWeight: '900', letterSpacing: 1.2 }, 
   brandDot: { color: '#d9ff00' }, location: { color: '#899083', fontSize: 10, marginTop: 5 }, headerActions: { position: 'absolute', top: 20.5, right: 0, flexDirection: 'row', alignItems: 'center', gap: 14 }, 
-  avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#6b7c61', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#b4c7a7' }, avatarText: { color: '#f5f9ed', fontWeight: '800' },
+  shoppingCart: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   intro: { marginBottom: 14 }, kicker: { color: '#c1da00', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 }, title: { color: '#f4f7ee', fontSize: 23, lineHeight: 27, fontWeight: '900', marginTop: 8 }, 
   subtitle: { color: '#9ca599', fontSize: 10, marginTop: 6 }, searchRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 12 }, searchBox: { flex: 1, minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#292d30', borderRadius: 9, paddingHorizontal: 11 }, 
   searchInput: { flex: 1, color: '#e6ebe1', fontSize: 11, paddingVertical: 0 }, 

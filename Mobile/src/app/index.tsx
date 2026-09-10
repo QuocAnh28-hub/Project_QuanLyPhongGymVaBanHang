@@ -5,9 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomTabInset } from '@/constants/theme';
 
 import { FontAwesome } from '@expo/vector-icons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const images = {
   hero: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=85',
@@ -47,7 +46,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View><Text style={styles.brand}><MaterialCommunityIcons name="dumbbell" size={24} color="white" />QA-GYM<Text style={styles.brandDot}>.</Text></Text><Text style={styles.location}><FontAwesome name="map-marker" size={12} color="#7b7c7d"/>  Khoái Châu, Hưng Yên</Text></View>
           
-          <View style={styles.headerActions}> <FontAwesome name="bell" size={24} color="#cfcfcf"/><View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View></View>
+          <View style={styles.headerActions}> <FontAwesome name="bell" size={24} color="#cfcfcf"/><View style={styles.shoppingCart}><FontAwesome name="shopping-cart" size={24} color="#f5f9ed" /></View></View>
           
         </View> 
 
@@ -87,7 +86,7 @@ const styles = StyleSheet.create({
   brand: { color: '#f3f5ec', fontSize: 21, fontWeight: '900', letterSpacing: 1.2 },
   brandDot: { color: '#d9ff00' }, location: { color: '#899083', fontSize: 10, marginTop: 5 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 14 }, headerIcon: { color: '#e9f1e3', fontSize: 23 },
-  avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#6b7c61', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#b4c7a7' }, avatarText: { color: '#f5f9ed', fontWeight: '800' },
+  shoppingCart: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   greeting: { marginBottom: 18 }, kicker: { color: '#c1da00', fontSize: 10, fontWeight: '800', letterSpacing: 1.4 }, greetingTitle: { color: '#f4f7ee', fontSize: 25, fontWeight: '800', marginTop: 6 }, greetingCopy: { color: '#9ca599', fontSize: 12, marginTop: 6 },
   heroCard: { height: 204, borderRadius: 14, overflow: 'hidden', marginBottom: 26 }, heroImage: { ...StyleSheet.absoluteFill }, heroShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(8, 15, 10, .62)' }, heroCopy: { flex: 1, padding: 18, justifyContent: 'center' },
   pill: { alignSelf: 'flex-start', backgroundColor: '#c8ed00', borderRadius: 4, paddingHorizontal: 8, paddingVertical: 5, marginBottom: 10 }, pillText: { color: '#192000', fontSize: 9, fontWeight: '900' }, heroTitle: { color: '#fff', fontSize: 24, fontWeight: '900', lineHeight: 26 }, heroDetail: { color: '#d4dbcf', fontSize: 11, marginTop: 7 }, heroButton: { backgroundColor: '#d9ff00', paddingHorizontal: 13, paddingVertical: 9, borderRadius: 4, alignSelf: 'flex-start', marginTop: 13 }, heroButtonText: { color: '#152000', fontSize: 10, fontWeight: '900' },

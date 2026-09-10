@@ -43,8 +43,7 @@ export default function PackagesScreen() {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}
-          stickyHeaderIndices={[0]}>
+          contentContainerStyle={styles.content}>
           <View style={styles.header}>
             <View style={styles.brandBlock}>
               <Text style={styles.brand}>
@@ -56,7 +55,7 @@ export default function PackagesScreen() {
             </View>
             <View style={styles.headerActions}>
               <FontAwesome name="bell" size={24} color="#cfcfcf" />
-              <View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View>
+              <View style={styles.shoppingCart}><FontAwesome name="shopping-cart" size={24} color="#f5f9ed" /></View>
             </View>
           </View>
 
@@ -142,14 +141,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0c0f10' },
   safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' },
   content: { paddingHorizontal: 16, paddingBottom: BottomTabInset + 24 },
-  brandBlock: { flexShrink: 1, paddingRight: 76 }, headerActions: { position: 'absolute', top: 8.5, right: 0, flexDirection: 'row', alignItems: 'center', gap: 14 }, 
+  brandBlock: { flexShrink: 1, paddingRight: 76 }, headerActions: { position: 'absolute', top: 20.5, right: 0, flexDirection: 'row', alignItems: 'center', gap: 14 }, 
   headerIcon: { color: '#e9f1e3', fontSize: 23 },
   brandDot: { color: '#d9ff00' }, location: { color: '#899083', fontSize: 10, marginTop: 5 },
   header: { position: 'relative', flexDirection: 'row', alignItems: 'center', paddingTop: 12, paddingBottom: 24 },
   brandWrap: { flexDirection: 'row', alignItems: 'center', gap: 7 }, brandMark: { width: 25, height: 25, backgroundColor: '#1b2021', justifyContent: 'center', alignItems: 'center' }, 
   brand: { color: '#f3f5ec', fontSize: 21, fontWeight: '900', letterSpacing: 1.2 }, brandSub: { color: '#d9ff00', fontSize: 7, fontWeight: '900', letterSpacing: 1 }, 
-  avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#6b7c61', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#b4c7a7' }, 
-  avatarText: { color: '#f5f9ed', fontWeight: '800' },
+  shoppingCart: { width: 30, height: 30, justifyContent: 'center', alignItems: 'center' }, 
   intro: { alignItems: 'center', paddingTop: 22, paddingBottom: 17 }, eyebrow: { backgroundColor: '#253500', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }, 
   eyebrowText: { color: '#cbed00', fontSize: 7, fontWeight: '900' }, title: { color: '#e5e9e3', textAlign: 'center', fontSize: 18, lineHeight: 21, fontWeight: '900', marginTop: 10 }, 
   subtitle: { color: '#879087', textAlign: 'center', fontSize: 10, lineHeight: 14, marginTop: 8 },
