@@ -140,7 +140,7 @@ export default function PackagesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0c0f10' },
   safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' },
-  content: { paddingHorizontal: 16, paddingBottom: BottomTabInset + 24 },
+  content: { paddingHorizontal: 16, paddingBottom: 24 },
   brandBlock: { flexShrink: 1, paddingRight: 76 }, headerActions: { position: 'absolute', top: 20.5, right: 0, flexDirection: 'row', alignItems: 'center', gap: 14 }, 
   headerIcon: { color: '#e9f1e3', fontSize: 23 },
   brandDot: { color: '#d9ff00' }, location: { color: '#899083', fontSize: 10, marginTop: 5 },

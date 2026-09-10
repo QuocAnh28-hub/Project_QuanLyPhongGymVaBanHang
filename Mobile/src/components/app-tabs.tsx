@@ -43,6 +43,7 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>Cá nhân</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon md="account_circle" />
       </NativeTabs.Trigger>
+
     </NativeTabs>
   );
 }

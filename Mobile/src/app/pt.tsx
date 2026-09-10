@@ -96,7 +96,8 @@ export default function PersonalTrainerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#101210' }, safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' }, content: { paddingHorizontal: 16, paddingBottom: BottomTabInset + 24 },
+  container: { flex: 1, backgroundColor: '#101210' }, safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' }, 
+  content: { paddingHorizontal: 16, paddingBottom: 24 },
   header: { flexDirection: 'row', alignItems: 'center', paddingTop: 12, paddingBottom: 21 }, brandBlock: { flexShrink: 1, paddingRight: 76 }, brand: { color: '#f3f5ec', fontSize: 21, fontWeight: '900', letterSpacing: 1.2 }, 
   brandDot: { color: '#d9ff00' }, location: { color: '#899083', fontSize: 10, marginTop: 5 }, headerActions: { position: 'absolute', top: 20.5, right: 0, flexDirection: 'row', alignItems: 'center', gap: 14 }, 
   shoppingCart: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
