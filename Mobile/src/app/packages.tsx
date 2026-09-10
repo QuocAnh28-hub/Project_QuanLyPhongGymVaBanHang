@@ -1,9 +1,12 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BottomTabInset } from '@/constants/theme';
+
+
+import { FontAwesome } from '@expo/vector-icons';
 
 const durations = ['1 Tháng', '3 Tháng', '6 Tháng', '12 Tháng'];
 
@@ -43,17 +46,16 @@ export default function PackagesScreen() {
           contentContainerStyle={styles.content}
           stickyHeaderIndices={[0]}>
           <View style={styles.header}>
-            <View style={styles.brandWrap}>
-              <View style={styles.brandMark}>
-                <MaterialCommunityIcons name="dumbbell" size={15} color="#d9ff00" />
-              </View>
-              <View>
-                <Text style={styles.brand}>QA-GYM</Text>
-                <Text style={styles.brandSub}>GOI TAP</Text>
-              </View>
+            <View style={styles.brandBlock}>
+              <Text style={styles.brand}>
+                <MaterialCommunityIcons name="dumbbell" size={24} color="white" />QA-GYM<Text style={styles.brandDot}>.</Text>
+              </Text>
+              <Text style={styles.location}>
+                <FontAwesome name="map-marker" size={12} color="#7b7c7d" />  Khoái Châu, Hưng Yên
+              </Text>
             </View>
             <View style={styles.headerActions}>
-              <Ionicons name="notifications-outline" size={19} color="#dce2d9" />
+              <FontAwesome name="bell" size={24} color="#cfcfcf" />
               <View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View>
             </View>
           </View>
@@ -139,9 +141,11 @@ export default function PackagesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0c0f10' },
   safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' },
-  content: { paddingHorizontal: 12, paddingBottom: BottomTabInset + 24 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#101415', marginHorizontal: -12, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#23282a' },
-  brandWrap: { flexDirection: 'row', alignItems: 'center', gap: 7 }, brandMark: { width: 25, height: 25, backgroundColor: '#1b2021', justifyContent: 'center', alignItems: 'center' }, brand: { color: '#e8eee7', fontSize: 12, fontWeight: '900', letterSpacing: 1 }, brandSub: { color: '#d9ff00', fontSize: 7, fontWeight: '900', letterSpacing: 1 }, headerActions: { flexDirection: 'row', alignItems: 'center', gap: 16 }, avatar: { width: 25, height: 25, borderRadius: 13, backgroundColor: '#667466', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#a8baa4' }, avatarText: { color: '#fff', fontSize: 10, fontWeight: '800' },
+  content: { paddingHorizontal: 16, paddingBottom: BottomTabInset + 24 },
+  brandBlock: { flexShrink: 1, paddingRight: 76 }, headerActions: { position: 'absolute', top: 8.5, right: 0, flexDirection: 'row', alignItems: 'center', gap: 14 }, headerIcon: { color: '#e9f1e3', fontSize: 23 },
+  brandDot: { color: '#d9ff00' }, location: { color: '#899083', fontSize: 10, marginTop: 5 },
+  header: { position: 'relative', flexDirection: 'row', alignItems: 'center', paddingTop: 12, paddingBottom: 24 },
+  brandWrap: { flexDirection: 'row', alignItems: 'center', gap: 7 }, brandMark: { width: 25, height: 25, backgroundColor: '#1b2021', justifyContent: 'center', alignItems: 'center' }, brand: { color: '#f3f5ec', fontSize: 21, fontWeight: '900', letterSpacing: 1.2 }, brandSub: { color: '#d9ff00', fontSize: 7, fontWeight: '900', letterSpacing: 1 }, avatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#6b7c61', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#b4c7a7' }, avatarText: { color: '#f5f9ed', fontWeight: '800' },
   intro: { alignItems: 'center', paddingTop: 22, paddingBottom: 17 }, eyebrow: { backgroundColor: '#253500', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5 }, eyebrowText: { color: '#cbed00', fontSize: 7, fontWeight: '900' }, title: { color: '#e5e9e3', textAlign: 'center', fontSize: 18, lineHeight: 21, fontWeight: '900', marginTop: 10 }, subtitle: { color: '#879087', textAlign: 'center', fontSize: 10, lineHeight: 14, marginTop: 8 },
   durationBar: { flexDirection: 'row', backgroundColor: '#1a1e20', borderRadius: 7, padding: 3, marginBottom: 18 }, durationItem: { flex: 1, minHeight: 38, justifyContent: 'center', alignItems: 'center', borderRadius: 5 }, durationSelected: { backgroundColor: '#d9ff00' }, durationText: { color: '#c3c9c0', fontSize: 8, fontWeight: '800' }, durationSelectedText: { color: '#1d2700' }, hotBadge: { color: '#fff', backgroundColor: '#e80038', fontSize: 6, fontWeight: '900', paddingHorizontal: 4, paddingVertical: 2, borderRadius: 4, marginTop: 2 },
   planCard: { backgroundColor: '#202427', borderRadius: 8, padding: 11, marginBottom: 10, borderWidth: 1, borderColor: '#2c3133' }, planTag: { alignSelf: 'flex-start', backgroundColor: '#c9f000', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 4 }, planTagText: { color: '#263100', fontSize: 7, fontWeight: '900' }, planKicker: { color: '#cbed00', fontSize: 7, fontWeight: '900', marginTop: 9 }, planHeadingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }, planName: { color: '#e5e8e3', fontSize: 14, fontWeight: '900', marginTop: 3 }, priceRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 2 }, price: { color: '#d9ff00', fontSize: 27, lineHeight: 30, fontWeight: '900' }, darkPrice: { color: '#e0e4df', fontSize: 27, lineHeight: 30, fontWeight: '900' }, perMonth: { color: '#88908b', fontSize: 8, marginLeft: 3 }, planStar: { color: '#d9ff00', fontSize: 25 }, saving: { color: '#bbdb00', fontSize: 8, fontWeight: '700', marginTop: 3 }, benefits: { marginTop: 9, gap: 5 }, benefitRow: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#171a1c', borderRadius: 4, paddingVertical: 7, paddingHorizontal: 7 }, benefitIcon: { color: '#cfff00', width: 16, fontSize: 11, fontWeight: '900' }, benefitText: { color: '#c4c9c4', flex: 1, fontSize: 9, lineHeight: 12 }, planButton: { backgroundColor: '#caff00', minHeight: 29, borderRadius: 5, justifyContent: 'center', alignItems: 'center', marginTop: 10, flexDirection: 'row' }, planButtonText: { color: '#1b2600', fontSize: 9, fontWeight: '900' }, buttonArrow: { color: '#1b2600', fontSize: 11, marginLeft: 5 }, mutedButton: { backgroundColor: '#3b3e42' }, mutedButtonText: { color: '#e1e4df' }, hotline: { color: '#9ca49b', fontSize: 8, textAlign: 'center', marginTop: 8 },
