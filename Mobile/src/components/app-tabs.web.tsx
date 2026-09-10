@@ -1,10 +1,10 @@
 import {
-    TabList,
-    TabListProps,
-    Tabs,
-    TabSlot,
-    TabTrigger,
-    TabTriggerSlotProps,
+  TabList,
+  TabListProps,
+  Tabs,
+  TabSlot,
+  TabTrigger,
+  TabTriggerSlotProps,
 } from 'expo-router/ui';
 import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet, useColorScheme, View } from 'react-native';
@@ -22,13 +22,16 @@ export default function AppTabs() {
       <TabList asChild>
         <CustomTabList>
           <TabTrigger name="home" href="/" asChild>
-            <TabButton>Home</TabButton>
+            <TabButton>Tổng quan</TabButton>
           </TabTrigger>
           <TabTrigger name="packages" href="/packages" asChild>
             <TabButton>Gói tập</TabButton>
           </TabTrigger>
-          <TabTrigger name="explore" href="/explore" asChild>
-            <TabButton>Explore</TabButton>
+          <TabTrigger name="product" href="/product" asChild>
+            <TabButton>Sản phẩm</TabButton>
+          </TabTrigger>
+          <TabTrigger name="pt" href="/pt" asChild>
+            <TabButton>HLV</TabButton>
           </TabTrigger>
         </CustomTabList>
       </TabList>
