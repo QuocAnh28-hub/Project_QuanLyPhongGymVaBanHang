@@ -46,7 +46,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View><Text style={styles.brand}><MaterialCommunityIcons name="dumbbell" size={24} color="white" />QA-GYM<Text style={styles.brandDot}>.</Text></Text><Text style={styles.location}><FontAwesome name="map-marker" size={12} color="#7b7c7d"/>  Khoái Châu, Hưng Yên</Text></View>
           
-          <View style={styles.headerActions}> <FontAwesome name="bell" size={24} color="#cfcfcf"/><View style={styles.shoppingCart}><FontAwesome name="shopping-cart" size={24} color="#f5f9ed" /></View></View>
+          <View style={styles.headerActions}> <FontAwesome name="bell" size={24} color="#cfcfcf"/><View style={styles.shoppingCart}><FontAwesome name="shopping-cart" size={24} color="white" /></View></View>
           
         </View> 
 
