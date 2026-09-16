@@ -2,11 +2,11 @@ import { Image } from 'expo-image';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomTabInset } from '@/constants/theme';
 
-import { FontAwesome } from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+
+import Header from '@/app/Common/header';
 
 const images = {
   hero: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=85',
@@ -43,12 +43,7 @@ export default function HomeScreen() {
   return <View style={styles.container}>
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <View><Text style={styles.brand}><MaterialCommunityIcons name="dumbbell" size={24} color="white" />QA-GYM<Text style={styles.brandDot}>.</Text></Text><Text style={styles.location}><FontAwesome name="map-marker" size={12} color="#7b7c7d"/>  Khoái Châu, Hưng Yên</Text></View>
-          
-          <View style={styles.headerActions}> <FontAwesome name="bell" size={24} color="#cfcfcf"/><View style={styles.shoppingCart}><FontAwesome name="shopping-cart" size={24} color="white" /></View></View>
-          
-        </View> 
+        <Header />
 
         <View style={styles.greeting}><Text style={styles.kicker}>Wellcome</Text><Text style={styles.greetingTitle}>Sẵn sàng bứt phá?</Text><Text style={styles.greetingCopy}>Hôm nay là một ngày tuyệt vời để chăm sóc cơ thể.</Text></View>
 
@@ -82,11 +77,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#101210' },
   safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' },
   content: { paddingHorizontal: 16, paddingBottom: 24},
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, paddingBottom: 24 },
-  brand: { color: '#f3f5ec', fontSize: 21, fontWeight: '900', letterSpacing: 1.2 },
-  brandDot: { color: '#d9ff00' }, location: { color: '#899083', fontSize: 10, marginTop: 5 },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 14 }, headerIcon: { color: '#e9f1e3', fontSize: 23 },
-  shoppingCart: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
   greeting: { marginBottom: 18 }, kicker: { color: '#c1da00', fontSize: 10, fontWeight: '800', letterSpacing: 1.4 }, greetingTitle: { color: '#f4f7ee', fontSize: 25, fontWeight: '800', marginTop: 6 }, greetingCopy: { color: '#9ca599', fontSize: 12, marginTop: 6 },
   heroCard: { height: 204, borderRadius: 14, overflow: 'hidden', marginBottom: 26 }, heroImage: { ...StyleSheet.absoluteFill }, heroShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(8, 15, 10, .62)' }, heroCopy: { flex: 1, padding: 18, justifyContent: 'center' },
   pill: { alignSelf: 'flex-start', backgroundColor: '#c8ed00', borderRadius: 4, paddingHorizontal: 8, paddingVertical: 5, marginBottom: 10 }, pillText: { color: '#192000', fontSize: 9, fontWeight: '900' }, heroTitle: { color: '#fff', fontSize: 24, fontWeight: '900', lineHeight: 26 }, heroDetail: { color: '#d4dbcf', fontSize: 11, marginTop: 7 }, heroButton: { backgroundColor: '#d9ff00', paddingHorizontal: 13, paddingVertical: 9, borderRadius: 4, alignSelf: 'flex-start', marginTop: 13 }, heroButtonText: { color: '#152000', fontSize: 10, fontWeight: '900' },
