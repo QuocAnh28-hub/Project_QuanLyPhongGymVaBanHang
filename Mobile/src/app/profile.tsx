@@ -1,5 +1,6 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -35,8 +36,12 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>THẺ THÀNH VIÊN HIỆN HÀNH</Text><Text style={styles.sectionAction}>ĐANG KÍCH HOẠT</Text></View>
           <View style={styles.passCard}><Text style={styles.passKicker}>QA-GYM PREMIUM</Text><Text style={styles.passName}>DIAMOND ALL-ACCESS PASS</Text><View style={styles.passInfo}><Text style={styles.passLabel}>MÃ THẺ{`\n`}QA24-DA-88992</Text><Text style={styles.passLabel}>HẠN HIỆU LỰC{`\n`}24/12/2026 <Text style={styles.passGreen}>(Còn 248 ngày)</Text></Text></View><View style={styles.progressLabel}><Text style={styles.passMutedText}>Tiến độ gói tập (12 Tháng)</Text><Text style={styles.passMutedText}>68%</Text></View><View style={styles.progressTrack}><View style={styles.progress} /></View><Text style={styles.passBenefits}>ĐẶC QUYỀN BAO GỒM:</Text><View style={styles.benefitPills}><Text style={styles.benefitPill}>◉ Tập 24/7 Không giới hạn</Text><Text style={styles.benefitPill}>◉ Full Group-X & Yoga</Text><Text style={styles.benefitPill}>◉ Sauna Thảo Dược</Text><Text style={styles.benefitPill}>◉ 02 Buổi PT1-1 / Tháng</Text></View><View style={styles.passActions}><Pressable style={styles.darkButton}><Text style={styles.darkButtonText}>▧ Mã QR vào cửa</Text></Pressable><Pressable style={styles.primaryButtonSmall}><Text style={styles.primaryButtonSmallText}>↻ Gia hạn thẻ</Text></Pressable></View></View>
-          <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>▣ LỊCH SỬ GIAO DỊCH GẦN ĐÂY</Text><Text style={styles.sectionAction}>XEM TẤT CẢ</Text></View>
+          <Pressable style={styles.ptBookingButton} onPress={() => router.push('/pt-schedule')} accessibilityLabel="Xem lịch thuê PT"><FontAwesome name="calendar" size={12} color="#182000" /><Text style={styles.ptBookingButtonText}>LỊCH THUÊ PT</Text><FontAwesome name="arrow-right" size={11} color="#182000" /></Pressable>
+          <View style={styles.actionDivider} />
+          <Pressable style={styles.ordersButton} onPress={() => router.push('/orders')} accessibilityLabel="Xem đơn hàng của tôi"><FontAwesome name="shopping-bag" size={12} color="#182000" /><Text style={styles.ordersButtonText}>ĐƠN HÀNG CỦA TÔI</Text><FontAwesome name="arrow-right" size={11} color="#182000" /></Pressable>
+          <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>▣ LỊCH SỬ GIAO DỊCH GẦN ĐÂY</Text></View>
           <View style={styles.transactions}>{transactions.map((transaction) => <View style={styles.transaction} key={transaction[0] + transaction[1]}><Text style={styles.transactionIcon}>{transaction[0]}</Text><View style={styles.transactionCopy}><Text style={styles.transactionTitle}>{transaction[1]} <Text style={styles.success}>Thành công</Text></Text><Text style={styles.transactionName}>{transaction[2]}</Text><Text style={styles.transactionDate}>{transaction[4]}</Text></View><View style={styles.transactionAmount}><Text style={styles.transactionAmountText}>{transaction[3]}</Text><Text style={styles.transactionDetail}>Chi tiết</Text></View></View>)}</View>
+          <Pressable style={styles.viewAllOrdersButton} onPress={() => router.push('/transaction-history')} accessibilityLabel="Xem tất cả giao dịch"><Text style={styles.viewAllOrdersText}>XEM TẤT CẢ</Text><FontAwesome name="arrow-right" size={11} color="#d9ff00" /></Pressable>
         </>
         <View style={styles.pageIntro}><Text style={styles.kicker}>♧ CÀI ĐẶT THÔNG TIN CÁ NHÂN</Text></View>
         <View style={styles.formCard}>
@@ -48,7 +53,7 @@ export default function ProfileScreen() {
           <View style={styles.selectBox}><Text style={styles.selectText}>Tăng cơ siết mỡ (Lean Muscle)</Text><Text style={styles.chevron}>⌄</Text></View>
           <Pressable style={styles.primaryButton}><FontAwesome name="save" size={12} color="#192000" /><Text style={styles.primaryText}>CẬP NHẬT THÔNG TIN</Text></Pressable>
         </View>
-        <View style={styles.menuCard}>{menuItems.map(([icon, label]) => <Pressable style={styles.menuRow} key={label}><FontAwesome name={icon as never} size={14} color="#d9ff00" /><Text style={styles.menuText}>{label}</Text><Text style={styles.menuArrow}>›</Text></Pressable>)}</View>
+        <View style={styles.menuCard}>{menuItems.map(([icon, label]) => <Pressable style={styles.menuRow} key={label} onPress={label === 'Đổi mật khẩu tài khoản' ? () => router.push('/password-change') : undefined} accessibilityRole={label === 'Đổi mật khẩu tài khoản' ? 'button' : undefined}><FontAwesome name={icon as never} size={14} color="#d9ff00" /><Text style={styles.menuText}>{label}</Text><Text style={styles.menuArrow}>›</Text></Pressable>)}</View>
         <Pressable style={styles.logout}><FontAwesome name="sign-out" size={13} color="#ff8d82" /><Text style={styles.logoutText}>Đăng xuất tài khoản</Text></Pressable>
         <Text style={styles.version}>QA-GYM APP V2.4.0 • BUILD FOR CHAMPIONS</Text>
       </ScrollView>
@@ -75,6 +80,8 @@ const styles = StyleSheet.create({
   contact: { color: '#b3beb0', fontSize: 8, marginTop: 8 }, memberStats: { flexDirection: 'row', alignSelf: 'stretch', justifyContent: 'space-around', backgroundColor: '#202521', borderRadius: 8, marginTop: 12, paddingVertical: 9, alignItems: 'center' }, 
   statNumber: { color: '#d9ff00', fontSize: 16, fontWeight: '900', textAlign: 'center' }, statLabel: { color: '#8e998d', fontSize: 7, textAlign: 'center', marginTop: 2 }, 
   sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, marginBottom: 8 }, sectionTitle: { color: '#dce7d6', fontSize: 9, fontWeight: '900' }, sectionAction: { color: '#d9ff00', fontSize: 7, fontWeight: '900' }, 
+  ptBookingButton: { minHeight: 34, borderRadius: 7, backgroundColor: '#caff00', marginTop: 16, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 }, ptBookingButtonText: { color: '#182000', fontSize: 8, fontWeight: '900' }, actionDivider: { height: 1, backgroundColor: '#3a413b', marginTop: 7 }, 
+  ordersButton: { minHeight: 34, borderRadius: 7, backgroundColor: '#caff00', marginTop: 7, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 }, ordersButtonText: { color: '#182000', fontSize: 8, fontWeight: '900' },
   passCard: { backgroundColor: '#252c24', borderRadius: 9, padding: 12 }, passKicker: { color: '#d9ff00', fontSize: 7, fontWeight: '900' }, passName: { color: '#f1f6eb', fontSize: 14, fontWeight: '900', marginTop: 3 }, 
   passInfo: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 14 }, passLabel: { color: '#dce5d8', fontSize: 8, lineHeight: 13 }, passGreen: { color: '#d9ff00' }, passMutedText: { color: '#aeb9aa', fontSize: 7 }, 
   progressLabel: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 15 }, progressTrack: { height: 5, borderRadius: 3, backgroundColor: '#111511', marginTop: 5 }, progress: { width: '68%', height: 5, borderRadius: 3, backgroundColor: '#caff00' }, 
@@ -83,5 +90,6 @@ const styles = StyleSheet.create({
   primaryButtonSmall: { flex: 1, backgroundColor: '#caff00', borderRadius: 7, minHeight: 31, alignItems: 'center', justifyContent: 'center' }, primaryButtonSmallText: { color: '#192000', fontSize: 8, fontWeight: '900' }, transactions: { gap: 7 }, 
   transaction: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1d221f', borderRadius: 8, padding: 9 }, transactionIcon: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#29372a', color: '#d9ff00', textAlign: 'center', paddingTop: 6, marginRight: 8 }, 
   transactionCopy: { flex: 1 }, transactionTitle: { color: '#e5ede2', fontSize: 8, fontWeight: '900' }, success: { color: '#172000', backgroundColor: '#caff00', fontSize: 6, paddingHorizontal: 3 }, transactionName: { color: '#a5b0a2', fontSize: 8, marginTop: 3 }, 
+  viewAllOrdersButton: { minHeight: 32, borderRadius: 7, borderWidth: 1, borderColor: '#566315', backgroundColor: '#1d221f', marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 }, viewAllOrdersText: { color: '#d9ff00', fontSize: 8, fontWeight: '900' },
   transactionDate: { color: '#778378', fontSize: 7, marginTop: 3 }, transactionAmount: { alignItems: 'flex-end' }, transactionAmountText: { color: '#d9ff00', fontSize: 8, fontWeight: '900' }, transactionDetail: { color: '#9ba89a', fontSize: 7, marginTop: 4 },
 });

@@ -1,5 +1,6 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -53,7 +54,7 @@ const trainers = [
 
 type Trainer = (typeof trainers)[number];
 
-function TrainerCard({ trainer }: { trainer: Trainer }) {
+function TrainerCard({ trainer, index }: { trainer: Trainer; index: number }) {
   return <View style={styles.trainerCard}>
     <View style={styles.photoWrap}>
       <Image source={{ uri: trainer.image }} style={styles.photo} contentFit="cover" />
@@ -64,7 +65,7 @@ function TrainerCard({ trainer }: { trainer: Trainer }) {
     <View style={styles.cardBody}>
       <View style={styles.statsRow}>{trainer.stats.map(([icon, label, value]) => <View style={styles.stat} key={label}><Text style={styles.statIcon}>{icon}</Text><View><Text style={styles.statLabel}>{label}</Text><Text style={styles.statValue}>{value}</Text></View></View>)}</View>
       <View style={styles.focus}><Text style={styles.focusLabel}>✺ SỞ TRƯỜNG HUẤN LUYỆN</Text><Text style={styles.focusText}>{trainer.focus}</Text></View>
-      <View style={styles.actions}><Pressable style={styles.detailButton}><Text style={styles.detailText}>Chi tiết →</Text></Pressable><Pressable style={styles.bookButton}><FontAwesome name="calendar-o" size={12} color="#172000" /><Text style={styles.bookText}>Đặt tập thử 1-1</Text></Pressable></View>
+      <View style={styles.actions}><Pressable style={styles.detailButton} onPress={() => router.push({ pathname: '/pt-detail', params: { trainerId: String(index) } })} accessibilityLabel={`Xem chi tiết ${trainer.name}`}><Text style={styles.detailText}>Chi tiết →</Text></Pressable><Pressable style={styles.bookButton}><FontAwesome name="calendar-o" size={12} color="#172000" /><Text style={styles.bookText}>Đặt tập thử 1-1</Text></Pressable></View>
     </View>
   </View>;
 }
@@ -78,7 +79,7 @@ export default function PersonalTrainerScreen() {
         <View style={styles.intro}><Text style={styles.kicker}>✺ ELITE COACHING STAFF</Text><Text style={styles.title}>ĐỘI NGŨ HUẤN LUYỆN VIÊN CÁ{`\n`}NHÂN (PT)</Text><Text style={styles.subtitle}>Đồng hành cùng bạn trên con đường kiến tạo vóc dáng mơ ước</Text></View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterList}>{filters.map((filter) => <Pressable key={filter} onPress={() => setSelectedFilter(filter)} style={[styles.filterChip, selectedFilter === filter && styles.filterChipActive]}><Text style={[styles.filterText, selectedFilter === filter && styles.filterTextActive]}>{filter}</Text></Pressable>)}</ScrollView>
         <View style={styles.promise}><View style={styles.promiseIcon}><FontAwesome name="certificate" size={17} color="#d9ff00" /></View><View style={styles.promiseCopy}><Text style={styles.promiseTitle}>Cam kết vàng 100% <Text style={styles.promiseAccent}>QA-GYM</Text></Text><Text style={styles.promiseText}>100% HLV tại QA-Gym đều có chứng chỉ đào tạo quốc tế & cam kết hiệu quả theo từng lộ trình cá nhân hóa.</Text></View></View>
-        {trainers.map((trainer) => <TrainerCard key={trainer.name} trainer={trainer} />)}
+        {trainers.map((trainer, index) => <TrainerCard key={trainer.name} trainer={trainer} index={index} />)}
         <View style={styles.cta}><View style={styles.ctaIcon}><FontAwesome name="headphones" size={22} color="#172000" /></View><Text style={styles.ctaTitle}>Chưa chắc chắn chọn HLV nào?</Text><Text style={styles.ctaText}>Để QA-Gym đánh giá chỉ số InBody và ghép đôi HLV phù hợp nhất với thể trạng & mục tiêu của bạn.</Text><Pressable style={styles.ctaButton}><Text style={styles.ctaButtonText}>NHẬN TƯ VẤN TRỰC TIẾP</Text></Pressable></View>
       </ScrollView>
     </SafeAreaView>

@@ -14,6 +14,14 @@ export default function RootLayout() {
       <Stack initialRouteName="(tabs)">
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="product-detail" options={{ headerShown: false }} />
+        <Stack.Screen name="cart" options={{ headerShown: false }} />
+        <Stack.Screen name="checkout" options={{ headerShown: false }} />
+        <Stack.Screen name="orders" options={{ headerShown: false }} />
+        <Stack.Screen name="transaction-history" options={{ headerShown: false }} />
+        <Stack.Screen name="password-change" options={{ headerShown: false }} />
+        <Stack.Screen name="pt-detail" options={{ headerShown: false }} />
+        <Stack.Screen name="pt-booking" options={{ headerShown: false }} />
+        <Stack.Screen name="pt-schedule" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );

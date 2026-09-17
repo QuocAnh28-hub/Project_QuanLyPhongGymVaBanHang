@@ -1,5 +1,6 @@
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function Header() {
 	return (
@@ -14,9 +15,9 @@ export default function Header() {
 			</View>
 			<View style={styles.headerActions}>
 				<FontAwesome name="bell" size={24} color="#cfcfcf" />
-				<View style={styles.shoppingCart}>
+				<Pressable style={styles.shoppingCart} onPress={() => router.push('/cart')} accessibilityLabel="Mở giỏ hàng">
 					<FontAwesome name="shopping-cart" size={24} color="#f5f9ed" />
-				</View>
+				</Pressable>
 			</View>
 		</View>
 	);
