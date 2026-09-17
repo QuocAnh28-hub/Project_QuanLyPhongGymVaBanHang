@@ -1,10 +1,14 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Header from '@/app/Common/header';
 import { useAuth } from '@/context/AuthContext';
+import { getEnrollments, type MembershipEnrollment } from '@/lib/membership';
+import { formatVND } from '@/lib/package-logic';
 
 const menuItems = [
   ['history', 'Đổi mật khẩu tài khoản'],
@@ -12,18 +16,16 @@ const menuItems = [
   ['bell-o', 'Cài đặt thông báo & Nhắc lịch tập'],
 ];
 
-const transactions = [
-  ['♘', 'Đơn #QA-8941', 'Rule1 Whey Isolate 5lbs +', '1.670.000đ', '14/10/2028'],
-  ['↗', 'Đơn #QA-8720', 'Đai lưng tập gym + C4+', '1.100.000đ', '03/09/2028'],
-  ['▤', 'Đơn #QA-8105', 'Gia hạn Gói Diamond All-Access...', '15.480.000đ', '14/08/2028'],
-];
-
 function Field({ label, value }: { label: string; value: string }) {
   return <View style={styles.field}><Text style={styles.fieldLabel}>{label}</Text><TextInput value={value} editable={false} style={styles.fieldInput} /></View>;
 }
 
 export default function ProfileScreen() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const [enrollments, setEnrollments] = useState<MembershipEnrollment[]>([]);
+  useFocusEffect(useCallback(() => { let active = true; if (user) getEnrollments(user.email).then(rows => { if (active) setEnrollments(rows); }).catch(() => { if (active) setEnrollments([]); }); return () => { active = false; }; }, [user]));
+  const activeMembership = enrollments.find(row => row.status === 'active');
+  const pendingMembership = enrollments.find(row => row.status === 'pending_payment');
   return <View style={styles.container}>
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
@@ -32,13 +34,13 @@ export default function ProfileScreen() {
         <>
           <View style={styles.memberHero}>
             <View style={styles.memberAvatar}><Image source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&q=85' }} style={styles.memberImage} contentFit="cover" /><View style={styles.camera}><FontAwesome name="camera" size={11} color="#182000" /></View></View>
-            <Text style={styles.memberName}>Nguyễn Tuấn Anh <Text style={styles.verified}>●</Text></Text><Text style={styles.memberTier}>✦ HỘI VIÊN KIM CƯƠNG</Text><Text style={styles.contact}>✉ tuananh.fitness@gmail.com   ☎ 0988 123 456</Text>
+            <Text style={styles.memberName}>{user?.name ?? 'Hội viên QA-Gym'} <Text style={styles.verified}>●</Text></Text><Text style={styles.memberTier}>✦ {activeMembership ? 'HỘI VIÊN KIM CƯƠNG' : 'HỘI VIÊN QA-GYM'}</Text><Text style={styles.contact}>✉ {user?.email}   ☎ {user?.phone}</Text>
             <View style={styles.memberStats}><View><Text style={styles.statNumber}>142</Text><Text style={styles.statLabel}>NGÀY TẬP</Text></View><View><Text style={styles.statNumber}>28</Text><Text style={styles.statLabel}>BUỔI PT</Text></View><View><Text style={styles.statNumber}>3.450</Text><Text style={styles.statLabel}>ĐIỂM TÍCH LŨY</Text></View></View>
           </View>
-          <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>THẺ THÀNH VIÊN HIỆN HÀNH</Text><Text style={styles.sectionAction}>ĐANG KÍCH HOẠT</Text></View>
-          <View style={styles.passCard}><Text style={styles.passKicker}>QA-GYM PREMIUM</Text><Text style={styles.passName}>DIAMOND ALL-ACCESS PASS</Text><View style={styles.passInfo}><Text style={styles.passLabel}>MÃ THẺ{`\n`}QA24-DA-88992</Text><Text style={styles.passLabel}>HẠN HIỆU LỰC{`\n`}24/12/2026 <Text style={styles.passGreen}>(Còn 248 ngày)</Text></Text></View><View style={styles.progressLabel}><Text style={styles.passMutedText}>Tiến độ gói tập (12 Tháng)</Text><Text style={styles.passMutedText}>68%</Text></View><View style={styles.progressTrack}><View style={styles.progress} /></View><Text style={styles.passBenefits}>ĐẶC QUYỀN BAO GỒM:</Text><View style={styles.benefitPills}><Text style={styles.benefitPill}>◉ Tập 24/7 Không giới hạn</Text><Text style={styles.benefitPill}>◉ Full Group-X & Yoga</Text><Text style={styles.benefitPill}>◉ Sauna Thảo Dược</Text><Text style={styles.benefitPill}>◉ 02 Buổi PT1-1 / Tháng</Text></View><View style={styles.passActions}><Pressable style={styles.darkButton}><Text style={styles.darkButtonText}>▧ Mã QR vào cửa</Text></Pressable><Pressable style={styles.primaryButtonSmall}><Text style={styles.primaryButtonSmallText}>↻ Gia hạn thẻ</Text></Pressable></View></View>
-          <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>▣ LỊCH SỬ GIAO DỊCH GẦN ĐÂY</Text><Text style={styles.sectionAction}>XEM TẤT CẢ</Text></View>
-          <View style={styles.transactions}>{transactions.map((transaction) => <View style={styles.transaction} key={transaction[0] + transaction[1]}><Text style={styles.transactionIcon}>{transaction[0]}</Text><View style={styles.transactionCopy}><Text style={styles.transactionTitle}>{transaction[1]} <Text style={styles.success}>Thành công</Text></Text><Text style={styles.transactionName}>{transaction[2]}</Text><Text style={styles.transactionDate}>{transaction[4]}</Text></View><View style={styles.transactionAmount}><Text style={styles.transactionAmountText}>{transaction[3]}</Text><Text style={styles.transactionDetail}>Chi tiết</Text></View></View>)}</View>
+          <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>THẺ THÀNH VIÊN HIỆN HÀNH</Text><Text style={styles.sectionAction}>{activeMembership ? 'ĐANG KÍCH HOẠT' : pendingMembership ? 'CHỜ THANH TOÁN' : 'CHƯA CÓ THẺ'}</Text></View>
+          <View style={styles.passCard}><Text style={styles.passKicker}>QA-GYM PREMIUM</Text><Text style={styles.passName}>{activeMembership?.packageName.toUpperCase() ?? pendingMembership?.packageName.toUpperCase() ?? 'CHƯA CÓ GÓI TẬP'}</Text>{activeMembership || pendingMembership ? <View style={styles.passInfo}><Text style={styles.passLabel}>MÃ ĐĂNG KÝ{`\n`}{(activeMembership ?? pendingMembership)?.id}</Text><Text style={styles.passLabel}>HẠN SỬ DỤNG DỰ KIẾN{`\n`}{(activeMembership ?? pendingMembership)?.expiryDate}</Text></View> : <Text style={styles.passMutedText}>Chọn gói tập để bắt đầu hành trình QA-Gym.</Text>}{pendingMembership && !activeMembership ? <Text style={styles.passBenefits}>Đơn đang chờ thanh toán tại quầy. Thẻ sẽ chỉ kích hoạt sau khi hoàn tất thanh toán.</Text> : null}</View>
+          <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>▣ ĐĂNG KÝ GÓI TẬP GẦN ĐÂY</Text></View>
+          <View style={styles.transactions}>{enrollments.map(row => <View style={styles.transaction} key={row.id}><Text style={styles.transactionIcon}>◇</Text><View style={styles.transactionCopy}><Text style={styles.transactionTitle}>{row.packageName}</Text><Text style={styles.transactionName}>{row.id}</Text><Text style={styles.transactionDate}>{row.createdAt.slice(0, 10)}</Text></View><View style={styles.transactionAmount}><Text style={styles.transactionAmountText}>{formatVND(row.totalPrice)}</Text><Text style={styles.transactionDetail}>{row.status === 'pending_payment' ? 'Chờ thanh toán' : row.status === 'active' ? 'Đang hoạt động' : row.status}</Text></View></View>)}</View>
         </>
         <View style={styles.pageIntro}><Text style={styles.kicker}>♧ CÀI ĐẶT THÔNG TIN CÁ NHÂN</Text></View>
         <View style={styles.formCard}>

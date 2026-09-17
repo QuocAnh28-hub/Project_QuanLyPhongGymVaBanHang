@@ -68,7 +68,7 @@ export const AuthColors = {
   background: '#111316', surfaceLowest: '#0c0e11', surfaceLow: '#1a1c1f',
   surface: '#1e2023', surfaceHigh: '#282a2d', surfaceHighest: '#333538',
   lime: '#c3f400', text: '#e2e2e6', muted: '#c4c9ac', border: '#444933',
-  mint: '#4edea3', success: '#00a572', error: '#ffb4ab',
+  mint: '#4edea3', cyan: '#7bd0ff', success: '#00a572', error: '#ffb4ab',
 } as const;
 
 export const AuthSpacing = { xs: 8, sm: 12, md: 16, lg: 24, xl: 32 } as const;

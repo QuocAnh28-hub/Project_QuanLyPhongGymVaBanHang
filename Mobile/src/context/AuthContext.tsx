@@ -1,6 +1,5 @@
-import * as SecureStore from 'expo-secure-store';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { Platform } from 'react-native';
+import { readLocal, writeLocal } from '@/lib/local-store';
 
 type Account = { name: string; email: string; phone: string; password: string };
 type Recovery = { email: string; verified: boolean };
@@ -21,12 +20,6 @@ const REMEMBERED = 'qa-gym-dev-credential';
 const AuthContext = createContext<AuthValue | null>(null);
 
 // ponytail: local development accounts only; replace this store with server auth before production.
-async function read(key: string) { return Platform.OS === 'web' ? globalThis.localStorage?.getItem(key) ?? null : SecureStore.getItemAsync(key); }
-async function write(key: string, value: string | null) {
-  if (Platform.OS === 'web') { if (value === null) globalThis.localStorage?.removeItem(key); else globalThis.localStorage?.setItem(key, value); }
-  else if (value === null) await SecureStore.deleteItemAsync(key);
-  else await SecureStore.setItemAsync(key, value);
-}
 function identity(account: Account) { const { password: _password, ...user } = account; return user; }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -38,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const [savedAccounts, session, remembered] = await Promise.all([read(ACCOUNTS), read(SESSION), read(REMEMBERED)]);
+        const [savedAccounts, session, remembered] = await Promise.all([readLocal(ACCOUNTS), readLocal(SESSION), readLocal(REMEMBERED)]);
         const list: Account[] = savedAccounts ? JSON.parse(savedAccounts) : [];
         const all = list.length ? list : [SEED];
         setAccounts(all);
@@ -53,8 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const normalized = credential.trim().toLowerCase().replace(/\s/g, '');
     const account = accounts.find(a => (a.email.toLowerCase() === normalized || a.phone.replace(/\s/g, '') === normalized) && a.password === password);
     if (!account) return false;
-    await write(SESSION, account.email);
-    await write(REMEMBERED, remember ? credential.trim() : null);
+    await writeLocal(SESSION, account.email);
+    await writeLocal(REMEMBERED, remember ? credential.trim() : null);
     setSavedCredential(remember ? credential.trim() : '');
     setUser(identity(account));
     return true;
@@ -62,13 +55,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function register(account: Account) {
     if (accounts.some(a => a.email.toLowerCase() === account.email.trim().toLowerCase() || a.phone.replace(/\s/g, '') === account.phone.replace(/\s/g, ''))) return 'Email hoặc số điện thoại đã được sử dụng.';
     const next = [...accounts, { ...account, email: account.email.trim().toLowerCase(), phone: account.phone.replace(/\s/g, '') }];
-    await write(ACCOUNTS, JSON.stringify(next));
+    await writeLocal(ACCOUNTS, JSON.stringify(next));
     setAccounts(next);
-    await write(SESSION, account.email.trim().toLowerCase());
+    await writeLocal(SESSION, account.email.trim().toLowerCase());
     setUser(identity(account));
     return null;
   }
-  async function logout() { await write(SESSION, null); setUser(null); setRecovery(null); }
+  async function logout() { await writeLocal(SESSION, null); setUser(null); setRecovery(null); }
   function beginRecovery(credential: string, method: 'sms' | 'email') {
     const normalized = credential.trim().toLowerCase().replace(/\s/g, '');
     const account = accounts.find(a => method === 'sms' ? a.phone === normalized : a.email === normalized);
@@ -80,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function resetPassword(password: string) {
     if (!recovery?.verified) return false;
     const updated = accounts.map(a => a.email === recovery.email ? { ...a, password } : a);
-    await write(ACCOUNTS, JSON.stringify(updated));
+    await writeLocal(ACCOUNTS, JSON.stringify(updated));
     setAccounts(updated);
     setRecovery(null);
     return true;

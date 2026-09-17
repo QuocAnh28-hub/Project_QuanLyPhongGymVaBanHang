@@ -1,0 +1,513 @@
+<!DOCTYPE html><html class="dark" lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#111316;color:#e2e2e6;}body{overscroll-behavior:none;font-family:'Plus Jakarta Sans',sans-serif;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'tertiary-fixed-dim': '#7bd0ff', 'surface-container-highest': '#333538', 'inverse-surface': '#e2e2e6', 'surface-variant': '#333538', 'primary-fixed-dim': '#abd600', 'surface': '#111316', 'surface-bright': '#37393d', 'outline': '#8e9379', 'primary-fixed': '#c3f400', 'secondary-fixed': '#6ffbbe', 'on-primary': '#283500', 'secondary-fixed-dim': '#4edea3', 'primary': '#ffffff', 'on-tertiary-fixed-variant': '#004c69', 'error-container': '#93000a', 'on-tertiary-container': '#006c93', 'on-error': '#690005', 'on-secondary-fixed': '#002113', 'error': '#ffb4ab', 'on-secondary-fixed-variant': '#005236', 'surface-tint': '#abd600', 'surface-container-low': '#1a1c1f', 'on-surface-variant': '#c4c9ac', 'secondary-container': '#00a572', 'background': '#111316', 'surface-dim': '#111316', 'on-primary-fixed': '#161e00', 'tertiary-container': '#c4e7ff', 'outline-variant': '#444933', 'on-secondary-container': '#00311f', 'on-tertiary': '#00354a', 'secondary': '#4edea3', 'inverse-primary': '#506600', 'on-background': '#e2e2e6', 'on-primary-container': '#556d00', 'on-secondary': '#003824', 'tertiary-fixed': '#c4e7ff', 'surface-container': '#1e2023', 'on-tertiary-fixed': '#001e2c', 'surface-container-lowest': '#0c0e11', 'on-surface': '#e2e2e6', 'on-error-container': '#ffdad6', 'surface-container-high': '#282a2d', 'tertiary': '#ffffff', 'on-primary-fixed-variant': '#3c4d00', 'primary-container': '#c3f400', 'inverse-on-surface': '#2f3034' }, borderRadius: { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, spacing: { 'space-2xl': '3rem', 'space-lg': '1.5rem', 'space-md': '1rem', 'gutter-mobile': '0.75rem', 'space-xl': '2rem', 'space-xs': '0.5rem', 'margin-desktop': '2.5rem', 'margin-tablet': '1.5rem', 'margin-mobile': '1rem', 'space-2xs': '0.25rem', 'gutter-desktop': '1.5rem', 'space-sm': '0.75rem' }, fontFamily: { 'body-sm': ['Plus Jakarta Sans'], 'headline-sm': ['Space Grotesk'], 'display-hero': ['Space Grotesk'], 'label-sm': ['Space Grotesk'], 'headline-lg': ['Space Grotesk'], 'label-lg': ['Space Grotesk'], 'body-md': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'], 'headline-lg-mobile': ['Space Grotesk'], 'headline-md': ['Space Grotesk'], 'label-md': ['Space Grotesk'], 'metric-display': ['Space Grotesk'], 'display-hero-mobile': ['Space Grotesk'] }, fontSize: { 'body-sm': ['12px', { lineHeight: '16px', letterSpacing: '0.01em', fontWeight: '400' }], 'headline-sm': ['18px', { lineHeight: '24px', letterSpacing: '0em', fontWeight: '600' }], 'display-hero': ['48px', { lineHeight: '52px', letterSpacing: '-0.04em', fontWeight: '700' }], 'label-sm': ['10px', { lineHeight: '14px', letterSpacing: '0.06em', fontWeight: '700' }], 'headline-lg': ['32px', { lineHeight: '38px', letterSpacing: '-0.02em', fontWeight: '700' }], 'label-lg': ['14px', { lineHeight: '18px', letterSpacing: '0.02em', fontWeight: '600' }], 'body-md': ['14px', { lineHeight: '20px', letterSpacing: '0em', fontWeight: '400' }], 'body-lg': ['16px', { lineHeight: '24px', letterSpacing: '-0.01em', fontWeight: '400' }], 'headline-lg-mobile': ['26px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '700' }], 'headline-md': ['22px', { lineHeight: '28px', letterSpacing: '-0.01em', fontWeight: '600' }], 'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.04em', fontWeight: '600' }], 'metric-display': ['40px', { lineHeight: '44px', letterSpacing: '-0.03em', fontWeight: '700' }], 'display-hero-mobile': ['36px', { lineHeight: '40px', letterSpacing: '-0.03em', fontWeight: '700' }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 inset-x-0 z-50 bg-surface/85 backdrop-blur-xl pt-safe"><div class="h-16 px-gutter-mobile flex items-center justify-between"><div class="flex items-center gap-space-2xs"><button aria-label="Back" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface hover:text-primary-container transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><h1 class="font-headline-sm text-headline-sm uppercase tracking-tight text-on-surface">Exercise Detail</h1></div><div class="flex items-center gap-space-2xs"><button aria-label="Help &amp; Info" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary-container transition-colors"><span class="material-symbols-outlined text-[22px]">help_outline</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-safe bg-surface px-margin-mobile"><div class="flex flex-col w-full pb-28 space-y-space-md">
+<!-- Micro Action Strip -->
+<div class="flex items-center justify-between py-space-xs">
+<div class="flex items-center gap-space-2xs">
+<span class="inline-flex w-2 h-2 rounded-full bg-primary-container animate-ping"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary-container">Đang áp dụng ưu đãi hè 2025</span>
+</div>
+<div class="flex items-center gap-space-2xs">
+<button aria-label="Lưu vào yêu thích" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface hover:text-primary-container active:scale-95 transition-all" id="favorite-btn">
+<span class="material-symbols-outlined text-[20px]" id="favorite-icon">favorite_border</span>
+</button>
+<button aria-label="Chia sẻ gói tập" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface hover:text-primary-container active:scale-95 transition-all" id="share-btn">
+<span class="material-symbols-outlined text-[20px]">share</span>
+</button>
+</div>
+</div>
+<!-- Hero Package Spotlight Card -->
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low shadow-xl">
+<!-- Ambient glowing backdrop effect -->
+<div class="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-primary-container/15 blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-secondary/10 blur-3xl pointer-events-none"></div>
+<div class="relative p-space-md flex flex-col space-y-space-md">
+<!-- Badge & Tier Icon -->
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center gap-space-2xs px-space-xs py-1 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm tracking-widest shadow-[0_0_16px_rgba(195,244,0,0.35)]">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span>BEST SELLER &amp; TOÀN DIỆN NHẤT</span>
+</div>
+<div class="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center text-primary-container shadow-inner">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">diamond</span>
+</div>
+</div>
+<!-- Plan Title and Studio Atmosphere -->
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">QA-GYM ELITE CLUB</p>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-bold tracking-tight mt-0.5">Diamond All-Access Pass</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Trải nghiệm huấn luyện đỉnh cao không giới hạn tại toàn bộ không gian phòng tập hạng sang.</p>
+</div>
+<!-- Club Visual Peek -->
+<div class="relative w-full h-36 rounded-lg overflow-hidden bg-surface-container-highest">
+<div class="w-full h-full bg-cover bg-center" data-alt="High-end obsidian luxury fitness center interior with glowing neon lime and cyan accent lighting, top-tier black matte gym equipment, sleek free-weight area and moody hyper-modern aesthetic" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD_e_VkS9ttvGAoJkE6LeAdFBCK49Y7UVIFEzJpF7iyac3Ei_RMAg9kvXMvW4AAQ9aUGcN6Ednd0zcV2YWZ3z-dMLkMMyz8o6My84emdI4PqnX5gPFp320g5DI5nAIWSGwg5XNlLsY8MwxjKQKNGD2VnJasyQM5F68DY8rNwqqtYdzSAPWyo2w1T-UQfM_4YzCgz6xIZ8b3UuXnKJU3f6tiYSTu_0U3QN9an44etsbdyLMHkjuYUgLK')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/40 to-transparent"></div>
+<div class="absolute bottom-2.5 left-3 flex items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur font-label-sm text-label-sm text-primary-container flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">schedule</span> Mở cửa 24/7
+          </span>
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur font-label-sm text-label-sm text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">location_on</span> 14 Chi nhánh
+          </span>
+</div>
+</div>
+<!-- Pricing Display -->
+<div class="flex flex-col bg-surface-container-lowest p-space-sm rounded-lg">
+<div class="flex items-baseline gap-space-xs flex-wrap">
+<span class="font-display-hero-mobile text-display-hero-mobile text-primary-container font-bold" id="display-monthly-price">1.290.000₫</span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase">/ tháng</span>
+</div>
+<div class="flex items-center gap-space-xs mt-1">
+<span class="font-body-sm text-body-sm line-through text-outline" id="display-original-price">1.850.000₫</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-container/20 text-primary-container font-label-sm text-label-sm" id="discount-pill">Tiết kiệm 30%</span>
+</div>
+</div>
+<!-- Duration Selector Tabs -->
+<div class="space-y-space-2xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant tracking-wider">Thời hạn đóng gói</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">verified</span> Giá ưu đãi cam kết
+          </span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs" id="duration-selector">
+<!-- 3 Months -->
+<button class="duration-btn relative flex flex-col items-center justify-center p-2.5 rounded-lg bg-surface-container text-left transition-all active:scale-98" data-discount="Tiết kiệm 14%" data-original="1.850.000" data-period="3" data-price="1.590.000" data-total="4.770.000">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">3 Tháng</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 text-center">Cơ bản</span>
+</button>
+<!-- 6 Months -->
+<button class="duration-btn relative flex flex-col items-center justify-center p-2.5 rounded-lg bg-surface-container text-left transition-all active:scale-98" data-discount="Giảm 23%" data-original="1.850.000" data-period="6" data-price="1.420.000" data-total="8.520.000">
+<span class="absolute -top-2.5 right-1 px-1.5 py-0.2 rounded bg-surface-container-highest text-secondary font-label-sm text-[9px] uppercase tracking-wider shadow">Giảm 20%</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">6 Tháng</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 text-center">Bán chạy</span>
+</button>
+<!-- 12 Months (Active Default) -->
+<button class="duration-btn active-period relative flex flex-col items-center justify-center p-2.5 rounded-lg bg-primary-container text-on-primary font-bold shadow-[0_0_16px_rgba(195,244,0,0.3)] transition-all active:scale-98" data-discount="Giảm 35% + Tặng 2th" data-original="1.850.000" data-period="12" data-price="1.290.000" data-total="15.480.000">
+<span class="absolute -top-2.5 right-1 px-1.5 py-0.2 rounded bg-surface-container-lowest text-primary-container font-label-sm text-[9px] uppercase tracking-wider font-bold shadow">Hot Deal</span>
+<span class="font-headline-sm text-headline-sm font-bold">12 Tháng</span>
+<span class="font-label-sm text-label-sm mt-0.5 text-on-primary-container font-semibold text-center">+ Tặng 2 tháng</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Exclusive Privileges -->
+<div class="flex flex-col space-y-space-xs pt-space-xs">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-tight">Đặc quyền hội viên Diamond</h3>
+<span class="font-label-sm text-label-sm text-primary-container">07 Quyền lợi VIP</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Trọn bộ tiện ích 5 sao độc quyền không phát sinh phụ phí.</p>
+<div class="flex flex-col space-y-space-2xs mt-space-2xs">
+<!-- Privilege 1 -->
+<div class="flex items-start gap-space-sm p-space-sm rounded-lg bg-surface-container">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">all_inclusive</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold">Tập luyện không giới hạn 24/7</h4>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-primary-container font-label-sm text-[10px]">ALL CLUBS</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Tự do check-in bất kỳ lúc nào tại toàn bộ 14 chi nhánh QA-Gym trên toàn quốc.</p>
+</div>
+</div>
+<!-- Privilege 2 -->
+<div class="flex items-start gap-space-sm p-space-sm rounded-lg bg-surface-container">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">sports_martial_arts</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold">03 Buổi tập chuyên sâu 1-1</h4>
+<span class="text-secondary font-label-sm text-label-sm font-semibold">Trị giá 1.500.000₫</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Huấn luyện cá nhân hoá cùng HLV Pro Master định hướng giáo án tăng cơ - giảm mỡ.</p>
+</div>
+</div>
+<!-- Privilege 3 -->
+<div class="flex items-start gap-space-sm p-space-sm rounded-lg bg-surface-container">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-tertiary-fixed-dim flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">vital_signs</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold">Phân tích InBody 770 miễn phí</h4>
+<span class="text-outline font-label-sm text-label-sm">Định kỳ tháng</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Theo dõi tỷ lệ mỡ nội tạng, cơ nạc và khối lượng nước chuẩn y khoa qua hệ thống máy InBody 770 cao cấp.</p>
+</div>
+</div>
+<!-- Privilege 4 -->
+<div class="flex items-start gap-space-sm p-space-sm rounded-lg bg-surface-container">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">group_add</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold">Đi cùng 01 bạn đồng hành</h4>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-sm text-[10px]">T7 &amp; CN</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Mang theo 01 người bạn cùng tập luyện và trải nghiệm toàn bộ tiện ích vào mỗi dịp cuối tuần.</p>
+</div>
+</div>
+<!-- Privilege 5 -->
+<div class="flex items-start gap-space-sm p-space-sm rounded-lg bg-surface-container">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-error flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">hot_tub</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold">Tổ hợp Sauna Đá Muối Himalaya</h4>
+<span class="text-secondary font-label-sm text-label-sm">Không giới hạn</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Phục hồi cơ bắp và thanh lọc độc tố với phòng xông khô đá muối Himalaya &amp; xông ướt thảo dược tự nhiên.</p>
+</div>
+</div>
+<!-- Privilege 6 -->
+<div class="flex items-start gap-space-sm p-space-sm rounded-lg bg-surface-container">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-tertiary-fixed-dim flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">local_cafe</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold">Nước Detox, Khăn tập &amp; Smart Locker</h4>
+<span class="text-primary-container font-label-sm text-label-sm">Free Daily</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Cung cấp khăn cotton mềm kháng khuẩn, đồ uống detox ion kiềm và tủ locker thông minh bảo mật RFID.</p>
+</div>
+</div>
+<!-- Privilege 7 -->
+<div class="flex items-start gap-space-sm p-space-sm rounded-lg bg-surface-container">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container flex-shrink-0">
+<span class="material-symbols-outlined text-[22px]">shopping_bag</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-label-lg text-label-lg text-on-surface font-semibold">Giảm 15% tại QA Pro Shop</h4>
+<span class="text-primary-container font-label-sm text-label-sm">-15% MỌI ĐƠN</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Ưu đãi giảm giá độc quyền cho các dòng Whey Protein, Creatine, Pre-workout và phụ kiện nâng tạ cao cấp.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Group-X & Yoga Included -->
+<div class="flex flex-col space-y-space-xs pt-space-xs">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-tight">Lớp Group-X &amp; Yoga đi kèm</h3>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-primary-container font-label-sm text-label-sm">100% Free</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Tham gia không giới hạn số lớp mỗi ngày theo lịch đăng ký qua app.</p>
+<!-- Scrollable Horizontal Carousel -->
+<div class="flex gap-space-xs overflow-x-auto pb-space-xs pt-space-2xs no-scrollbar -mx-margin-mobile px-margin-mobile">
+<!-- Class 1 -->
+<div class="flex-shrink-0 w-52 rounded-lg bg-surface-container p-space-sm flex flex-col space-y-space-xs">
+<div class="relative w-full h-24 rounded overflow-hidden">
+<div class="w-full h-full bg-cover bg-center" data-alt="Intense Les Mills BodyPump barbell workout in dynamic dark studio with neon lime lighting and energetic athletes lifting weights in unison" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDPiogtf7AsfmvbQiWarRWvS0BRu56eYQDO7qi8X1BM-T3p-FDURDCFqwB1RQwhpPD_ND5YmjqN8r55sBIy3TY0oAkaYG3jKOzlVqYvjDk0XylmbNHnhir9YETIEocwZ1K78JCjavX6Rhj46tKifqESSOn_7fsnKysekV_8h7WvySfdij6YArir87KW5lSfg_18MH0JladJI_nUMkHnuHBfaO2O8lcP7073F5oBDXaHhYrYEu6nvM9Y')"></div>
+<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur font-label-sm text-[10px] text-primary-container">Les Mills</span>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface font-bold">BodyPump™</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 line-clamp-2">Đốt cháy 600 calo với các bài nâng tạ nhịp điệu nhanh toàn thân.</p>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-1">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">timer</span> 55 Phút</span>
+<span class="text-primary-container">600 kcal</span>
+</div>
+</div>
+<!-- Class 2 -->
+<div class="flex-shrink-0 w-52 rounded-lg bg-surface-container p-space-sm flex flex-col space-y-space-xs">
+<div class="relative w-full h-24 rounded overflow-hidden">
+<div class="w-full h-full bg-cover bg-center" data-alt="High energy indoor cycling spinning studio with dark ambient neon atmosphere, glowing bikes, and focused athletes pedaling powerfully" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAIwCd8z4lEbjnhU-XA9QiHHrcL_1iXxPIHcbAqSrKnxj5h2pcww-4OQvHHCjua4N-jF2vCkq2CB6ULOd8d6bgsr4VwzC-u89DR97Bvx6zNR2_0mKdWCfDGNh8Apmn81jjqSNBr4PeJelPVFphllgOtagtCVZVPvru0SVr7LFLJ1ik4MIFoYRYhdISFumutyUxpvqhue4DbRu1aPxn-9LoFAnSsv7oxzIia0X_I5PlMZyefC-wBEppw')"></div>
+<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur font-label-sm text-[10px] text-secondary">Cardio Peak</span>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface font-bold">RPM™ Cycling</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 line-clamp-2">Đua xe đạp trong nhà theo nhịp điệu âm nhạc điện tử tràn đầy năng lượng.</p>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-1">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">timer</span> 45 Phút</span>
+<span class="text-secondary">680 kcal</span>
+</div>
+</div>
+<!-- Class 3 -->
+<div class="flex-shrink-0 w-52 rounded-lg bg-surface-container p-space-sm flex flex-col space-y-space-xs">
+<div class="relative w-full h-24 rounded overflow-hidden">
+<div class="w-full h-full bg-cover bg-center" data-alt="Serene luxury yoga studio with gentle warm rim light, wooden accents, focused yogis practicing dynamic power yoga flow" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAeTG1kKagLOnS74pAMLDFlh_X7-gddrL5hyBDFnZRfkwkN5V8vSI5JH8wuM5SsU9CKX5r4mXJfbLNjO4lEuh7aqFV_Ec3lC8iVRus5ofTUqpiX-bwJDajxsPrlmgs_9uT2eEIC1bVGYb1d_XojKlrxyjSUWvYxTD5ATZZVVhCF82VJtNYRBDsSCc4fRfJPT_SjyxFXtcYyUv3mQaUK2H0FVlOdtZl3_pv-8PMrHnQ1Uu6GYYF_uqHZ')"></div>
+<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur font-label-sm text-[10px] text-tertiary-fixed-dim">Mind &amp; Body</span>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface font-bold">Power Yoga</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 line-clamp-2">Tăng cường độ dẻo dai cơ bắp, cân bằng và giảm stress hiệu quả.</p>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-1">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">timer</span> 60 Phút</span>
+<span class="text-tertiary-fixed-dim">350 kcal</span>
+</div>
+</div>
+<!-- Class 4 -->
+<div class="flex-shrink-0 w-52 rounded-lg bg-surface-container p-space-sm flex flex-col space-y-space-xs">
+<div class="relative w-full h-24 rounded overflow-hidden">
+<div class="w-full h-full bg-cover bg-center" data-alt="Fierce kickboxing training zone with heavy punching bags, dark interior with sharp electric lime accents, athletes throwing powerful strikes" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBli_SQ6CTIw-xv8UDefwso5woalmJ53B1spPhzCkKhE6w0gonoqu1RXDpi05P_lspTMKJliCM5E4zoJkRkrT3g27gmU6PpNBFEALQp8WsEeKpWSSCKFBRkmnIUPSmmFDXOndj9Gz6fPcYLtwiSSddChxEz8Q0UJwYz1jx40J6TqNddVROr7QYNWq61dmxtywYb6OtfYwGQFbCSikIL0unWkz6uFvMWvnOjdyfFTeM6Bcs2nSOrpUMF')"></div>
+<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur font-label-sm text-[10px] text-error">Combat</span>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface font-bold">Boxing Kickfit</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 line-clamp-2">Kỹ thuật đấm đá đối kháng kết hợp rèn luyện sức bền tốc độ cao.</p>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-1">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">timer</span> 50 Phút</span>
+<span class="text-error">720 kcal</span>
+</div>
+</div>
+<!-- Class 5 -->
+<div class="flex-shrink-0 w-52 rounded-lg bg-surface-container p-space-sm flex flex-col space-y-space-xs">
+<div class="relative w-full h-24 rounded overflow-hidden">
+<div class="w-full h-full bg-cover bg-center" data-alt="Vibrant neon club workout session with dancing group fitness participants moving under hypnotic purple and lime stage beams" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDUEkcs3U2R5Ve21AwhlE8W83EGBMhVkI1W_H64rk-pK2kP6IF1-2t7ZVWBEhPM6cWiz9j7HRmwgY3p94O011FGIBeFRGdStj_w1g0jqXAMCG2wWtr5l1kzcUWC2kUg_LxHxNyW593owpXuAb2IaHm8yvOSlwnOHizSrT8rvARvXSoHgn2pJvH9qbc3FrQ2T4ZujSVtNlJd7FR3Cl47zGEX9wGDTe_ga-59ix-kjkIKVpqTiJGeR9If')"></div>
+<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur font-label-sm text-[10px] text-primary-fixed">Dance High</span>
+</div>
+<div>
+<h4 class="font-label-lg text-label-lg text-on-surface font-bold">Zumba Neon Beats</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 line-clamp-2">Bùng nổ cùng vũ đạo latin cuồng nhiệt dưới hệ thống âm thanh vòm club.</p>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-1">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">timer</span> 50 Phút</span>
+<span class="text-primary-container">550 kcal</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Member Reviews & Community Proof -->
+<div class="flex flex-col space-y-space-xs pt-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<h3 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-tight">Đánh giá từ hội viên</h3>
+<div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-primary-container font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>4.9</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">850+ Hội viên</span>
+</div>
+<div class="grid grid-cols-1 gap-space-2xs">
+<!-- Review 1 -->
+<div class="p-space-sm rounded-lg bg-surface-container space-y-space-2xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-full bg-cover bg-center overflow-hidden" data-alt="Portrait headshot of an athletic Southeast Asian young man in black gym outfit smiling confidently in studio lighting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDgW7UghR9zy3c6smyFV-FafLuDjfJ-uYcOUnFFjCrbIi_32Hjd8D-DRbJWVGeM9SYC6TaLcBZ-qQLvmRRlFVIr88_gqjQk-ZfPG2iCihNyxZdIclOGr1X3hogXE8jqhF-ZzKCE41e9CRmZaboyvbP_wxu0dDkaZAB9FJsCEGOHBh58PGl62A5QaYnkU2yekNIKb3x2Ko7nSnd4bt12qfNHOCvC2wRos6lK6LzVmpXloO-xHlFZIdq6')"></div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Trần Quốc Nam</span>
+<span class="px-1.5 py-0.2 rounded bg-primary-container/20 text-primary-container font-label-sm text-[9px] uppercase font-semibold">Đã xác thực</span>
+</div>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Hội viên Diamond • 14 tháng tập</span>
+</div>
+</div>
+<div class="flex text-primary-container">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface">"Gói Diamond cực kỳ đáng tiền! Cơ sở vật chất chuẩn quốc tế, phòng sauna đá muối sau mỗi buổi tập nặng giúp hồi phục cơ siêu nhanh. Mình thường dắt bạn đi tập cùng vào Chủ nhật rất vui."</p>
+</div>
+<!-- Review 2 -->
+<div class="p-space-sm rounded-lg bg-surface-container space-y-space-2xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-9 h-9 rounded-full bg-cover bg-center overflow-hidden" data-alt="Portrait of an energetic Asian fitness woman with ponytail in sleek training apparel against a dark modern gym backdrop" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB2Jy58Aa9RIkzL_wfb6fkfGCvee46zkiLRpHaGnlE9RcZBfw-WF4m07Rtc9smvHT-PURVTzV4zq39uyrHExrTOznONZqPXNzTTXSlfATQluQlsGg_aOJ9sQrRWGs1TWl32Pvajg69OQl8jYhQvUamMn9eJvXsj9hWbzK9B-eoXySCBTJOoBJRwrfPf3IGYiELFFGdO1LLh2EtFp51YY2Ul2HcAWzLhpuu12Rqd9AxK4_iEcYRqGiUZ')"></div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">Hoàng Thảo My</span>
+<span class="px-1.5 py-0.2 rounded bg-primary-container/20 text-primary-container font-label-sm text-[9px] uppercase font-semibold">Đã xác thực</span>
+</div>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Hội viên Diamond • 8 tháng tập</span>
+</div>
+</div>
+<div class="flex text-primary-container">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface">"3 buổi 1-1 với Pro Master chỉnh lại hoàn toàn form Deadlift và Squat cho mình. Lớp Yoga và RPM phòng studio âm thanh siêu đỉnh, không hề nhàm chán!"</p>
+</div>
+</div>
+</div>
+<!-- Section: Flexible Policy & Guarantee -->
+<div class="p-space-md rounded-xl bg-surface-container-low space-y-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[20px] text-primary-container">verified_user</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-tight">Cam kết &amp; Chính sách linh hoạt</h3>
+</div>
+<div class="grid grid-cols-1 gap-space-xs">
+<!-- Policy Item 1 -->
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-secondary mt-0.5">pause_circle</span>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">Bảo lưu thẻ tập tối đa 60 ngày</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Thoải mái tạm ngưng khi bận công tác hoặc du lịch dài ngày mà không mất số ngày tập.</p>
+</div>
+</div>
+<!-- Policy Item 2 -->
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-secondary mt-0.5">swap_horiz</span>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">Chuyển nhượng hợp đồng dễ dàng</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Hỗ trợ chuyển đổi chủ sở hữu gói tập nhanh gọn tại quầy lễ tân bất kỳ chi nhánh nào.</p>
+</div>
+</div>
+<!-- Policy Item 3 -->
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-secondary mt-0.5">credit_score</span>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">Trả góp 0% lãi suất qua thẻ tín dụng</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Kỳ hạn linh hoạt 3, 6, 9 hoặc 12 tháng liên kết cùng 25+ ngân hàng nội địa và quốc tế.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Bottom Checkout Bar -->
+<div class="fixed bottom-0 inset-x-0 z-40 bg-surface-container-lowest/95 backdrop-blur-xl p-gutter-mobile pb-safe">
+<div class="max-w-md mx-auto flex items-center gap-space-sm">
+<!-- Dynamic Price Summary -->
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tổng ước tính</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md text-primary-container font-bold" id="bottom-summary-price">15.480.000₫</span>
+</div>
+<span class="font-body-sm text-[11px] text-secondary-fixed truncate" id="bottom-period-label">Gói 12 tháng + 2 tháng tặng</span>
+</div>
+<!-- Main Athletic Neon CTA Button -->
+<button class="flex-1 h-12 px-space-md rounded-xl bg-primary-container text-on-primary font-label-lg text-label-lg font-bold uppercase tracking-wider flex items-center justify-center gap-space-2xs shadow-[0_0_20px_rgba(195,244,0,0.35)] hover:bg-primary-fixed active:scale-98 transition-all" id="cta-enroll-btn">
+<span>Đăng Ký Ngay</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Interactive Feedback Toast (Hidden by default) -->
+<div class="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-space-md py-2.5 rounded-full bg-surface-container-high text-on-surface font-body-sm text-body-sm shadow-2xl flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300" id="toast">
+<span class="material-symbols-outlined text-[18px] text-primary-container" id="toast-icon">check_circle</span>
+<span id="toast-msg">Đã thêm vào mục yêu thích!</span>
+</div>
+</div>
+<script>
+  (function() {
+    // Duration selector switching logic
+    const durationButtons = document.querySelectorAll('.duration-btn');
+    const displayMonthlyPrice = document.getElementById('display-monthly-price');
+    const displayOriginalPrice = document.getElementById('display-original-price');
+    const discountPill = document.getElementById('discount-pill');
+    const bottomSummaryPrice = document.getElementById('bottom-summary-price');
+    const bottomPeriodLabel = document.getElementById('bottom-period-label');
+    const favoriteBtn = document.getElementById('favorite-btn');
+    const favoriteIcon = document.getElementById('favorite-icon');
+    const shareBtn = document.getElementById('share-btn');
+    const ctaBtn = document.getElementById('cta-enroll-btn');
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-msg');
+    const toastIcon = document.getElementById('toast-icon');
+
+    function showToast(message, iconName = 'check_circle') {
+      if (!toast) return;
+      toastMsg.textContent = message;
+      toastIcon.textContent = iconName;
+      toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+        toast.classList.remove('opacity-100');
+      }, 2400);
+    }
+
+    durationButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        durationButtons.forEach(b => {
+          b.classList.remove('active-period', 'bg-primary-container', 'text-on-primary', 'shadow-[0_0_16px_rgba(195,244,0,0.3)]');
+          b.classList.add('bg-surface-container', 'text-on-surface');
+          const title = b.querySelector('.font-headline-sm');
+          if (title) title.classList.remove('text-on-primary');
+        });
+
+        btn.classList.add('active-period', 'bg-primary-container', 'text-on-primary', 'shadow-[0_0_16px_rgba(195,244,0,0.3)]');
+        btn.classList.remove('bg-surface-container');
+
+        const period = btn.getAttribute('data-period');
+        const price = btn.getAttribute('data-price');
+        const original = btn.getAttribute('data-original');
+        const discount = btn.getAttribute('data-discount');
+        const total = btn.getAttribute('data-total');
+
+        if (displayMonthlyPrice) displayMonthlyPrice.textContent = price + '₫';
+        if (displayOriginalPrice) displayOriginalPrice.textContent = original + '₫';
+        if (discountPill) discountPill.textContent = discount;
+        if (bottomSummaryPrice) bottomSummaryPrice.textContent = total + '₫';
+        
+        if (bottomPeriodLabel) {
+          if (period === '12') {
+            bottomPeriodLabel.textContent = 'Gói 12 tháng + 2 tháng tặng';
+          } else {
+            bottomPeriodLabel.textContent = 'Gói thanh toán ' + period + ' tháng';
+          }
+        }
+      });
+    });
+
+    // Favorite micro-interaction
+    let isFavorited = false;
+    if (favoriteBtn && favoriteIcon) {
+      favoriteBtn.addEventListener('click', () => {
+        isFavorited = !isFavorited;
+        if (isFavorited) {
+          favoriteIcon.textContent = 'favorite';
+          favoriteIcon.style.fontVariationSettings = "'FILL' 1";
+          favoriteBtn.classList.add('text-primary-container');
+          showToast('Đã lưu gói Diamond All-Access vào danh sách yêu thích!', 'favorite');
+        } else {
+          favoriteIcon.textContent = 'favorite_border';
+          favoriteIcon.style.fontVariationSettings = "'FILL' 0";
+          favoriteBtn.classList.remove('text-primary-container');
+          showToast('Đã bỏ lưu gói tập.', 'bookmark_remove');
+        }
+      });
+    }
+
+    // Share micro-interaction
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async () => {
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: 'Diamond All-Access Pass | QA-Gym',
+              text: 'Đặc quyền tập gym 24/7 và tiện ích 5 sao tại QA-Gym với giá chỉ từ 1.290.000₫/tháng!',
+              url: window.location.href,
+            });
+          } catch (err) {
+            showToast('Đã sao chép liên kết gói tập!', 'link');
+          }
+        } else {
+          showToast('Đã sao chép liên kết vào clipboard!', 'content_copy');
+        }
+      });
+    }
+
+    // CTA Submit Interaction
+    if (ctaBtn) {
+      ctaBtn.addEventListener('click', () => {
+        ctaBtn.classList.add('scale-95');
+        setTimeout(() => ctaBtn.classList.remove('scale-95'), 150);
+        showToast('Chuyển tiếp đến trang thanh toán an toàn...', 'lock');
+      });
+    }
+  })();
+</script></main></body></html>
