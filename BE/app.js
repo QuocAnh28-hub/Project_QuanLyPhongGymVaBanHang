@@ -1,57 +1,146 @@
+const path = require('path');
+const dotenv = require('dotenv');
+
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 const express = require('express');
+const cors = require('cors');
+const db = require('./common/db');
 
 const app = express();
+const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || '0.0.0.0';
 
-app.use(express.json());
+app.disable('x-powered-by');
 
-const apdungkhuyenmaidonhangRouter = require('./routers/apdungkhuyenmaidonhang.router');
-const apdungkhuyenmaigoitapRouter = require('./routers/apdungkhuyenmaigoitap.router');
-const apdungkhuyenmaiptRouter = require('./routers/apdungkhuyenmaipt.router');
-const checkinRouter = require('./routers/checkin.router');
-const chitietdonhangRouter = require('./routers/chitietdonhang.router');
-const chitietgiohangRouter = require('./routers/chitietgiohang.router');
-const chitietphieunhapRouter = require('./routers/chitietphieunhap.router');
-const dangkygoitapRouter = require('./routers/dangkygoitap.router');
-const danhmucRouter = require('./routers/danhmuc.router');
-const donhangRouter = require('./routers/donhang.router');
-const giohangRouter = require('./routers/giohang.router');
-const goitapRouter = require('./routers/goitap.router');
-const hoadonRouter = require('./routers/hoadon.router');
-const hoivienRouter = require('./routers/hoivien.router');
-const khoRouter = require('./routers/kho.router');
-const khuyenmaiRouter = require('./routers/khuyenmai.router');
-const lichptRouter = require('./routers/lichpt.router');
-const maqrRouter = require('./routers/maqr.router');
-const nhanvienRouter = require('./routers/nhanvien.router');
-const phieunhapRouter = require('./routers/phieunhap.router');
-const ptRouter = require('./routers/pt.router');
-const sanphamRouter = require('./routers/sanpham.router');
-const taikhoanRouter = require('./routers/taikhoan.router');
-const thanhtoanRouter = require('./routers/thanhtoan.router');
-const thueptRouter = require('./routers/thuept.router');
+const corsOrigins = (process.env.CORS_ORIGINS || '*')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-app.use('/apdungkhuyenmaidonhang', apdungkhuyenmaidonhangRouter);
-app.use('/apdungkhuyenmaigoitap', apdungkhuyenmaigoitapRouter);
-app.use('/apdungkhuyenmaipt', apdungkhuyenmaiptRouter);
-app.use('/checkin', checkinRouter);
-app.use('/chitietdonhang', chitietdonhangRouter);
-app.use('/chitietgiohang', chitietgiohangRouter);
-app.use('/chitietphieunhap', chitietphieunhapRouter);
-app.use('/dangkygoitap', dangkygoitapRouter);
-app.use('/danhmuc', danhmucRouter);
-app.use('/donhang', donhangRouter);
-app.use('/giohang', giohangRouter);
-app.use('/goitap', goitapRouter);
-app.use('/hoadon', hoadonRouter);
-app.use('/hoivien', hoivienRouter);
-app.use('/kho', khoRouter);
-app.use('/khuyenmai', khuyenmaiRouter);
-app.use('/lichpt', lichptRouter);
-app.use('/maqr', maqrRouter);
-app.use('/nhanvien', nhanvienRouter);
-app.use('/phieunhap', phieunhapRouter);
-app.use('/pt', ptRouter);
-app.use('/sanpham', sanphamRouter);
-app.use('/taikhoan', taikhoanRouter);
-app.use('/thanhtoan', thanhtoanRouter);
-app.use('/thuept', thueptRouter);
+const corsOptions = {
+  origin(origin, callback) {
+    // Native apps/Postman/curl thường không gửi Origin.
+    if (!origin || corsOrigins.includes('*') || corsOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    const error = new Error(`Origin không được CORS cho phép: ${origin}`);
+    error.status = 403;
+    return callback(error);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+app.get('/', (req, res) => {
+  res.json({
+    message: 'QA-Gym Backend API đang chạy',
+    health: '/health'
+  });
+});
+
+app.get('/health', (req, res) => {
+  db.query('SELECT 1 AS ok', (err) => {
+    if (err) {
+      return res.status(503).json({
+        status: 'degraded',
+        api: 'ok',
+        database: 'error',
+        message: err.message
+      });
+    }
+
+    return res.json({
+      status: 'ok',
+      api: 'ok',
+      database: 'ok'
+    });
+  });
+});
+
+const routes = [
+  ['/apdungkhuyenmaidonhang', './routes/apdungkhuyenmaidonhang.route'],
+  ['/apdungkhuyenmaigoitap', './routes/apdungkhuyenmaigoitap.route'],
+  ['/apdungkhuyenmaipt', './routes/apdungkhuyenmaipt.route'],
+  ['/checkin', './routes/checkin.route'],
+  ['/chitietdonhang', './routes/chitietdonhang.route'],
+  ['/chitietgiohang', './routes/chitietgiohang.route'],
+  ['/chitietphieunhap', './routes/chitietphieunhap.route'],
+  ['/dangkygoitap', './routes/dangkygoitap.route'],
+  ['/danhmuc', './routes/danhmuc.route'],
+  ['/donhang', './routes/donhang.route'],
+  ['/giohang', './routes/giohang.route'],
+  ['/goitap', './routes/goitap.route'],
+  ['/hoadon', './routes/hoadon.route'],
+  ['/hoivien', './routes/hoivien.route'],
+  ['/kho', './routes/kho.route'],
+  ['/khuyenmai', './routes/khuyenmai.route'],
+  ['/lichpt', './routes/lichpt.route'],
+  ['/maqr', './routes/maqr.route'],
+  ['/nhanvien', './routes/nhanvien.route'],
+  ['/phieunhap', './routes/phieunhap.route'],
+  ['/pt', './routes/pt.route'],
+  ['/sanpham', './routes/sanpham.route'],
+  ['/taikhoan', './routes/taikhoan.route'],
+  ['/thanhtoan', './routes/thanhtoan.route'],
+  ['/thuept', './routes/thuept.route']
+];
+
+routes.forEach(([basePath, modulePath]) => {
+  app.use(basePath, require(modulePath));
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    message: 'Không tìm thấy API',
+    method: req.method,
+    path: req.originalUrl
+  });
+});
+
+// Error handler cuối cùng: bắt lỗi JSON, CORS và lỗi middleware/route chưa xử lý.
+app.use((err, req, res, next) => {
+  console.error('❌ Backend error:', err);
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const status = err.status || (err.type === 'entity.parse.failed' ? 400 : 500);
+
+  return res.status(status).json({
+    message: status === 400 ? 'Dữ liệu JSON không hợp lệ' : (err.message || 'Lỗi máy chủ'),
+    ...(process.env.NODE_ENV !== 'production' && { error: err.message })
+  });
+});
+
+let server;
+
+if (require.main === module) {
+  server = app.listen(PORT, HOST, () => {
+    console.log(`🚀 QA-Gym API: http://${HOST}:${PORT}`);
+    console.log(`🩺 Health check: http://localhost:${PORT}/health`);
+  });
+
+  const shutdown = (signal) => {
+    console.log(`\n${signal} - đang đóng backend...`);
+    server.close(() => {
+      db.end(() => {
+        console.log('✅ Đã đóng HTTP server và MySQL pool.');
+        process.exit(0);
+      });
+    });
+  };
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+}
+
+module.exports = app;
