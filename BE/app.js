@@ -1,0 +1,57 @@
+const express = require('express');
+
+const app = express();
+
+app.use(express.json());
+
+const apdungkhuyenmaidonhangRouter = require('./routers/apdungkhuyenmaidonhang.router');
+const apdungkhuyenmaigoitapRouter = require('./routers/apdungkhuyenmaigoitap.router');
+const apdungkhuyenmaiptRouter = require('./routers/apdungkhuyenmaipt.router');
+const checkinRouter = require('./routers/checkin.router');
+const chitietdonhangRouter = require('./routers/chitietdonhang.router');
+const chitietgiohangRouter = require('./routers/chitietgiohang.router');
+const chitietphieunhapRouter = require('./routers/chitietphieunhap.router');
+const dangkygoitapRouter = require('./routers/dangkygoitap.router');
+const danhmucRouter = require('./routers/danhmuc.router');
+const donhangRouter = require('./routers/donhang.router');
+const giohangRouter = require('./routers/giohang.router');
+const goitapRouter = require('./routers/goitap.router');
+const hoadonRouter = require('./routers/hoadon.router');
+const hoivienRouter = require('./routers/hoivien.router');
+const khoRouter = require('./routers/kho.router');
+const khuyenmaiRouter = require('./routers/khuyenmai.router');
+const lichptRouter = require('./routers/lichpt.router');
+const maqrRouter = require('./routers/maqr.router');
+const nhanvienRouter = require('./routers/nhanvien.router');
+const phieunhapRouter = require('./routers/phieunhap.router');
+const ptRouter = require('./routers/pt.router');
+const sanphamRouter = require('./routers/sanpham.router');
+const taikhoanRouter = require('./routers/taikhoan.router');
+const thanhtoanRouter = require('./routers/thanhtoan.router');
+const thueptRouter = require('./routers/thuept.router');
+
+app.use('/apdungkhuyenmaidonhang', apdungkhuyenmaidonhangRouter);
+app.use('/apdungkhuyenmaigoitap', apdungkhuyenmaigoitapRouter);
+app.use('/apdungkhuyenmaipt', apdungkhuyenmaiptRouter);
+app.use('/checkin', checkinRouter);
+app.use('/chitietdonhang', chitietdonhangRouter);
+app.use('/chitietgiohang', chitietgiohangRouter);
+app.use('/chitietphieunhap', chitietphieunhapRouter);
+app.use('/dangkygoitap', dangkygoitapRouter);
+app.use('/danhmuc', danhmucRouter);
+app.use('/donhang', donhangRouter);
+app.use('/giohang', giohangRouter);
+app.use('/goitap', goitapRouter);
+app.use('/hoadon', hoadonRouter);
+app.use('/hoivien', hoivienRouter);
+app.use('/kho', khoRouter);
+app.use('/khuyenmai', khuyenmaiRouter);
+app.use('/lichpt', lichptRouter);
+app.use('/maqr', maqrRouter);
+app.use('/nhanvien', nhanvienRouter);
+app.use('/phieunhap', phieunhapRouter);
+app.use('/pt', ptRouter);
+app.use('/sanpham', sanphamRouter);
+app.use('/taikhoan', taikhoanRouter);
+app.use('/thanhtoan', thanhtoanRouter);
+app.use('/thuept', thueptRouter);
