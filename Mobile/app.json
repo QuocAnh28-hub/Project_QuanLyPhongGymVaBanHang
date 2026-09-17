@@ -34,12 +34,9 @@
           "imageWidth": 76
         }
       ],
-<<<<<<< HEAD
       "expo-image",
-      "expo-web-browser"
-=======
+      "expo-web-browser",
       "expo-secure-store"
->>>>>>> origin/HoangLe1
     ],
     "experiments": {
       "typedRoutes": true,

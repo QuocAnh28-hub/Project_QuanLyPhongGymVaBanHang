@@ -31,6 +31,14 @@ function AuthStack() {
         <Stack.Screen name="package-detail" />
         <Stack.Screen name="package-enrollment" />
         <Stack.Screen name="package-payment" />
+        <Stack.Screen name="cart" />
+        <Stack.Screen name="checkout" />
+        <Stack.Screen name="orders" />
+        <Stack.Screen name="transaction-history" />
+        <Stack.Screen name="password-change" />
+        <Stack.Screen name="pt-detail" />
+        <Stack.Screen name="pt-booking" />
+        <Stack.Screen name="pt-schedule" />
       </Stack.Protected>
     </Stack>
   </>;
@@ -39,23 +47,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-<<<<<<< HEAD
-      <AnimatedSplashOverlay />
-      <Stack initialRouteName="(tabs)">
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="product-detail" options={{ headerShown: false }} />
-        <Stack.Screen name="cart" options={{ headerShown: false }} />
-        <Stack.Screen name="checkout" options={{ headerShown: false }} />
-        <Stack.Screen name="orders" options={{ headerShown: false }} />
-        <Stack.Screen name="transaction-history" options={{ headerShown: false }} />
-        <Stack.Screen name="password-change" options={{ headerShown: false }} />
-        <Stack.Screen name="pt-detail" options={{ headerShown: false }} />
-        <Stack.Screen name="pt-booking" options={{ headerShown: false }} />
-        <Stack.Screen name="pt-schedule" options={{ headerShown: false }} />
-      </Stack>
-=======
       <AuthProvider><AuthStack /></AuthProvider>
->>>>>>> origin/HoangLe1
     </ThemeProvider>
   );
 }

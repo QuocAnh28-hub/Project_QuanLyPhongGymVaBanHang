@@ -1,13 +1,13 @@
+import { enrollmentGifts, getPackageById, homeClubs } from '@/constants/package-detail';
+import { AuthColors as C } from '@/constants/theme';
+import { useAuth } from '@/context/AuthContext';
+import { createEnrollment, type PaymentMethod } from '@/lib/membership';
+import { calculatePrice, findVoucher, formatVND, getDuration, localDate, startOfDay, validateMemberForm, type Voucher } from '@/lib/package-logic';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { enrollmentGifts, getPackageById, homeClubs } from '@/constants/package-detail';
-import { AuthColors as C } from '@/constants/theme';
-import { useAuth } from '@/context/AuthContext';
-import { calculatePrice, findVoucher, formatVND, getDuration, localDate, startOfDay, validateMemberForm, type Voucher } from '@/lib/package-logic';
-import { createEnrollment, type PaymentMethod } from '@/lib/membership';
 
 type Errors = Partial<Record<'name' | 'phone' | 'email' | 'activationDate' | 'homeClubId' | 'terms' | 'submit', string>>;
 const methods: { id: PaymentMethod; icon: keyof typeof Ionicons.glyphMap; title: string; detail: string; badge?: string }[] = [
