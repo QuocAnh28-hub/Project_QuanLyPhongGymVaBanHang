@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Header from '@/app/Common/header';
+import { diamondPackage } from '@/constants/package-detail';
 
 const durations = ['1 Tháng', '3 Tháng', '6 Tháng', '12 Tháng'];
 
@@ -22,9 +24,9 @@ function BenefitRow({ children, icon }: { children: string[]; icon: string }) {
   );
 }
 
-function PlanButton({ children, muted = false }: { children: string; muted?: boolean }) {
+function PlanButton({ children, muted = false, onPress }: { children: string; muted?: boolean; onPress?: () => void }) {
   return (
-    <Pressable style={[styles.planButton, muted && styles.mutedButton]}>
+    <Pressable style={[styles.planButton, muted && styles.mutedButton]} onPress={onPress}>
       <Text style={[styles.planButtonText, muted && styles.mutedButtonText]}>{children}</Text>
       <Text style={styles.buttonArrow}>{muted ? '◌' : '↗'}</Text>
     </Pressable>
@@ -82,7 +84,7 @@ export default function PackagesScreen() {
             <View style={styles.benefits}>
               {['Toàn bộ quyền lợi của Gold VIP', 'Miễn phí 02 buổi tập 1-1 cùng Huấn luyện viên cá nhân (PT)', 'Được dẫn theo 01 người bạn đi tập cùng mỗi tháng', 'Khăn tắm lạnh & Nước detox thường hạng miễn phí mỗi buổi', 'Quyền ưu tiên phục hồi bất kỳ hạng Lounge VIP sang trọng'].map((text, index) => <BenefitRow key={index} icon={['◉', '✦', '♧', '▾', '◫'][index]}>{[text]}</BenefitRow>)}
             </View>
-            <PlanButton muted>ĐĂNG KÝ DIAMOND</PlanButton>
+            <PlanButton muted onPress={() => router.push({ pathname: '/package-detail', params: { id: diamondPackage.id } })}>XEM CHI TIẾT DIAMOND</PlanButton>
           </View>
 
           <View style={styles.planCard}>

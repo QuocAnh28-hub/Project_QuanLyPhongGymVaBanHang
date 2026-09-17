@@ -12,11 +12,20 @@
     "expo-constants": "~57.0.17",
     "expo-device": "~57.0.2",
     "expo-font": "~57.0.3",
+<<<<<<< HEAD
     "expo-glass-effect": "~57.0.3",
     "expo-image": "~57.0.5",
     "expo-linking": "~57.0.10",
     "expo-router": "~57.0.21",
     "expo-splash-screen": "~57.0.9",
+=======
+    "expo-glass-effect": "~57.0.2",
+    "expo-image": "~57.0.4",
+    "expo-linking": "~57.0.9",
+    "expo-router": "~57.0.20",
+    "expo-secure-store": "~57.0.4",
+    "expo-splash-screen": "~57.0.8",
+>>>>>>> origin/HoangLe1
     "expo-status-bar": "~57.0.1",
     "expo-symbols": "~57.0.3",
     "expo-system-ui": "~57.0.4",

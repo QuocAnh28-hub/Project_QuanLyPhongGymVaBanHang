@@ -1,10 +1,14 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Header from '@/app/Common/header';
+import { useAuth } from '@/context/AuthContext';
+import { getEnrollments, type MembershipEnrollment } from '@/lib/membership';
+import { formatVND } from '@/lib/package-logic';
 
 const menuItems = [
   ['history', 'Đổi mật khẩu tài khoản'],
@@ -12,17 +16,16 @@ const menuItems = [
   ['bell-o', 'Cài đặt thông báo & Nhắc lịch tập'],
 ];
 
-const transactions = [
-  ['♘', 'Đơn #QA-8941', 'Rule1 Whey Isolate 5lbs +', '1.670.000đ', '14/10/2028'],
-  ['↗', 'Đơn #QA-8720', 'Đai lưng tập gym + C4+', '1.100.000đ', '03/09/2028'],
-  ['▤', 'Đơn #QA-8105', 'Gia hạn Gói Diamond All-Access...', '15.480.000đ', '14/08/2028'],
-];
-
 function Field({ label, value }: { label: string; value: string }) {
   return <View style={styles.field}><Text style={styles.fieldLabel}>{label}</Text><TextInput value={value} editable={false} style={styles.fieldInput} /></View>;
 }
 
 export default function ProfileScreen() {
+  const { logout, user } = useAuth();
+  const [enrollments, setEnrollments] = useState<MembershipEnrollment[]>([]);
+  useFocusEffect(useCallback(() => { let active = true; if (user) getEnrollments(user.email).then(rows => { if (active) setEnrollments(rows); }).catch(() => { if (active) setEnrollments([]); }); return () => { active = false; }; }, [user]));
+  const activeMembership = enrollments.find(row => row.status === 'active');
+  const pendingMembership = enrollments.find(row => row.status === 'pending_payment');
   return <View style={styles.container}>
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
@@ -30,8 +33,8 @@ export default function ProfileScreen() {
         <View style={styles.personalDivider}><Text style={styles.kicker}>♙ HỒ SƠ HỘI VIÊN</Text></View>
         <>
           <View style={styles.memberHero}>
-            <View style={styles.memberAvatar}><Image source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300&q=85' }} style={styles.memberImage} contentFit="cover" /><View style={styles.camera}><FontAwesome name="camera" size={11} color="#182000" /></View></View>
-            <Text style={styles.memberName}>Nguyễn Tuấn Anh <Text style={styles.verified}>●</Text></Text><Text style={styles.memberTier}>✦ HỘI VIÊN KIM CƯƠNG</Text><Text style={styles.contact}>✉ tuananh.fitness@gmail.com   ☎ 0988 123 456</Text>
+            <View style={styles.memberAvatar}><Image source={require('../../assets/images/icon.png')} style={styles.memberImage} contentFit="cover" /><View style={styles.camera}><FontAwesome name="camera" size={11} color="#182000" /></View></View>
+            <Text style={styles.memberName}>{user?.name ?? 'Hội viên QA-Gym'}</Text><Text style={styles.memberTier}>✦ {activeMembership ? 'HỘI VIÊN KIM CƯƠNG' : 'HỘI VIÊN QA-GYM'}</Text><Text style={styles.contact}>✉ {user?.email}   ☎ {user?.phone}</Text>
             <View style={styles.memberStats}><View><Text style={styles.statNumber}>142</Text><Text style={styles.statLabel}>NGÀY TẬP</Text></View><View><Text style={styles.statNumber}>28</Text><Text style={styles.statLabel}>BUỔI PT</Text></View><View><Text style={styles.statNumber}>3.450</Text><Text style={styles.statLabel}>ĐIỂM TÍCH LŨY</Text></View></View>
           </View>
           <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>THẺ THÀNH VIÊN HIỆN HÀNH</Text><Text style={styles.sectionAction}>ĐANG KÍCH HOẠT</Text></View>
@@ -40,7 +43,6 @@ export default function ProfileScreen() {
           <View style={styles.actionDivider} />
           <Pressable style={styles.ordersButton} onPress={() => router.push('/orders')} accessibilityLabel="Xem đơn hàng của tôi"><FontAwesome name="shopping-bag" size={12} color="#182000" /><Text style={styles.ordersButtonText}>ĐƠN HÀNG CỦA TÔI</Text><FontAwesome name="arrow-right" size={11} color="#182000" /></Pressable>
           <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>▣ LỊCH SỬ GIAO DỊCH GẦN ĐÂY</Text></View>
-          <View style={styles.transactions}>{transactions.map((transaction) => <View style={styles.transaction} key={transaction[0] + transaction[1]}><Text style={styles.transactionIcon}>{transaction[0]}</Text><View style={styles.transactionCopy}><Text style={styles.transactionTitle}>{transaction[1]} <Text style={styles.success}>Thành công</Text></Text><Text style={styles.transactionName}>{transaction[2]}</Text><Text style={styles.transactionDate}>{transaction[4]}</Text></View><View style={styles.transactionAmount}><Text style={styles.transactionAmountText}>{transaction[3]}</Text><Text style={styles.transactionDetail}>Chi tiết</Text></View></View>)}</View>
           <Pressable style={styles.viewAllOrdersButton} onPress={() => router.push('/transaction-history')} accessibilityLabel="Xem tất cả giao dịch"><Text style={styles.viewAllOrdersText}>XEM TẤT CẢ</Text><FontAwesome name="arrow-right" size={11} color="#d9ff00" /></Pressable>
         </>
         <View style={styles.pageIntro}><Text style={styles.kicker}>♧ CÀI ĐẶT THÔNG TIN CÁ NHÂN</Text></View>
