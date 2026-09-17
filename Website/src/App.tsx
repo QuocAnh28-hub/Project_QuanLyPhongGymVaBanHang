@@ -1,121 +1,118 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import Header from './components/Header'
+import Navigation from './components/Navigation'
 import './App.css'
 
+const metrics = [
+  {
+    eyebrow: 'TỔNG QUAN HỘI VIÊN',
+    title: 'Hội viên Active',
+    value: '25.840',
+    trend: '↗ +148 mới tuần này',
+  },
+  {
+    eyebrow: 'DOANH THU HỆ THỐNG',
+    title: 'Doanh thu MTD',
+    value: '1.845.600.000',
+    trend: '↗ +18,2% vượt KPIs',
+  },
+  {
+    eyebrow: 'LƯỢT CHECK-IN HÔM NAY',
+    title: 'Turnstile Live',
+    value: '1.428',
+    trend: '● Hiện có mặt: 312',
+  },
+  {
+    eyebrow: 'QA PRO SHOP',
+    title: 'Đơn hàng',
+    value: '38',
+    trend: '● Hoàn tất: 24 đơn',
+  },
+]
+
+const clubs = ['Vincom Đồng Khởi Q.1', 'QA Gym Landmark 81', 'QA Gym Phú Nhuận']
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [activePage, setActivePage] = useState('Dashboard')
+  const pageTitle = activePage === 'Dashboard' ? 'TRUNG TÂM ĐIỀU HÀNH & GIÁM SÁT TOÀN DIỆN' : activePage.toUpperCase()
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <main className="app-shell">
+      <Navigation activeItem={activePage} onNavigate={setActivePage} />
 
-      <div className="ticks"></div>
+      <section className="workspace">
+        <Header />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
+        <div className="page-content">
+          <section className="welcome-card">
+            <div>
+              <span className="live">LIVE STREAM V4.2</span>
+              <span className="telemetry">● Telemetry Ingest: 4 CLB Connected</span>
+              <h1>{pageTitle}</h1>
+              <p>Quản lý vận hành phòng tập tập trung, hiệu quả và theo thời gian thực.</p>
+            </div>
+
+            <div className="quick-actions">
+              <button className="primary">♙ &nbsp; Thêm hội viên mới</button>
+              <button>▦ &nbsp; Quét Check-in</button>
+              <button>♜ &nbsp; Tạo đơn Pro Shop</button>
+              <button>⇩ &nbsp; Xuất báo cáo ngày</button>
+            </div>
+
+            <div className="status-strip">
+              <b>▣ &nbsp; Hôm nay, 24/10/2025</b>
+              <span>◷ &nbsp; 15:42:02 <small>REALTIME SYNC</small></span>
+              <label>
+                PHẠM VI CƠ SỞ
+                <select>
+                  <option>Toàn hệ thống (4 cơ sở)</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section className="metrics">
+            {metrics.map(({ eyebrow, title, value, trend }) => (
+              <article className="metric-card" key={title}>
+                <span className="eyebrow">{eyebrow}</span>
+                <h2>{title}</h2>
+                <strong>{value}</strong>
+                <em>{trend}</em>
+                <div className="metric-footer">
+                  Hiệu suất đang được cập nhật<br />
+                  <b>Realtime 100% online</b>
+                </div>
+              </article>
+            ))}
+          </section>
+
+          <section className="lower-grid">
+            <article className="chart-card">
+              <span className="eyebrow">PERFORMANCE TRACKING</span>
+              <h2>Xu hướng Doanh thu & Chỉ tiêu Tháng 10/2025</h2>
+              <div className="chart">
+                {Array.from({ length: 7 }).map((_, index) => <span key={index} />)}
+              </div>
+            </article>
+
+            <article className="club-card">
+              <h2>▦ &nbsp; Tình trạng 4 Cơ sở CLB</h2>
+              {clubs.map((club, index) => {
+                const capacity = 82 - index * 11
+
+                return (
+                  <div className="club-line" key={club}>
+                    <b>{club}</b>
+                    <span>{capacity}%</span>
+                    <i style={{ width: `${capacity}%` }} />
+                  </div>
+                )
+              })}
+            </article>
+          </section>
         </div>
       </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </main>
   )
 }
 
