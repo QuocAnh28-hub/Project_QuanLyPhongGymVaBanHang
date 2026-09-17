@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Header from '@/app/Common/header';
+import { useAuth } from '@/context/AuthContext';
 
 const menuItems = [
   ['history', 'Đổi mật khẩu tài khoản'],
@@ -22,6 +23,7 @@ function Field({ label, value }: { label: string; value: string }) {
 }
 
 export default function ProfileScreen() {
+  const { logout } = useAuth();
   return <View style={styles.container}>
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
@@ -49,7 +51,7 @@ export default function ProfileScreen() {
           <Pressable style={styles.primaryButton}><FontAwesome name="save" size={12} color="#192000" /><Text style={styles.primaryText}>CẬP NHẬT THÔNG TIN</Text></Pressable>
         </View>
         <View style={styles.menuCard}>{menuItems.map(([icon, label]) => <Pressable style={styles.menuRow} key={label}><FontAwesome name={icon as never} size={14} color="#d9ff00" /><Text style={styles.menuText}>{label}</Text><Text style={styles.menuArrow}>›</Text></Pressable>)}</View>
-        <Pressable style={styles.logout}><FontAwesome name="sign-out" size={13} color="#ff8d82" /><Text style={styles.logoutText}>Đăng xuất tài khoản</Text></Pressable>
+        <Pressable style={styles.logout} onPress={logout}><FontAwesome name="sign-out" size={13} color="#ff8d82" /><Text style={styles.logoutText}>Đăng xuất tài khoản</Text></Pressable>
         <Text style={styles.version}>QA-GYM APP V2.4.0 • BUILD FOR CHAMPIONS</Text>
       </ScrollView>
     </SafeAreaView>
