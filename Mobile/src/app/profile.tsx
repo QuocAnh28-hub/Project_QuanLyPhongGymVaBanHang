@@ -6,7 +6,9 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Header from '@/app/Common/header';
+import { getPackageById } from '@/constants/package-detail';
 import { useAuth } from '@/context/AuthContext';
+import { getCheckInHistory } from '@/lib/check-in';
 import { getEnrollments, type MembershipEnrollment } from '@/lib/membership';
 
 const menuItems = [
@@ -21,9 +23,14 @@ function Field({ label, value }: { label: string; value: string }) {
 
 export default function ProfileScreen() {
   const { logout, user } = useAuth();
+  const [today] = useState(() => new Date());
   const [enrollments, setEnrollments] = useState<MembershipEnrollment[]>([]);
-  useFocusEffect(useCallback(() => { let active = true; if (user) getEnrollments(user.email).then(rows => { if (active) setEnrollments(rows); }).catch(() => { if (active) setEnrollments([]); }); return () => { active = false; }; }, [user]));
+  const [checkInCount, setCheckInCount] = useState(0);
+  useFocusEffect(useCallback(() => { let active = true; if (user) Promise.all([getEnrollments(user.email), getCheckInHistory(user.email)]).then(([rows, history]) => { if (active) { setEnrollments(rows); setCheckInCount(history.length); } }).catch(() => { if (active) { setEnrollments([]); setCheckInCount(0); } }); return () => { active = false; }; }, [user]));
   const activeMembership = enrollments.find(row => row.status === 'active');
+  const activePackage = activeMembership ? getPackageById(activeMembership.packageId) : null;
+  const remainingDays = activeMembership ? Math.max(0, Math.ceil((new Date(`${activeMembership.expiryDate}T00:00:00`).getTime() - today.getTime()) / 86400000)) : 0;
+  async function handleLogout() { await logout(); router.replace('/login'); }
   return <View style={styles.container}>
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
@@ -31,12 +38,12 @@ export default function ProfileScreen() {
         <View style={styles.personalDivider}><Text style={styles.kicker}>♙ HỒ SƠ HỘI VIÊN</Text></View>
         <>
           <View style={styles.memberHero}>
-            <View style={styles.memberAvatar}><Image source={require('../../assets/images/icon.png')} style={styles.memberImage} contentFit="cover" /><View style={styles.camera}><FontAwesome name="camera" size={11} color="#182000" /></View></View>
+          <View style={styles.memberAvatar}><Image source={user?.avatar ? { uri: user.avatar } : require('../../assets/images/icon.png')} style={styles.memberImage} contentFit="cover" /><View style={styles.camera}><FontAwesome name="camera" size={11} color="#182000" /></View></View>
             <Text style={styles.memberName}>{user?.name ?? 'Hội viên QA-Gym'}</Text><Text style={styles.memberTier}>✦ {activeMembership ? 'HỘI VIÊN KIM CƯƠNG' : 'HỘI VIÊN QA-GYM'}</Text><Text style={styles.contact}>✉ {user?.email}   ☎ {user?.phone}</Text>
-            <View style={styles.memberStats}><View><Text style={styles.statNumber}>142</Text><Text style={styles.statLabel}>NGÀY TẬP</Text></View><View><Text style={styles.statNumber}>28</Text><Text style={styles.statLabel}>BUỔI PT</Text></View><View><Text style={styles.statNumber}>3.450</Text><Text style={styles.statLabel}>ĐIỂM TÍCH LŨY</Text></View></View>
+            <View style={styles.memberStats}><View><Text style={styles.statNumber}>{checkInCount}</Text><Text style={styles.statLabel}>BUỔI TẬP</Text></View><View><Text style={styles.statNumber}>0</Text><Text style={styles.statLabel}>BUỔI PT</Text></View><View><Text style={styles.statNumber}>{activeMembership ? remainingDays : 0}</Text><Text style={styles.statLabel}>NGÀY CÒN LẠI</Text></View></View>
           </View>
-          <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>THẺ THÀNH VIÊN HIỆN HÀNH</Text><Text style={styles.sectionAction}>ĐANG KÍCH HOẠT</Text></View>
-          <View style={styles.passCard}><Text style={styles.passKicker}>QA-GYM PREMIUM</Text><Text style={styles.passName}>DIAMOND ALL-ACCESS PASS</Text><View style={styles.passInfo}><Text style={styles.passLabel}>MÃ THẺ{`\n`}QA24-DA-88992</Text><Text style={styles.passLabel}>HẠN HIỆU LỰC{`\n`}24/12/2026 <Text style={styles.passGreen}>(Còn 248 ngày)</Text></Text></View><View style={styles.progressLabel}><Text style={styles.passMutedText}>Tiến độ gói tập (12 Tháng)</Text><Text style={styles.passMutedText}>68%</Text></View><View style={styles.progressTrack}><View style={styles.progress} /></View><Text style={styles.passBenefits}>ĐẶC QUYỀN BAO GỒM:</Text><View style={styles.benefitPills}><Text style={styles.benefitPill}>◉ Tập 24/7 Không giới hạn</Text><Text style={styles.benefitPill}>◉ Full Group-X & Yoga</Text><Text style={styles.benefitPill}>◉ Sauna Thảo Dược</Text><Text style={styles.benefitPill}>◉ 02 Buổi PT1-1 / Tháng</Text></View><View style={styles.passActions}><Pressable style={styles.darkButton}><Text style={styles.darkButtonText}>▧ Mã QR vào cửa</Text></Pressable><Pressable style={styles.primaryButtonSmall}><Text style={styles.primaryButtonSmallText}>↻ Gia hạn thẻ</Text></Pressable></View></View>
+          <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>THẺ THÀNH VIÊN HIỆN HÀNH</Text><Text style={styles.sectionAction}>{activeMembership ? 'ĐANG KÍCH HOẠT' : 'CHƯA CÓ THẺ'}</Text></View>
+          <View style={styles.passCard}><Text style={styles.passKicker}>{activePackage?.tier ?? 'QA-GYM MEMBERSHIP'}</Text><Text style={styles.passName}>{activeMembership?.packageName.toUpperCase() ?? 'CHƯA CÓ GÓI TẬP HOẠT ĐỘNG'}</Text>{activeMembership ? <><View style={styles.passInfo}><Text style={styles.passLabel}>MÃ THẺ{`\n`}{activeMembership.id.replace('QA-MEM-', 'QA-')}</Text><Text style={styles.passLabel}>HẠN HIỆU LỰC{`\n`}{new Date(`${activeMembership.expiryDate}T00:00:00`).toLocaleDateString('vi-VN')} <Text style={styles.passGreen}>(Còn {remainingDays} ngày)</Text></Text></View><Text style={styles.passBenefits}>ĐẶC QUYỀN BAO GỒM:</Text><View style={styles.benefitPills}>{activePackage?.privileges.slice(0, 4).map(item => <Text style={styles.benefitPill} key={item.id}>◉ {item.title}</Text>)}</View></> : <Text style={styles.passMutedText}>Đơn chờ thanh toán không tạo mã vào cửa.</Text>}<View style={styles.passActions}><Pressable style={styles.darkButton} onPress={() => router.push('/check-in-pass')}><Text style={styles.darkButtonText}>▧ MÃ QR VÀO CỬA</Text></Pressable><Pressable style={styles.primaryButtonSmall} onPress={() => router.push('/membership-detail')}><Text style={styles.primaryButtonSmallText}>CHI TIẾT THẺ</Text></Pressable></View></View>
           <Pressable style={styles.ptBookingButton} onPress={() => router.push('/pt-schedule')} accessibilityLabel="Xem lịch thuê PT"><FontAwesome name="calendar" size={12} color="#182000" /><Text style={styles.ptBookingButtonText}>LỊCH THUÊ PT</Text><FontAwesome name="arrow-right" size={11} color="#182000" /></Pressable>
           <View style={styles.actionDivider} />
           <Pressable style={styles.ordersButton} onPress={() => router.push('/orders')} accessibilityLabel="Xem đơn hàng của tôi"><FontAwesome name="shopping-bag" size={12} color="#182000" /><Text style={styles.ordersButtonText}>ĐƠN HÀNG CỦA TÔI</Text><FontAwesome name="arrow-right" size={11} color="#182000" /></Pressable>
@@ -45,16 +52,16 @@ export default function ProfileScreen() {
         </>
         <View style={styles.pageIntro}><Text style={styles.kicker}>♧ CÀI ĐẶT THÔNG TIN CÁ NHÂN</Text></View>
         <View style={styles.formCard}>
-          <Field label="HỌ VÀ TÊN" value="Nguyễn Tuấn Anh" />
-          <Field label="ĐỊA CHỈ EMAIL" value="tuananh.fitness@gmail.com" />
-          <Field label="SỐ ĐIỆN THOẠI" value="0988 123 456" />
-          <View style={styles.tripleRow}><Field label="CHIỀU CAO" value="178 cm" /><Field label="CÂN NẶNG" value="74 kg" /><Field label="NGÀY SINH" value="12/09/1998" /></View>
+          <Field label="HỌ VÀ TÊN" value={user?.name ?? ''} />
+          <Field label="ĐỊA CHỈ EMAIL" value={user?.email ?? ''} />
+          <Field label="SỐ ĐIỆN THOẠI" value={user?.phone ?? ''} />
+          <View style={styles.tripleRow}><Field label="CHIỀU CAO" value={user?.height ? `${user.height} cm` : 'Chưa cập nhật'} /><Field label="CÂN NẶNG" value={user?.weight ? `${user.weight} kg` : 'Chưa cập nhật'} /><Field label="NGÀY SINH" value={user?.birthDate ?? 'Chưa cập nhật'} /></View>
           <Text style={styles.fieldLabel}>MỤC TIÊU THỂ HÌNH</Text>
-          <View style={styles.selectBox}><Text style={styles.selectText}>Tăng cơ siết mỡ (Lean Muscle)</Text><Text style={styles.chevron}>⌄</Text></View>
+          <View style={styles.selectBox}><Text style={styles.selectText}>{user?.fitnessGoal ?? 'Chưa cập nhật'}</Text><Text style={styles.chevron}>⌄</Text></View>
           <Pressable style={styles.primaryButton}><FontAwesome name="save" size={12} color="#192000" /><Text style={styles.primaryText}>CẬP NHẬT THÔNG TIN</Text></Pressable>
         </View>
         <View style={styles.menuCard}>{menuItems.map(([icon, label]) => <Pressable style={styles.menuRow} key={label} onPress={label === 'Đổi mật khẩu tài khoản' ? () => router.push('/password-change') : undefined} accessibilityRole={label === 'Đổi mật khẩu tài khoản' ? 'button' : undefined}><FontAwesome name={icon as never} size={14} color="#d9ff00" /><Text style={styles.menuText}>{label}</Text><Text style={styles.menuArrow}>›</Text></Pressable>)}</View>
-        <Pressable style={styles.logout} onPress={() => void logout()} accessibilityRole="button" accessibilityLabel="Đăng xuất tài khoản"><FontAwesome name="sign-out" size={13} color="#ff8d82" /><Text style={styles.logoutText}>Đăng xuất tài khoản</Text></Pressable>
+        <Pressable style={styles.logout} onPress={handleLogout} accessibilityRole="button" accessibilityLabel="Đăng xuất tài khoản"><FontAwesome name="sign-out" size={13} color="#ff8d82" /><Text style={styles.logoutText}>Đăng xuất tài khoản</Text></Pressable>
         <Text style={styles.version}>QA-GYM APP V2.4.0 • BUILD FOR CHAMPIONS</Text>
       </ScrollView>
     </SafeAreaView>

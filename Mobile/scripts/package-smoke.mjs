@@ -25,7 +25,7 @@ await waitFor(`document.body.innerText.includes('Chào mừng trở lại')`, 'l
 await fill('vd: 0988xxxxxx hoặc email@gym.vn', 'admin@qagym.vn');
 await fill('••••••••', '12345678');
 await click('ĐĂNG NHẬP NGAY');
-await waitFor(`document.body.innerText.includes('Sẵn sàng bứt phá?')`, 'home');
+await waitFor(`document.body.innerText.includes('HỒ SƠ HỘI VIÊN')`, 'member profile');
 await send('Page.navigate', { url: 'http://127.0.0.1:8091/packages' });
 await waitFor(`document.body.innerText.includes('XEM CHI TIẾT DIAMOND')`, 'packages');
 await click('XEM CHI TIẾT DIAMOND');

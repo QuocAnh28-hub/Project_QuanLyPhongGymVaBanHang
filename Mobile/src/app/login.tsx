@@ -18,12 +18,12 @@ export default function Login() {
   async function handleLogin() {
     if (!credential.trim() || !password) { setError('Vui lòng nhập tài khoản và mật khẩu.'); return; }
     setSubmitting(true);
-    try { if (!await login(credential, password, remember)) setError('Tài khoản hoặc mật khẩu không đúng.'); }
+    try { if (await login(credential, password, remember)) router.replace('/(tabs)/profile'); else setError('Tài khoản hoặc mật khẩu không đúng.'); }
     catch { setError('Không thể lưu phiên đăng nhập. Vui lòng thử lại.'); }
     finally { setSubmitting(false); }
   }
   function handleBiometricLogin() { /* TODO: connect native biometric authentication. */ }
-  return <AuthScreen>
+  return <AuthScreen showHeader={false}>
     <View style={s.hero}><Image source={hero} style={StyleSheet.absoluteFill} resizeMode="cover" /><View style={s.heroShade} /><View style={s.heroBottomShade} /><View style={s.heroBadge}><Ionicons name="flash" size={17} color={C.lime} /><Text style={s.heroBadgeText}>HIIT • HYPERTROPHY • ELITE</Text></View><View style={s.heroDot} /></View>
     <View style={s.kickerRow}><View style={s.iconBox}><Ionicons name="barbell" size={20} color={C.lime} /></View><Text style={authStyles.kicker}>ATHLETIC MATRIX</Text></View>
     <Text style={authStyles.title}>Chào mừng trở lại</Text><Text style={[authStyles.description, s.intro]}>Đăng nhập để tiếp tục hành trình bứt phá giới hạn cùng QA-Gym.</Text>

@@ -31,6 +31,9 @@ function AuthStack() {
         <Stack.Screen name="package-detail" />
         <Stack.Screen name="package-enrollment" />
         <Stack.Screen name="package-payment" />
+        <Stack.Screen name="check-in-pass" />
+        <Stack.Screen name="check-in-history" />
+        <Stack.Screen name="membership-detail" />
         <Stack.Screen name="cart" />
         <Stack.Screen name="checkout" />
         <Stack.Screen name="orders" />
@@ -39,6 +42,7 @@ function AuthStack() {
         <Stack.Screen name="pt-detail" />
         <Stack.Screen name="pt-booking" />
         <Stack.Screen name="pt-schedule" />
+        <Stack.Screen name="admin" />
       </Stack.Protected>
     </Stack>
   </>;

@@ -1,19 +1,20 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { readLocal, writeLocal } from '@/lib/local-store';
 
-type Account = { name: string; email: string; phone: string; password: string };
+type Account = { name: string; email: string; phone: string; password: string; role: 'member'; avatar: string | null; height: number | null; weight: number | null; birthDate: string | null; fitnessGoal: string | null };
+type Registration = Pick<Account, 'name' | 'email' | 'phone' | 'password'>;
 type Recovery = { email: string; verified: boolean };
 type AuthValue = {
   ready: boolean; user: Omit<Account, 'password'> | null; savedCredential: string;
   login: (credential: string, password: string, remember: boolean) => Promise<boolean>;
-  register: (account: Account) => Promise<string | null>;
+  register: (account: Registration) => Promise<string | null>;
   logout: () => Promise<void>;
   beginRecovery: (credential: string, method: 'sms' | 'email') => string | null;
   verifyOtp: (code: string) => boolean;
   resetPassword: (password: string) => Promise<boolean>;
   recovery: Recovery | null;
 };
-const SEED: Account = { name: 'QA-Gym Admin', email: 'admin@qagym.vn', phone: '0988123678', password: '12345678' };
+const SEED: Account = { name: 'Nguyễn Tuấn Anh', email: 'admin@qagym.vn', phone: '0988123678', password: '12345678', role: 'member', avatar: null, height: 178, weight: 74, birthDate: '1998-09-12', fitnessGoal: 'Tăng cơ siết mỡ (Lean Muscle)' };
 const ACCOUNTS = 'qa-gym-dev-accounts';
 const SESSION = 'qa-gym-dev-session';
 const REMEMBERED = 'qa-gym-dev-credential';
@@ -21,6 +22,10 @@ const AuthContext = createContext<AuthValue | null>(null);
 
 // ponytail: local development accounts only; replace this store with server auth before production.
 function identity(account: Account) { const { password: _password, ...user } = account; return user; }
+function asMember(account: Registration & Partial<Account>): Account {
+  const profile = account.email.toLowerCase() === SEED.email ? SEED : { avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
+  return { ...profile, ...account, role: 'member' };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -33,7 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const [savedAccounts, session, remembered] = await Promise.all([readLocal(ACCOUNTS), readLocal(SESSION), readLocal(REMEMBERED)]);
         const list: Account[] = savedAccounts ? JSON.parse(savedAccounts) : [];
-        const all = list.length ? list : [SEED];
+        const all = list.length ? list.map(asMember) : [SEED];
+        if (list.length) await writeLocal(ACCOUNTS, JSON.stringify(all));
         setAccounts(all);
         const active = all.find(a => a.email === session);
         setUser(active ? identity(active) : null);
@@ -52,13 +58,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(identity(account));
     return true;
   }
-  async function register(account: Account) {
+  async function register(account: Registration) {
     if (accounts.some(a => a.email.toLowerCase() === account.email.trim().toLowerCase() || a.phone.replace(/\s/g, '') === account.phone.replace(/\s/g, ''))) return 'Email hoặc số điện thoại đã được sử dụng.';
-    const next = [...accounts, { ...account, email: account.email.trim().toLowerCase(), phone: account.phone.replace(/\s/g, '') }];
+    const next = [...accounts, asMember({ ...account, email: account.email.trim().toLowerCase(), phone: account.phone.replace(/\s/g, '') })];
     await writeLocal(ACCOUNTS, JSON.stringify(next));
     setAccounts(next);
     await writeLocal(SESSION, account.email.trim().toLowerCase());
-    setUser(identity(account));
+    setUser(identity(next[next.length - 1]));
     return null;
   }
   async function logout() { await writeLocal(SESSION, null); setUser(null); setRecovery(null); }

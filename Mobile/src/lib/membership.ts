@@ -14,6 +14,7 @@ const ENROLLMENTS = 'qa-gym-memberships'; const FAVORITES = 'qa-gym-package-favo
 export async function getFavorite(packageId: string) { const ids: string[] = JSON.parse(await readLocal(FAVORITES) ?? '[]'); return ids.includes(packageId); }
 export async function setFavorite(packageId: string, favorite: boolean) { const ids: string[] = JSON.parse(await readLocal(FAVORITES) ?? '[]'); await writeLocal(FAVORITES, JSON.stringify(favorite ? [...new Set([...ids, packageId])] : ids.filter(id => id !== packageId))); }
 export async function getEnrollments(userId: string) { const rows: MembershipEnrollment[] = JSON.parse(await readLocal(ENROLLMENTS) ?? '[]'); return rows.filter(row => row.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+export async function getActiveMembership(userId: string) { return (await getEnrollments(userId)).find(row => row.status === 'active') ?? null; }
 export async function getEnrollment(userId: string, id: string) { return (await getEnrollments(userId)).find(row => row.id === id) ?? null; }
 export async function createEnrollment(input: EnrollmentInput) {
   const rows: MembershipEnrollment[] = JSON.parse(await readLocal(ENROLLMENTS) ?? '[]');

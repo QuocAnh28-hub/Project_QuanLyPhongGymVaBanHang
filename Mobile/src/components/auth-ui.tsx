@@ -5,8 +5,8 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthColors as C, AuthRadius as R, AuthSpacing as S } from '@/constants/theme';
 
-export function AuthScreen({ children }: { children: ReactNode }) {
-  return <SafeAreaView style={s.safe} edges={['top', 'bottom']}><KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}><AuthHeader />{children}</ScrollView></KeyboardAvoidingView></SafeAreaView>;
+export function AuthScreen({ children, showHeader = true }: { children: ReactNode; showHeader?: boolean }) {
+  return <SafeAreaView style={s.safe} edges={['top', 'bottom']}><KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>{showHeader ? <AuthHeader /> : null}{children}</ScrollView></KeyboardAvoidingView></SafeAreaView>;
 }
 export function AuthHeader() {
   return <View style={s.header}><Pressable accessibilityLabel="Quay lại" onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} hitSlop={12}><Ionicons name="arrow-back" size={26} color={C.text} /></Pressable><View style={s.brand}><Text style={s.brandText}>QA-GYM</Text><View style={s.dot} /></View><View style={s.avatar}><Ionicons name="person-outline" size={20} color="#283500" /></View></View>;
