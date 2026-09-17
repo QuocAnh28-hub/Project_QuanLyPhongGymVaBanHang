@@ -18,7 +18,7 @@ export default function Login() {
   async function handleLogin() {
     if (!credential.trim() || !password) { setError('Vui lòng nhập tài khoản và mật khẩu.'); return; }
     setSubmitting(true);
-    try { if (await login(credential, password, remember)) router.replace('/(tabs)/profile'); else setError('Tài khoản hoặc mật khẩu không đúng.'); }
+    try { if (await login(credential, password, remember)) router.replace('/(tabs)'); else setError('Tài khoản hoặc mật khẩu không đúng.'); }
     catch { setError('Không thể lưu phiên đăng nhập. Vui lòng thử lại.'); }
     finally { setSubmitting(false); }
   }
