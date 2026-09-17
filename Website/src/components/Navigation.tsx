@@ -6,6 +6,7 @@ type NavigationItem = {
 type NavigationProps = {
   activeItem: string
   onNavigate: (item: string) => void
+  onLogout: () => void
 }
 
 const navigation: { group: string; items: NavigationItem[] }[] = [
@@ -24,7 +25,7 @@ const navigation: { group: string; items: NavigationItem[] }[] = [
   ] },
 ]
 
-export default function Navigation({ activeItem, onNavigate }: NavigationProps) {
+export default function Navigation({ activeItem, onNavigate, onLogout }: NavigationProps) {
   return <aside className="sidebar">
     <div className="brand"><span className="brand-mark">QA</span><div><b>QA-GYM</b><small>PERFORMANCE CLUB</small></div></div>
     <nav aria-label="Điều hướng chính">
@@ -35,7 +36,7 @@ export default function Navigation({ activeItem, onNavigate }: NavigationProps) 
         </button>)}
       </section>)}
     </nav>
-    <button className="logout-button" type="button">
+    <button className="logout-button" type="button" onClick={onLogout}>
       <span className="nav-icon">↪</span>
       Đăng xuất
     </button>
