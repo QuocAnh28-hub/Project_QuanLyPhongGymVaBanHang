@@ -1,0 +1,428 @@
+<!DOCTYPE html><html class="dark" lang="vi"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><title>QA-Gym Member Portal &amp; Performance Club</title><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-bright": "#37393d",
+          "secondary-container": "#00a572",
+          "on-secondary": "#003824",
+          "primary": "#ffffff",
+          "on-tertiary-container": "#006c93",
+          "on-primary": "#283500",
+          "on-error-container": "#ffdad6",
+          "primary-fixed": "#c3f400",
+          "tertiary-container": "#c4e7ff",
+          "surface-container-high": "#282a2d",
+          "on-surface-variant": "#c4c9ac",
+          "outline": "#8e9379",
+          "on-secondary-fixed": "#002113",
+          "on-background": "#e2e2e6",
+          "outline-variant": "#444933",
+          "primary-fixed-dim": "#abd600",
+          "on-surface": "#e2e2e6",
+          "secondary": "#4edea3",
+          "surface-container-low": "#1a1c1f",
+          "tertiary-fixed": "#c4e7ff",
+          "tertiary-fixed-dim": "#7bd0ff",
+          "on-tertiary": "#00354a",
+          "on-primary-container": "#556d00",
+          "on-tertiary-fixed-variant": "#004c69",
+          "error": "#ffb4ab",
+          "primary-container": "#c3f400",
+          "tertiary": "#ffffff",
+          "inverse-surface": "#e2e2e6",
+          "surface-dim": "#111316",
+          "on-tertiary-fixed": "#001e2c",
+          "surface-container-highest": "#333538",
+          "surface-variant": "#333538",
+          "on-error": "#690005",
+          "surface": "#111316",
+          "background": "#111316",
+          "surface-container": "#1e2023",
+          "surface-container-lowest": "#0c0e11",
+          "inverse-on-surface": "#2f3034",
+          "inverse-primary": "#506600",
+          "error-container": "#93000a",
+          "on-secondary-container": "#00311f",
+          "surface-tint": "#abd600",
+          "on-secondary-fixed-variant": "#005236",
+          "on-primary-fixed-variant": "#3c4d00",
+          "on-primary-fixed": "#161e00",
+          "secondary-fixed-dim": "#4edea3",
+          "secondary-fixed": "#6ffbbe"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.25rem",
+          "lg": "0.5rem",
+          "xl": "0.75rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "space-xs": "0.5rem",
+          "space-sm": "0.75rem",
+          "space-md": "1rem",
+          "margin-desktop": "2.5rem",
+          "margin-tablet": "1.5rem",
+          "space-2xl": "3rem",
+          "space-lg": "1.5rem",
+          "gutter-desktop": "1.5rem",
+          "margin-mobile": "1rem",
+          "gutter-mobile": "0.75rem",
+          "space-2xs": "0.25rem",
+          "space-xl": "2rem"
+        },
+        "fontFamily": {
+          "body-md": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-lg": [
+            "Space Grotesk"
+          ],
+          "display-hero": [
+            "Space Grotesk"
+          ],
+          "headline-md": [
+            "Space Grotesk"
+          ],
+          "headline-sm": [
+            "Space Grotesk"
+          ],
+          "headline-lg-mobile": [
+            "Space Grotesk"
+          ],
+          "metric-display": [
+            "Space Grotesk"
+          ],
+          "label-sm": [
+            "Space Grotesk"
+          ],
+          "display-hero-mobile": [
+            "Space Grotesk"
+          ],
+          "body-sm": [
+            "Plus Jakarta Sans"
+          ],
+          "label-lg": [
+            "Space Grotesk"
+          ],
+          "label-md": [
+            "Space Grotesk"
+          ],
+          "body-lg": [
+            "Plus Jakarta Sans"
+          ]
+        },
+        "fontSize": {
+          "body-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0em",
+              "fontWeight": "400"
+            }
+          ],
+          "headline-lg": [
+            "32px",
+            {
+              "lineHeight": "38px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "display-hero": [
+            "48px",
+            {
+              "lineHeight": "52px",
+              "letterSpacing": "-0.04em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-md": [
+            "22px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-sm": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "0em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg-mobile": [
+            "26px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "metric-display": [
+            "40px",
+            {
+              "lineHeight": "44px",
+              "letterSpacing": "-0.03em",
+              "fontWeight": "700"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.06em",
+              "fontWeight": "700"
+            }
+          ],
+          "display-hero-mobile": [
+            "36px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.03em",
+              "fontWeight": "700"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.01em",
+              "fontWeight": "400"
+            }
+          ],
+          "label-lg": [
+            "14px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "label-md": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.04em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-lg": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  };</script></head><body class="bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-low/95 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="h-20 w-full px-8 flex items-center justify-between gap-6"><div class="flex items-center gap-8"><div class="flex items-center gap-3 cursor-pointer"><div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-primary-container font-bold text-2xl">bolt</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary uppercase tracking-tight leading-none">QA-Gym</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mt-0.5">Performance Club</span></div></div><nav class="hidden xl:flex items-center gap-2" data-active-classes="bg-surface-container-highest text-primary-container font-bold"><a class="px-3 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="trang-chu" href="#">Trang chủ</a><a class="px-3 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="goi-tap-va-hoi-vien" href="#">Gói tập &amp; Hội viên</a><a class="px-3 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="huan-luyen-vien-pt" href="#">Huấn luyện viên PT</a><a class="px-3 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="qa-pro-shop" href="#">QA Pro Shop</a><a class="px-3 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="lich-tap-va-check-in" href="#">Lịch tập &amp; Check-in</a><a class="px-3 py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="ve-chung-toi" href="#">Về chúng tôi</a></nav></div><div class="flex items-center gap-4 flex-1 justify-end"><div class="hidden md:flex items-center bg-surface-container rounded-lg px-3 py-2 w-56 lg:w-72"><span class="material-symbols-outlined text-on-surface-variant text-xl mr-2">search</span><input class="bg-transparent text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm outline-none w-full" placeholder="Tìm lớp, HLV, sản phẩm..." type="text"></div><div class="flex items-center gap-3"><div class="relative flex items-center justify-center w-10 h-10 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer"><span class="material-symbols-outlined text-on-surface-variant text-xl">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary-container"></span></div><div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high transition-colors cursor-pointer"><span class="material-symbols-outlined text-primary-container text-base">stars</span><span class="font-label-md text-label-md text-primary">+1.450</span><span class="font-label-sm text-label-sm text-on-surface-variant">PTS</span></div><div class="flex items-center gap-3 pl-2"><div class="relative"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-tertiary-fixed flex items-center justify-center shadow-md"><span class="material-symbols-outlined text-on-tertiary text-[10px] font-bold">diamond</span></span></div><div class="hidden lg:flex flex-col"><span class="font-label-md text-label-md text-primary leading-tight">Alex Tran</span><div class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Diamond Tier</span></div></div></div></div></div></div></header><main class="w-full pt-20 bg-surface"><div class="flex flex-col w-full">
+<div class="w-full px-8 py-8 max-w-[1440px] mx-auto">
+<!-- Breadcrumb & Top Indicator -->
+<div class="flex items-center justify-between gap-4 mb-6">
+<div class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant">
+<span class="hover:text-primary cursor-pointer transition-colors">Portal Hội Viên</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-primary-container font-headline-sm text-label-md uppercase tracking-wider">Trung tâm Thông báo &amp; Ưu đãi</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-ping"></span>
+          ĐỒNG BỘ THỜI GIAN THỰC (VIETQR/NAPAS)
+        </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Cập nhật: 14:32 Hôm nay</span>
+</div>
+</div>
+<!-- Main Workspace Grid: Left Portal Nav (col 3) + Content (col 9) -->
+<div class="grid grid-cols-12 gap-8 items-start">
+<!-- Left Sidebar: Member Portal Navigation -->
+<aside class="col-span-12 lg:col-span-3 flex flex-col gap-6">
+<!-- Mini Member Status Card -->
+<div class="bg-surface-container-low rounded-xl p-5 relative overflow-hidden shadow-lg">
+<div class="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-primary-container/10 blur-2xl pointer-events-none"></div>
+<div class="flex items-center gap-4 mb-4">
+<div class="relative">
+<div class="w-14 h-14 rounded-xl bg-surface-container-highest overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Athletic member portrait, sharp jawline, high-contrast dark gym lighting, professional athlete mood with subtle lime neon ambient reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9VW8QlE15QLXaaesVKyr0AEotsQwokSvIJdbYTyzOQGCN1-07cPPRv1tv459KViEk8pL-PQ4_cb6qN-I90a-ge_kpBIq3Xs7TFwtLaIT1MbAXm_X1eo0ENWyQb82JfX0wm2UGROuDis0SZAAIxYny31eBnTkl1eHVHeOsvBZE8-mutQW_3JR6Z2Ne8JvjwLlo9L7nyGj_gTM7hvsAFMNMFJsAtnnF03rGeIvP_iFZEVu00vkMXB44">
+</div>
+<span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container text-[11px] font-bold">bolt</span>
+</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-primary truncate">Alex Tran</span>
+<span class="material-symbols-outlined text-tertiary-fixed text-base">verified</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Mã HV: #QA-882190</span>
+<div class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container w-fit">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed"></span>
+<span class="font-label-sm text-[10px] text-tertiary-fixed uppercase font-bold tracking-wider">Diamond Tier</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container rounded-lg p-3 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Số dư QA-Points</span>
+<span class="font-headline-sm text-headline-sm text-primary-container font-bold tracking-tight">1.450 PTS</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary px-2 py-1 rounded bg-surface-container-high">+145.000đ</span>
+</div>
+</div>
+<!-- Navigation Menu -->
+<nav class="bg-surface-container-low rounded-xl p-2.5 flex flex-col gap-1 shadow-md"><span class="px-3 pt-2 pb-1 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tài khoản &amp; Hội viên</span><a class="flex items-center justify-between px-3.5 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all group" href="#"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">account_circle</span><span class="font-label-lg text-label-lg">Hồ sơ cá nhân</span></div><span class="material-symbols-outlined text-sm opacity-50">arrow_forward_ios</span></a><a class="flex items-center justify-between px-3.5 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all group" href="#"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">card_membership</span><span class="font-label-lg text-label-lg">Gói tập đang dùng</span></div><span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-[10px] font-label-sm text-primary">Active</span></a><a class="flex items-center justify-between px-3.5 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all group" href="#"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">qr_code_scanner</span><span class="font-label-lg text-label-lg">Mã QR Check-in</span></div><span class="w-2 h-2 rounded-full bg-secondary"></span></a><a class="flex items-center justify-between px-3.5 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all group" href="#"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">history</span><span class="font-label-lg text-label-lg">Lịch sử check-in</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">24 lần/tháng</span></a><a class="flex items-center justify-between px-3.5 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all group" href="#"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">receipt_long</span><span class="font-label-lg text-label-lg">Lịch sử giao dịch &amp; VAT</span></div><span class="material-symbols-outlined text-sm opacity-50">arrow_forward_ios</span></a><a class="flex items-center justify-between px-3.5 py-3 rounded-lg bg-primary-container text-on-primary-container font-bold shadow-md relative overflow-hidden group" href="#"><div class="absolute left-0 top-0 bottom-0 w-1.5 bg-on-primary-container"></div><div class="flex items-center gap-3 pl-1"><span class="material-symbols-outlined text-xl text-on-primary-container font-bold">notifications_active</span><span class="font-label-lg text-label-lg text-on-primary-container font-bold">Thông báo &amp; Ưu đãi</span></div><span class="px-2 py-0.5 rounded-full bg-on-primary-container/20 text-on-primary-container font-label-sm text-[10px] font-bold">12 Mới</span></a><a class="flex items-center justify-between px-3.5 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all group" href="#"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-xl group-hover:text-primary transition-colors">lock_reset</span><span class="font-label-lg text-label-lg">Bảo mật &amp; Cài đặt</span></div><span class="material-symbols-outlined text-sm opacity-50">arrow_forward_ios</span></a></nav>
+<!-- Quick Support Box -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col gap-3">
+<div class="flex items-center gap-2 text-primary-container">
+<span class="material-symbols-outlined text-lg">support_agent</span>
+<span class="font-label-md text-label-md font-bold uppercase tracking-wider">Hỗ Trợ Kế Toán &amp; Hóa Đơn</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Cần xuất hóa đơn GTGT công ty hoặc hỗ trợ hoàn phí kỳ tập? Liên hệ CSKH VIP.</p>
+<div class="flex items-center justify-between pt-1">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">1900 8899</span>
+<span class="px-3 py-1.5 rounded-lg bg-surface-container-high text-primary font-label-sm text-label-sm hover:bg-surface-bright cursor-pointer transition-colors">Gửi Ticket</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area (9 Columns) -->
+<main class="col-span-12 lg:col-span-9 flex flex-col gap-6"><!-- Coordinated Dual Switch Tab Header --><div class="bg-surface-container-low rounded-xl p-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-md"><div class="flex items-center gap-2 overflow-x-auto"><button class="flex items-center gap-2.5 px-5 py-2.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-label-lg text-label-lg font-bold transition-all"><span class="material-symbols-outlined text-xl">payments</span><span>Lịch sử giao dịch &amp; Hóa đơn VAT</span><span class="ml-1 px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-[10px]">3 Hóa đơn</span></button><button class="flex items-center gap-2.5 px-5 py-2.5 rounded-lg bg-primary-container text-on-primary-container font-label-lg text-label-lg font-bold transition-all shadow-sm"><span class="material-symbols-outlined text-xl font-bold">notifications_active</span><span>Trung tâm Thông báo &amp; Ưu đãi</span><span class="ml-1 px-2 py-0.5 rounded-full bg-on-primary-container/20 text-on-primary-container font-label-sm text-[10px] font-bold">12 Chưa đọc</span></button></div><div class="flex items-center gap-2 self-end sm:self-auto pr-1"><button class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container text-primary hover:bg-surface-container-high font-label-md text-label-md transition-colors"><span class="material-symbols-outlined text-base text-secondary">done_all</span><span class="hidden md:inline">Đánh dấu đã đọc tất cả</span><span class="md:hidden">Đã đọc</span></button><button class="w-9 h-9 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-primary flex items-center justify-center transition-colors" title="Cài đặt thông báo"><span class="material-symbols-outlined text-lg">tune</span></button></div></div><!-- 3 Stat KPI Cards for Notifications --><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><!-- Card 1: Lịch tập & Hệ thống --><div class="bg-surface-container-low rounded-xl p-5 relative overflow-hidden flex flex-col justify-between shadow-md"><div class="flex items-center justify-between"><span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Thông báo Hệ Thống &amp; Lịch Tập</span><div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary-container"><span class="material-symbols-outlined text-lg">alarm_on</span></div></div><div class="my-3"><div class="flex items-baseline gap-2"><span class="font-metric-display text-metric-display text-primary tracking-tight">05</span><span class="font-label-lg text-label-lg text-primary-container uppercase font-bold">Tin mới</span></div><div class="flex items-center gap-2 mt-1"><span class="material-symbols-outlined text-secondary text-sm">fitness_center</span><span class="font-body-sm text-body-sm text-secondary font-semibold">1 buổi tập PT hôm nay (18:30)</span></div></div><div class="flex items-center justify-between text-[11px] font-label-sm text-on-surface-variant pt-1 border-t border-white/5"><span>Bảo trì Sauna đã xong</span><span class="text-primary-container font-bold">Xem lịch →</span></div></div><!-- Card 2: Ưu đãi & Voucher độc quyền --><div class="bg-surface-container-low rounded-xl p-5 relative overflow-hidden flex flex-col justify-between shadow-md"><div class="flex items-center justify-between"><span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Ưu Đãi &amp; Voucher Độc Quyền</span><div class="w-8 h-8 rounded-lg bg-secondary/15 flex items-center justify-center text-secondary"><span class="material-symbols-outlined text-lg">loyalty</span></div></div><div class="my-3"><div class="flex items-baseline gap-2"><span class="font-metric-display text-metric-display text-secondary tracking-tight">04</span><span class="font-label-lg text-label-lg text-secondary uppercase font-bold">Khả dụng</span></div><div class="flex items-center gap-1.5 mt-1 text-on-surface"><span class="material-symbols-outlined text-sm text-secondary">percent</span><span class="font-body-sm text-body-sm">Giảm 20% Pro Shop &amp; Tặng 1 tháng VIP</span></div></div><div class="flex items-center justify-between text-[11px] font-label-sm text-on-surface-variant pt-1 border-t border-white/5"><span>Hạn dùng gần nhất: 7 ngày</span><span class="text-secondary font-bold">Lấy mã ngay →</span></div></div><!-- Card 3: Giao dịch & Điểm thưởng --><div class="bg-surface-container-low rounded-xl p-5 relative overflow-hidden flex flex-col justify-between shadow-md bg-gradient-to-br from-surface-container-low via-surface-container-low to-tertiary-container/10"><div class="flex items-center justify-between"><span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Giao Dịch &amp; Điểm Thưởng</span><div class="w-8 h-8 rounded-lg bg-tertiary-fixed/20 flex items-center justify-center text-tertiary-fixed"><span class="material-symbols-outlined text-lg">stars</span></div></div><div class="my-3"><div class="flex items-baseline gap-2"><span class="font-metric-display text-metric-display text-tertiary-fixed tracking-tight">+150</span><span class="font-label-lg text-label-lg text-tertiary-fixed uppercase font-bold">PTS Tuần này</span></div><div class="flex items-center gap-1.5 mt-1 text-primary-container"><span class="material-symbols-outlined text-sm">verified</span><span class="font-body-sm text-body-sm text-primary">Check-in streak 5 ngày liên tiếp</span></div></div><div class="flex items-center justify-between text-[11px] font-label-sm text-on-surface-variant pt-1 border-t border-white/5"><span>Số dư hiện tại: 1.450 PTS</span><span class="text-primary-container font-bold">Lịch sử điểm →</span></div></div></div><!-- Notification Center Main Container --><div class="bg-surface-container-low rounded-xl p-6 shadow-md flex flex-col gap-6"><!-- Category Filter Chips --><div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/5"><div class="flex items-center gap-2 overflow-x-auto pb-1"><button class="px-4 py-2 rounded-full bg-primary-container text-on-primary-container font-label-sm text-label-sm font-bold flex items-center gap-2 transition-all flex-shrink-0"><span>Tất cả</span><span class="w-5 h-5 rounded-full bg-on-primary-container/20 flex items-center justify-center text-[10px]">12</span></button><button class="px-4 py-2 rounded-full bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm font-semibold flex items-center gap-2 transition-all flex-shrink-0"><span>Lịch tập &amp; PT</span><span class="w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px]">3</span></button><button class="px-4 py-2 rounded-full bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm font-semibold flex items-center gap-2 transition-all flex-shrink-0"><span>Ưu đãi &amp; Voucher</span><span class="w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px]">4</span></button><button class="px-4 py-2 rounded-full bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm font-semibold flex items-center gap-2 transition-all flex-shrink-0"><span>Giao dịch &amp; Điểm</span><span class="w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px]">3</span></button><button class="px-4 py-2 rounded-full bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm font-semibold flex items-center gap-2 transition-all flex-shrink-0"><span>Hệ thống &amp; CLB</span><span class="w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center text-[10px]">2</span></button></div><div class="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm"><span class="material-symbols-outlined text-base">filter_list</span><span class="font-label-sm text-label-sm uppercase tracking-wider">Sắp xếp: Mới nhất</span></div></div><!-- Notifications List --><div class="flex flex-col gap-4"><!-- Item 1: Voucher VIP Diamond (Chưa đọc, Viền Neon Lime) --><div class="bg-surface-container rounded-xl p-5 relative overflow-hidden flex items-start gap-4 hover:bg-surface-container-high transition-all border border-primary-container/40 shadow-sm"><div class="absolute top-0 left-0 bottom-0 w-1.5 bg-primary-container"></div><div class="w-12 h-12 rounded-xl bg-primary-container/15 flex items-center justify-center flex-shrink-0 text-primary-container"><span class="material-symbols-outlined text-2xl">card_giftcard</span></div><div class="flex-1 min-w-0"><div class="flex items-center justify-between gap-2 mb-1"><div class="flex items-center gap-2 flex-wrap"><span class="font-label-lg text-label-lg text-primary font-bold">VOUCHER VIP DIAMOND: Giảm 20% toàn bộ Whey Isolate &amp; BCAA</span><span class="px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-label-sm text-[10px] font-bold uppercase">Ưu đãi độc quyền</span></div><span class="font-label-sm text-label-sm text-on-surface-variant flex-shrink-0">20 phút trước</span></div><p class="font-body-md text-body-md text-on-surface mb-3">Mừng sinh nhật hội viên Diamond Alex Tran! Ưu đãi độc quyền giảm ngay <span class="text-primary font-bold">20%</span> cho tất cả các đơn hàng dòng thực phẩm bổ sung Rule 1, Hydrolyzed Whey và EAA tại QA Pro Shop trực tiếp hoặc đặt qua Portal. Hạn dùng: <span class="text-primary-container font-semibold">7 ngày tới (26/03/2024)</span>.</p><div class="flex flex-wrap items-center gap-3"><button class="px-4 py-2 rounded-lg bg-primary-container text-on-primary-container font-label-md text-label-md font-bold hover:bg-primary-fixed-dim transition-all shadow-sm flex items-center gap-1.5"><span class="material-symbols-outlined text-base">shopping_cart</span><span>Dùng ngay tại Pro Shop</span></button><button class="px-4 py-2 rounded-lg bg-surface-container-highest text-primary font-label-md text-label-md hover:bg-surface-bright flex items-center gap-1.5 transition-colors"><span class="material-symbols-outlined text-base">bookmark_add</span><span>Lưu mã: <code class="text-primary-container font-bold">DIAMOND-BDAY20</code></span></button></div></div><div class="w-2.5 h-2.5 rounded-full bg-primary-container flex-shrink-0 mt-2" title="Chưa đọc"></div></div><!-- Item 2: Lịch tập PT hôm nay (Chưa đọc) --><div class="bg-surface-container rounded-xl p-5 relative overflow-hidden flex items-start gap-4 hover:bg-surface-container-high transition-all border border-secondary/30"><div class="absolute top-0 left-0 bottom-0 w-1.5 bg-secondary"></div><div class="w-12 h-12 rounded-xl bg-secondary/15 flex items-center justify-center flex-shrink-0 text-secondary"><span class="material-symbols-outlined text-2xl">schedule</span></div><div class="flex-1 min-w-0"><div class="flex items-center justify-between gap-2 mb-1"><div class="flex items-center gap-2 flex-wrap"><span class="font-label-lg text-label-lg text-primary font-bold">Nhắc lịch hẹn Buổi 15 cùng HLV Master Trần Hoàng Nam</span><span class="px-2 py-0.5 rounded bg-secondary-container/30 text-secondary font-label-sm text-[10px] font-bold uppercase">Hôm nay 18:30</span></div><span class="font-label-sm text-label-sm text-on-surface-variant flex-shrink-0">1 giờ trước</span></div><p class="font-body-md text-body-md text-on-surface mb-3">Ca tập chuyên đề <span class="text-secondary font-semibold">Hypertrophy Thân Dưới &amp; Core Sức Bền</span> bắt đầu lúc <span class="text-primary font-bold">18:30 tối nay</span> tại Private Studio - QA-Gym Campus Pasteur Q.1. Vui lòng mang trang phục thi đấu và bình nước cá nhân.</p><div class="flex flex-wrap items-center gap-3"><button class="px-4 py-2 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md font-bold hover:bg-secondary-fixed-dim transition-all flex items-center gap-1.5"><span class="material-symbols-outlined text-base">calendar_today</span><span>Xem chi tiết buổi tập</span></button><button class="px-4 py-2 rounded-lg bg-surface-container-highest text-on-surface hover:text-primary font-label-md text-label-md hover:bg-surface-bright flex items-center gap-1.5 transition-colors"><span class="material-symbols-outlined text-base">swap_horiz</span><span>Yêu cầu đổi lịch</span></button></div></div><div class="w-2.5 h-2.5 rounded-full bg-secondary flex-shrink-0 mt-2" title="Chưa đọc"></div></div><!-- Item 3: Điểm thưởng Check-in Streak --><div class="bg-surface-container rounded-xl p-5 relative overflow-hidden flex items-start gap-4 hover:bg-surface-container-high transition-all"><div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center flex-shrink-0 text-primary-container"><span class="material-symbols-outlined text-2xl">military_tech</span></div><div class="flex-1 min-w-0"><div class="flex items-center justify-between gap-2 mb-1"><div class="flex items-center gap-2 flex-wrap"><span class="font-label-lg text-label-lg text-primary font-bold">Chúc mừng chuỗi 5 ngày tập luyện liên tiếp (+100 QA-Points)</span><span class="px-2 py-0.5 rounded bg-surface-container-highest text-primary-container font-label-sm text-[10px] font-bold">Streak Thưởng</span></div><span class="font-label-sm text-label-sm text-on-surface-variant flex-shrink-0">Sáng nay, 08:15</span></div><p class="font-body-md text-body-md text-on-surface mb-2">Bạn vừa hoàn thành ngày check-in thứ 5 trong tuần tại Campus Landmark 81. Phần thưởng thành tích <span class="text-primary-container font-bold">+100 QA-Points</span> đã được tự động ghi nhận vào ví thành viên VIP.</p><div class="flex items-center gap-2 text-body-sm font-body-sm text-on-surface-variant"><span class="material-symbols-outlined text-sm text-primary-container">check_circle</span><span>Số dư ví điểm sau giao dịch: <strong class="text-primary">1.450 PTS</strong></span></div></div></div><!-- Item 4: Nâng cấp Bể ngâm lạnh Cryo Plunge --><div class="bg-surface-container rounded-xl p-5 relative overflow-hidden flex items-start gap-4 hover:bg-surface-container-high transition-all"><div class="w-12 h-12 rounded-xl bg-tertiary-fixed/15 flex items-center justify-center flex-shrink-0 text-tertiary-fixed"><span class="material-symbols-outlined text-2xl">ac_unit</span></div><div class="flex-1 min-w-0"><div class="flex items-center justify-between gap-2 mb-1"><div class="flex items-center gap-2 flex-wrap"><span class="font-label-lg text-label-lg text-primary font-bold">Nâng cấp khu vực VIP Recovery: Bể ngâm lạnh Cryo Plunge mở lại</span><span class="px-2 py-0.5 rounded bg-tertiary-fixed/20 text-tertiary-fixed font-label-sm text-[10px] font-bold">Cơ sở vật chất</span></div><span class="font-label-sm text-label-sm text-on-surface-variant flex-shrink-0">Hôm qua, 14:00</span></div><p class="font-body-md text-body-md text-on-surface mb-3">Hệ thống lọc tuần hoàn và kiểm soát nhiệt độ siêu tốc Cryo Tub tại CLB Crescent Elite Q.7 đã hoàn tất bảo dưỡng định kỳ. Nhiệt độ tối ưu duy trì từ <span class="text-tertiary-fixed font-semibold">3°C - 5°C</span> giúp giảm đau cơ muộn (DOMS) và kích thích lưu thông máu tối đa.</p><div class="flex items-center gap-3"><button class="px-3.5 py-1.5 rounded-lg bg-surface-container-highest text-primary font-label-sm text-label-sm hover:bg-surface-bright transition-colors">Xem quy định dùng khu Recovery</button></div></div></div><!-- Item 5: Hóa đơn điện tử gia hạn gói tập --><div class="bg-surface-container rounded-xl p-5 relative overflow-hidden flex items-start gap-4 hover:bg-surface-container-high transition-all"><div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center flex-shrink-0 text-primary-container"><span class="material-symbols-outlined text-2xl">task_alt</span></div><div class="flex-1 min-w-0"><div class="flex items-center justify-between gap-2 mb-1"><div class="flex items-center gap-2 flex-wrap"><span class="font-label-lg text-label-lg text-primary font-bold">Xác nhận gia hạn thành công Gói tập Diamond All-Access 12 tháng</span><span class="px-2 py-0.5 rounded bg-primary-container/20 text-primary-container font-label-sm text-[10px] font-bold">Giao dịch điện tử</span></div><span class="font-label-sm text-label-sm text-on-surface-variant flex-shrink-0">12/03/2024</span></div><p class="font-body-md text-body-md text-on-surface mb-3">Giao dịch thanh toán <span class="text-primary font-bold">21.600.000 đ</span> qua VietQR thành công. Hóa đơn GTGT điện tử mã <span class="text-primary-container font-bold">#QA-PAY-9821</span> đã được gửi về email hội viên của bạn.</p><div class="flex items-center gap-3"><button class="px-3.5 py-1.5 rounded-lg bg-surface-container-highest text-primary font-label-sm text-label-sm hover:bg-surface-bright flex items-center gap-1 transition-colors"><span class="material-symbols-outlined text-sm">download</span><span>Tải hóa đơn VAT XML/PDF</span></button></div></div></div><!-- Item 6: Ra mắt Pre-workout mới --><div class="bg-surface-container rounded-xl p-5 relative overflow-hidden flex items-start gap-4 hover:bg-surface-container-high transition-all"><div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center flex-shrink-0 text-secondary"><span class="material-symbols-outlined text-2xl">local_fire_department</span></div><div class="flex-1 min-w-0"><div class="flex items-center justify-between gap-2 mb-1"><div class="flex items-center gap-2 flex-wrap"><span class="font-label-lg text-label-lg text-primary font-bold">Ra mắt dòng Pre-Workout Mutant Madness vị mới tại QA Pro Shop</span><span class="px-2 py-0.5 rounded bg-secondary/15 text-secondary font-label-sm text-[10px] font-bold">Sản phẩm mới</span></div><span class="font-label-sm text-label-sm text-on-surface-variant flex-shrink-0">10/03/2024</span></div><p class="font-body-md text-body-md text-on-surface mb-3">Công thức bùng nổ năng lượng, tăng pump cơ bắp với 350mg Caffeine và Beta-Alanine. Tặng kèm ngay bình lắc Shaker QA Carbon Edition cho 50 đơn đặt trước trên ứng dụng.</p><div class="flex items-center gap-3"><button class="px-3.5 py-1.5 rounded-lg bg-surface-container-highest text-primary font-label-sm text-label-sm hover:bg-surface-bright transition-colors">Khám phá sản phẩm</button></div></div></div></div><!-- Pagination / Load More Bar --><div class="flex items-center justify-between pt-4 border-t border-white/5 flex-wrap gap-4"><span class="font-body-sm text-body-sm text-on-surface-variant">Hiển thị 6 / 12 thông báo gần đây</span><button class="px-5 py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md font-bold flex items-center gap-2 transition-colors mx-auto sm:mx-0"><span class="material-symbols-outlined text-base">expand_more</span><span>Tải thêm thông báo cũ hơn</span></button><div class="flex items-center gap-1"><button class="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">chevron_left</span></button><button class="w-8 h-8 rounded-lg bg-primary-container text-on-primary-container font-label-sm text-label-sm font-bold flex items-center justify-center">1</button><button class="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-primary font-label-sm text-label-sm font-bold flex items-center justify-center">2</button><button class="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">chevron_right</span></button></div></div></div><!-- Notification Preferences Box --><div class="bg-surface-container-lowest rounded-xl p-6 shadow-md flex flex-col gap-5 border border-white/5"><div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary-container"><span class="material-symbols-outlined text-xl">toggle_on</span></div><div><h4 class="font-headline-sm text-headline-sm text-primary font-bold">Cài đặt Kênh nhận Thông báo</h4><p class="font-body-sm text-body-sm text-on-surface-variant">Tùy biến hình thức nhận thông báo lịch tập, tin khuyến mãi &amp; biên lai thanh toán.</p></div></div><div class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm"><span class="material-symbols-outlined text-base text-primary-container">headset_mic</span><span>Hotline hỗ trợ: <strong class="text-primary">1900 8899</strong></span></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2"><div class="bg-surface-container rounded-lg p-4 flex items-center justify-between"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary-container text-xl">phone_android</span><div class="flex flex-col"><span class="font-label-md text-label-md text-primary font-bold">Thông báo đẩy (App)</span><span class="font-body-sm text-[11px] text-on-surface-variant">Nhắc lịch &amp; check-in tức thì</span></div></div><label class="relative inline-flex items-center cursor-pointer"><input checked="" class="sr-only peer" type="checkbox"><div class="w-10 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary-container peer-checked:after:bg-on-primary after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div></label></div><div class="bg-surface-container rounded-lg p-4 flex items-center justify-between"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-secondary text-xl">mail</span><div class="flex flex-col"><span class="font-label-md text-label-md text-primary font-bold">Email Hóa đơn &amp; Tin tức</span><span class="font-body-sm text-[11px] text-on-surface-variant">Gửi sao kê &amp; voucher tuần</span></div></div><label class="relative inline-flex items-center cursor-pointer"><input checked="" class="sr-only peer" type="checkbox"><div class="w-10 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary-container peer-checked:after:bg-on-primary after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div></label></div><div class="bg-surface-container rounded-lg p-4 flex items-center justify-between"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-tertiary-fixed text-xl">sms</span><div class="flex flex-col"><span class="font-label-md text-label-md text-primary font-bold">SMS OTP &amp; Khẩn cấp</span><span class="font-body-sm text-[11px] text-on-surface-variant">Bảo mật &amp; nhắc hẹn sát giờ</span></div></div><label class="relative inline-flex items-center cursor-pointer"><input checked="" class="sr-only peer" type="checkbox"><div class="w-10 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary-container peer-checked:after:bg-on-primary after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div></label></div></div></div></main>
+</div>
+</div>
+<!-- Interactive Receipt / Invoice Modal (Preview & Print) -->
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4" id="receiptModal">
+<div class="bg-surface-container-low w-full max-w-lg rounded-2xl p-6 shadow-2xl relative flex flex-col gap-5 border border-white/5">
+<div class="flex items-center justify-between pb-3 border-b border-white/10">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container font-bold">
+<span class="material-symbols-outlined text-lg">bolt</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-primary uppercase">Biên Lai Thanh Toán Điện Tử</h4>
+<span class="font-label-sm text-label-sm text-primary-container font-bold" id="modalInvoiceCode">#QA-PAY-9821</span>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" onclick="closeReceiptModal()">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+<div class="bg-surface-container rounded-xl p-4 flex flex-col gap-3 font-body-sm text-body-sm">
+<div class="flex justify-between text-on-surface-variant">
+<span>Khách hàng:</span>
+<span class="text-primary font-semibold">Alex Tran (QA-882190)</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Thời gian giao dịch:</span>
+<span class="text-primary font-semibold">12/03/2024 - 09:15:42</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Dịch vụ đăng ký:</span>
+<span class="text-primary font-semibold text-right max-w-[240px]" id="modalServiceName">Gia hạn Gói tập Diamond 12 tháng</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Phương thức:</span>
+<span class="text-primary font-semibold">Chuyển khoản VietQR PRO</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Trạng thái:</span>
+<span class="text-primary-container font-bold uppercase">ĐÃ THANH TOÁN THÀNH CÔNG</span>
+</div>
+<div class="pt-3 border-t border-white/10 flex justify-between items-baseline">
+<span class="font-label-lg text-label-lg text-primary font-bold">Tổng thanh toán:</span>
+<span class="font-headline-md text-headline-md text-primary-container font-bold" id="modalAmount">21.600.000 đ</span>
+</div>
+</div>
+<div class="flex items-center gap-3 pt-2">
+<button class="flex-1 py-3 rounded-lg bg-surface-container-highest hover:bg-surface-bright text-primary font-label-md text-label-md flex items-center justify-center gap-2 transition-colors" onclick="window.print()">
+<span class="material-symbols-outlined text-base">print</span>
+<span>In biên lai</span>
+</button>
+<button class="flex-1 py-3 rounded-lg bg-primary-container text-on-primary-container hover:bg-primary-fixed-dim font-label-md text-label-md font-bold flex items-center justify-center gap-2 transition-all" onclick="closeReceiptModal()">
+<span class="material-symbols-outlined text-base">check_circle</span>
+<span>Xác nhận</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Tab Switching Logic
+  function switchTab(tabId) {
+    const billingSection = document.getElementById('section-billing');
+    const notifSection = document.getElementById('section-notifications');
+    const btnBilling = document.getElementById('tabBtn-billing');
+    const btnNotif = document.getElementById('tabBtn-notifications');
+
+    if (tabId === 'billing') {
+      billingSection.classList.remove('hidden');
+      notifSection.classList.add('hidden');
+      
+      btnBilling.className = 'flex items-center gap-2.5 px-6 py-3 rounded-lg bg-primary-container text-on-primary-container font-label-lg text-label-lg font-bold transition-all shadow-sm';
+      btnNotif.className = 'flex items-center gap-2.5 px-6 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-label-lg text-label-lg font-bold transition-all';
+    } else {
+      billingSection.classList.add('hidden');
+      notifSection.classList.remove('hidden');
+
+      btnNotif.className = 'flex items-center gap-2.5 px-6 py-3 rounded-lg bg-primary-container text-on-primary-container font-label-lg text-label-lg font-bold transition-all shadow-sm';
+      btnBilling.className = 'flex items-center gap-2.5 px-6 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-label-lg text-label-lg font-bold transition-all';
+    }
+  }
+
+  // Filter Notification Category Chips
+  function filterNotifs(cat, element) {
+    const buttons = document.querySelectorAll('#filterChips button');
+    buttons.forEach(b => {
+      b.className = 'px-4 py-2 rounded-full bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm font-semibold flex items-center gap-2 transition-all';
+    });
+    element.className = 'px-4 py-2 rounded-full bg-primary-container text-on-primary-container font-label-sm text-label-sm font-bold flex items-center gap-2 transition-all';
+
+    const cards = document.querySelectorAll('.notif-card');
+    cards.forEach(card => {
+      if (cat === 'all' || card.getAttribute('data-category') === cat) {
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  // Mark all as read micro-interaction
+  function markAllAsRead() {
+    const dots = document.querySelectorAll('#notifContainer .w-2\\.5.h-2\\.5');
+    dots.forEach(d => d.remove());
+    const btn = document.getElementById('btnMarkRead');
+    btn.innerHTML = '<span class="material-symbols-outlined text-base text-secondary">check</span><span class="text-secondary">Đã đọc tất cả</span>';
+    btn.disabled = true;
+  }
+
+  // Receipt Modal Interaction
+  function openReceiptModal(code, amount, service) {
+    document.getElementById('modalInvoiceCode').innerText = '#' + code;
+    document.getElementById('modalAmount').innerText = amount;
+    document.getElementById('modalServiceName').innerText = service;
+    const modal = document.getElementById('receiptModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeReceiptModal() {
+    const modal = document.getElementById('receiptModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  // Mock VAT Download Feedback
+  function downloadVat(code) {
+    const feedback = document.createElement('div');
+    feedback.className = 'fixed bottom-8 right-8 z-50 bg-primary-container text-on-primary-container px-4 py-3 rounded-xl shadow-2xl font-label-md text-label-md font-bold flex items-center gap-2 transition-all';
+    feedback.innerHTML = '<span class="material-symbols-outlined">download_done</span><span>Đang tải hóa đơn VAT ' + code + ' (.PDF & .XML)...</span>';
+    document.body.appendChild(feedback);
+    setTimeout(() => {
+      feedback.remove();
+    }, 3200);
+  }
+</script></main><footer class="w-full bg-surface-container-lowest text-on-surface-variant py-12"><div class="w-full px-8"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12"><div class="lg:col-span-2 space-y-4"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-primary-container font-bold text-xl">bolt</span></div><span class="font-headline-sm text-headline-sm text-primary uppercase">QA-Gym Performance Club</span></div><p class="font-body-md text-body-md text-on-surface-variant max-w-md">Hệ thống phòng tập thể hình chuẩn khoa học hàng đầu. Thiết bị ngoại nhập cơ sinh học tối tân, chế độ huấn luyện vận động viên chuyên nghiệp và hệ sinh thái bổ trợ thể thao chuẩn y khoa.</p><div class="flex flex-col gap-2 pt-2"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary-container text-lg">phone_in_talk</span><span class="font-label-md text-label-md text-primary">Hotline 24/7:</span><span class="font-headline-sm text-headline-sm text-primary-container">1900 8899</span></div><div class="flex items-center gap-2"><span class="material-symbols-outlined text-on-surface-variant text-lg">mail</span><span class="font-body-md text-body-md text-on-surface-variant">contact@qagym.vn</span></div></div></div><div class="space-y-3"><span class="font-label-lg text-label-lg text-primary uppercase tracking-wide">Hệ Thống Chi Nhánh</span><ul class="space-y-2 font-body-sm text-body-sm"><li class="hover:text-primary transition-colors cursor-pointer"><span class="text-primary-container font-semibold">Flagship:</span> Landmark 81 Luxury Zone, Q. Bình Thạnh</li><li class="hover:text-primary transition-colors cursor-pointer"><span class="text-primary-container font-semibold">Campus 02:</span> 120 Pasteur, P. Bến Nghé, Quận 1</li><li class="hover:text-primary transition-colors cursor-pointer"><span class="text-primary-container font-semibold">Campus 03:</span> Crescent Elite, Phú Mỹ Hưng, Quận 7</li><li class="hover:text-primary transition-colors cursor-pointer"><span class="text-primary-container font-semibold">Campus 04:</span> West Lake Performance, Tây Hồ, Hà Nội</li></ul></div><div class="space-y-3"><span class="font-label-lg text-label-lg text-primary uppercase tracking-wide">Quy Định &amp; Chính Sách</span><ul class="space-y-2 font-body-sm text-body-sm"><li class="hover:text-primary transition-colors cursor-pointer">Quy chế hoạt động phòng tập 24/7</li><li class="hover:text-primary transition-colors cursor-pointer">Chính sách bảo mật dữ liệu sinh trắc học</li><li class="hover:text-primary transition-colors cursor-pointer">Điều khoản hoàn bảo lưu &amp; chuyển nhượng gói</li><li class="hover:text-primary transition-colors cursor-pointer">Quy trình huấn luyện an toàn chấn thương</li></ul></div><div class="space-y-3"><span class="font-label-lg text-label-lg text-primary uppercase tracking-wide">Tiêu Chuẩn &amp; Chứng Nhận</span><p class="font-body-sm text-body-sm text-on-surface-variant">Toàn bộ thực phẩm bổ sung tại QA Pro Shop và cơ sở hạ tầng đạt kiểm định chất lượng y tế quốc tế.</p><div class="flex flex-wrap gap-2 pt-1"><span class="px-2.5 py-1 rounded bg-surface-container font-label-sm text-label-sm text-on-surface tracking-wider uppercase">FDA Approved</span><span class="px-2.5 py-1 rounded bg-surface-container font-label-sm text-label-sm text-on-surface tracking-wider uppercase">cGMP Certified</span><span class="px-2.5 py-1 rounded bg-surface-container font-label-sm text-label-sm text-on-surface tracking-wider uppercase">ISO 9001:2015</span></div></div></div><div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4"><p class="font-body-sm text-body-sm text-on-surface-variant">© 2024 QA-Gym Performance Club Corporation. All rights reserved.</p><div class="flex items-center gap-6 font-label-sm text-label-sm text-on-surface-variant"><span class="hover:text-primary cursor-pointer transition-colors">Terms of Service</span><span class="hover:text-primary cursor-pointer transition-colors">Privacy Policy</span><span class="hover:text-primary cursor-pointer transition-colors">Cookie Settings</span></div></div></div></footer></body></html>

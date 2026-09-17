@@ -38,6 +38,7 @@ function AuthStack() {
         <Stack.Screen name="checkout" />
         <Stack.Screen name="orders" />
         <Stack.Screen name="transaction-history" />
+        <Stack.Screen name="notifications" />
         <Stack.Screen name="password-change" />
         <Stack.Screen name="pt-detail" />
         <Stack.Screen name="pt-booking" />

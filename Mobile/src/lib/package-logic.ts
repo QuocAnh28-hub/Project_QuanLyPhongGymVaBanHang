@@ -3,7 +3,7 @@ export const diamondDurations = [
   { months: 6, bonusMonths: 0, baseAmount: 11100000, packagePromotion: 2580000, monthlyPrice: 1420000, originalMonthlyPrice: 1850000, totalPrice: 8520000, discountLabel: 'Giảm 23%', subtitle: 'Bán chạy' },
   { months: 12, bonusMonths: 2, baseAmount: 15480000, packagePromotion: 4490000, monthlyPrice: 915833, originalMonthlyPrice: 1290000, totalPrice: 10990000, discountLabel: 'Giảm 4.490.000₫ + Tặng 2th', subtitle: '+ Tặng 2 tháng', badge: 'HOT DEAL' },
 ] as const;
-export type DurationOption = (typeof diamondDurations)[number];
+export type DurationOption = { months: number; bonusMonths: number; baseAmount: number; packagePromotion: number; monthlyPrice: number; originalMonthlyPrice: number; totalPrice: number; discountLabel: string; subtitle: string; badge?: string };
 export type Voucher = { code: string; type: 'fixed'; value: number; active: boolean; validFrom?: string; validUntil?: string; minimumAmount?: number };
 export const vouchers: readonly Voucher[] = [{ code: 'NEONGYM2026', type: 'fixed', value: 500000, active: true }];
 export type Pricing = { baseAmount: number; membershipDiscount: number; voucherCode: string | null; voucherDiscount: number; fees: number; subtotal: number; finalAmount: number };

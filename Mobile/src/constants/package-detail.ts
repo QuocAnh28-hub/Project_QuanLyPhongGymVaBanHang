@@ -48,5 +48,3 @@ export const diamondPackage = {
     { id: 'installment', icon: 'card-outline', title: 'Trả góp 0% lãi suất qua thẻ tín dụng', description: 'Kỳ hạn linh hoạt 3, 6, 9 hoặc 12 tháng liên kết cùng 25+ ngân hàng nội địa và quốc tế.' },
   ],
 } as const;
-
-export function getPackageById(id: string) { return id === diamondPackage.id ? diamondPackage : null; }

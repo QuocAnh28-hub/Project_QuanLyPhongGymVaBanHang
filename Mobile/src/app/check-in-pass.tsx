@@ -5,9 +5,11 @@ import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } fr
 import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { diamondPackage, homeClubs } from '@/constants/package-detail';
+import { homeClubs } from '@/constants/package-detail';
+import { checkAccess, getPackageById } from '@/lib/packages';
 import { useAuth } from '@/context/AuthContext';
 import { CHECK_IN_TOKEN_SECONDS, encodeCheckInToken, generateCheckInToken, type CheckInToken } from '@/lib/check-in';
+import { localDate } from '@/lib/package-logic';
 import { getActiveMembership, type MembershipEnrollment } from '@/lib/membership';
 
 const C = { bg: '#111316', card: '#1e2023', low: '#1a1c1f', high: '#282a2d', text: '#e2e2e6', muted: '#aeb59e', lime: '#c3f400', mint: '#4edea3', ink: '#161e00' };
@@ -18,8 +20,10 @@ export default function CheckInPassScreen() {
   const [membership, setMembership] = useState<MembershipEnrollment | null>(); const [kind, setKind] = useState<CheckInToken['kind']>('member');
   const [token, setToken] = useState<CheckInToken | null>(null); const [seconds, setSeconds] = useState(CHECK_IN_TOKEN_SECONDS); const [notice, setNotice] = useState('');
   useFocusEffect(useCallback(() => { let mounted = true; if (user) getActiveMembership(user.email).then(value => { if (mounted) setMembership(value); }); return () => { mounted = false; }; }, [user]));
-  const guestAllowed = !!membership && membership.packageId === diamondPackage.id && diamondPackage.privileges.some(item => item.id === 'companion');
-  useEffect(() => { let remaining = CHECK_IN_TOKEN_SECONDS; const refresh = () => { if (!user || !membership || (kind === 'guest' && !guestAllowed)) { setToken(null); return; } remaining = CHECK_IN_TOKEN_SECONDS; setToken(generateCheckInToken(user.email, membership.id, kind)); setSeconds(remaining); }; const initial = setTimeout(refresh, 0); const timer = setInterval(() => { remaining -= 1; if (remaining <= 0) refresh(); else setSeconds(remaining); }, 1000); return () => { clearTimeout(initial); clearInterval(timer); }; }, [guestAllowed, kind, membership, user]);
+  const activePackage = membership ? getPackageById(membership.packageId) : null;
+  const guestAllowed = !!activePackage?.privileges.some(item => item.code === 'GUEST_PASS');
+  const access = checkAccess(activePackage);
+  useEffect(() => { let remaining = CHECK_IN_TOKEN_SECONDS; const refresh = () => { const now = new Date(); if (!user || !membership || membership.expiryDate < localDate(now) || membership.activationDate > localDate(now) || checkAccess(activePackage, now) !== 'OK' || (kind === 'guest' && !guestAllowed)) { setToken(null); return; } remaining = CHECK_IN_TOKEN_SECONDS; setToken(generateCheckInToken(user.email, membership.id, kind, now)); setSeconds(remaining); }; const initial = setTimeout(refresh, 0); const timer = setInterval(() => { remaining -= 1; if (remaining <= 0) refresh(); else setSeconds(remaining); }, 1000); return () => { clearTimeout(initial); clearInterval(timer); }; }, [activePackage, guestAllowed, kind, membership, user]);
   const qrSize = Math.min(230, width - 96); const memberCode = membership?.id.replace('QA-MEM-', 'QA-') ?? '';
   const initials = (user?.name ?? 'QA').split(/\s+/).slice(-2).map(part => part[0]).join('').toUpperCase();
   const barcode = useMemo(() => [...memberCode].flatMap((char, index) => [2 + (char.charCodeAt(0) % 3), 1 + (index % 2)]), [memberCode]);
@@ -32,10 +36,10 @@ export default function CheckInPassScreen() {
       {!guestAllowed ? <Text style={s.disabledReason}>Mã khách chỉ mở khi gói đang hoạt động có quyền dẫn bạn.</Text> : null}
       <View style={s.club}><View style={s.row}><Ionicons name="location-outline" color={C.lime} size={22} /><View style={{ flex: 1 }}><Text style={s.cardTitle}>{club.name}</Text><Text style={s.muted}>{club.address}</Text></View><View style={s.online} /></View><Text style={s.demo}>TRẠNG THÁI DEMO CỤC BỘ · CHƯA KẾT NỐI CỔNG THẬT</Text><View style={s.statusRow}><Status icon="radio-outline" label="CỔNG BARRIER" value={club.gate} /><Status icon="speedometer-outline" label="MẬT ĐỘ TẬP" value={`${club.capacity}% (Vắng)`} /></View></View>
       {membership === undefined ? <Text style={s.center}>Đang tải thẻ hội viên...</Text> : !membership ? <View style={s.empty}><Ionicons name="lock-closed-outline" color={C.lime} size={34} /><Text style={s.cardTitle}>Bạn chưa có gói tập đang hoạt động</Text><Text style={s.muted}>Đơn chờ thanh toán chưa thể tạo mã vào cửa.</Text><Pressable style={s.primary} onPress={() => router.push('/packages')}><Text style={s.primaryText}>KHÁM PHÁ GÓI TẬP</Text></Pressable></View> : <View style={s.pass}>
-        <View style={s.identity}><View style={s.avatar}><Text style={s.avatarText}>{initials}</Text></View><View style={{ flex: 1 }}><Text style={s.cardTitle}>{user?.name.toUpperCase()}</Text><View style={s.row}><Text style={s.badge}>{kind === 'guest' ? 'GUEST PASS' : diamondPackage.tier}</Text><Text style={s.muted}>#{memberCode}</Text></View></View><Ionicons name="flash" color={C.lime} size={22} /></View>
+        <View style={s.identity}><View style={s.avatar}><Text style={s.avatarText}>{initials}</Text></View><View style={{ flex: 1 }}><Text style={s.cardTitle}>{user?.name.toUpperCase()}</Text><View style={s.row}><Text style={s.badge}>{kind === 'guest' ? 'GUEST PASS' : activePackage?.tier}</Text><Text style={s.muted}>#{memberCode}</Text></View></View><Ionicons name="flash" color={C.lime} size={22} /></View>
         <View style={s.timer}><Text style={s.timerText}>↻  LÀM MỚI BẢO MẬT: <Text style={{ color: C.lime }}>{seconds}s</Text></Text><View style={s.timerTrack}><View style={[s.timerFill, { width: `${seconds / CHECK_IN_TOKEN_SECONDS * 100}%` }]} /></View></View>
-        {token ? <View style={s.qr} accessible accessibilityLabel={`QR token ${token.token}`}><QRCode value={encodeCheckInToken(token)} size={qrSize} backgroundColor="#fff" color="#0c0e11" ecl="M" /><Text style={s.qrLabel}>♢ MÃ TOKEN OFFLINE ĐỘNG</Text></View> : null}
-        <Text style={s.barcodeHint}>DỰ PHÒNG CHO MÁY QUÉT TIA LASER</Text><View style={s.barcode}>{barcode.map((bar, index) => <View key={index} style={{ width: bar, height: 35, backgroundColor: '#0c0e11', marginRight: 2 }} />)}<Text style={s.barcodeText}>{memberCode}</Text></View>
+        {token ? <View style={s.qr} accessible accessibilityLabel={`QR token ${token.token}`}><QRCode value={encodeCheckInToken(token)} size={qrSize} backgroundColor="#fff" color="#0c0e11" ecl="M" /><Text style={s.qrLabel}>♢ MÃ TOKEN OFFLINE ĐỘNG</Text></View> : <Text style={s.disabledReason}>{access === 'OUTSIDE_ACCESS_HOURS' ? 'OUTSIDE_ACCESS_HOURS · Ngoài khung giờ tập của gói.' : 'Không đủ quyền tạo QR.'}</Text>}
+        {token ? <><Text style={s.barcodeHint}>DỰ PHÒNG CHO MÁY QUÉT TIA LASER</Text><View style={s.barcode}>{barcode.map((bar, index) => <View key={index} style={{ width: bar, height: 35, backgroundColor: '#0c0e11', marginRight: 2 }} />)}<Text style={s.barcodeText}>{memberCode}</Text></View></> : null}
         <View style={s.localWarning}><Ionicons name="shield-checkmark-outline" color={C.mint} size={18} /><Text style={s.muted}>Mã local phục vụ offline/development, chưa được máy chủ ký và chưa thể mở cổng vật lý.</Text></View>
       </View>}
       <View style={s.steps}><Text style={s.sectionTitle}>QUY TRÌNH VÀO PHÒNG</Text>{['Đưa mã trước mắt đọc cảm biến', 'Đợi tín hiệu đèn xanh và tiếng bíp', 'Nhận thông báo tủ đồ Smart Locker'].map((text, index) => <View style={s.step} key={text}><Text style={s.stepNumber}>0{index + 1}</Text><Text style={s.stepText}>{text}</Text></View>)}</View>

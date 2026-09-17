@@ -6,7 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Header from '@/app/Common/header';
-import { getPackageById } from '@/constants/package-detail';
+import { getPackageById } from '@/lib/packages';
 import { useAuth } from '@/context/AuthContext';
 import { getCheckInHistory } from '@/lib/check-in';
 import { getEnrollments, type MembershipEnrollment } from '@/lib/membership';
@@ -27,7 +27,7 @@ export default function ProfileScreen() {
   const [enrollments, setEnrollments] = useState<MembershipEnrollment[]>([]);
   const [checkInCount, setCheckInCount] = useState(0);
   useFocusEffect(useCallback(() => { let active = true; if (user) Promise.all([getEnrollments(user.email), getCheckInHistory(user.email)]).then(([rows, history]) => { if (active) { setEnrollments(rows); setCheckInCount(history.length); } }).catch(() => { if (active) { setEnrollments([]); setCheckInCount(0); } }); return () => { active = false; }; }, [user]));
-  const activeMembership = enrollments.find(row => row.status === 'active');
+  const activeMembership = enrollments.find(row => (row.membershipStatus ?? row.status) === 'active' && row.paymentStatus === 'paid' && row.expiryDate >= new Date().toISOString().slice(0, 10));
   const activePackage = activeMembership ? getPackageById(activeMembership.packageId) : null;
   const remainingDays = activeMembership ? Math.max(0, Math.ceil((new Date(`${activeMembership.expiryDate}T00:00:00`).getTime() - today.getTime()) / 86400000)) : 0;
   async function handleLogout() { await logout(); router.replace('/login'); }
@@ -39,7 +39,7 @@ export default function ProfileScreen() {
         <>
           <View style={styles.memberHero}>
           <View style={styles.memberAvatar}><Image source={user?.avatar ? { uri: user.avatar } : require('../../assets/images/icon.png')} style={styles.memberImage} contentFit="cover" /><View style={styles.camera}><FontAwesome name="camera" size={11} color="#182000" /></View></View>
-            <Text style={styles.memberName}>{user?.name ?? 'Hội viên QA-Gym'}</Text><Text style={styles.memberTier}>✦ {activeMembership ? 'HỘI VIÊN KIM CƯƠNG' : 'HỘI VIÊN QA-GYM'}</Text><Text style={styles.contact}>✉ {user?.email}   ☎ {user?.phone}</Text>
+            <Text style={styles.memberName}>{user?.name ?? 'Hội viên QA-Gym'}</Text><Text style={styles.memberTier}>✦ {activePackage?.tier ?? 'HỘI VIÊN QA-GYM'}</Text><Text style={styles.contact}>✉ {user?.email}   ☎ {user?.phone}</Text>
             <View style={styles.memberStats}><View><Text style={styles.statNumber}>{checkInCount}</Text><Text style={styles.statLabel}>BUỔI TẬP</Text></View><View><Text style={styles.statNumber}>0</Text><Text style={styles.statLabel}>BUỔI PT</Text></View><View><Text style={styles.statNumber}>{activeMembership ? remainingDays : 0}</Text><Text style={styles.statLabel}>NGÀY CÒN LẠI</Text></View></View>
           </View>
           <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>THẺ THÀNH VIÊN HIỆN HÀNH</Text><Text style={styles.sectionAction}>{activeMembership ? 'ĐANG KÍCH HOẠT' : 'CHƯA CÓ THẺ'}</Text></View>
@@ -60,7 +60,7 @@ export default function ProfileScreen() {
           <View style={styles.selectBox}><Text style={styles.selectText}>{user?.fitnessGoal ?? 'Chưa cập nhật'}</Text><Text style={styles.chevron}>⌄</Text></View>
           <Pressable style={styles.primaryButton}><FontAwesome name="save" size={12} color="#192000" /><Text style={styles.primaryText}>CẬP NHẬT THÔNG TIN</Text></Pressable>
         </View>
-        <View style={styles.menuCard}>{menuItems.map(([icon, label]) => <Pressable style={styles.menuRow} key={label} onPress={label === 'Đổi mật khẩu tài khoản' ? () => router.push('/password-change') : undefined} accessibilityRole={label === 'Đổi mật khẩu tài khoản' ? 'button' : undefined}><FontAwesome name={icon as never} size={14} color="#d9ff00" /><Text style={styles.menuText}>{label}</Text><Text style={styles.menuArrow}>›</Text></Pressable>)}</View>
+        <View style={styles.menuCard}>{menuItems.map(([icon, label]) => <Pressable style={styles.menuRow} key={label} onPress={label === 'Đổi mật khẩu tài khoản' ? () => router.push('/password-change') : label === 'Cài đặt thông báo & Nhắc lịch tập' ? () => router.push('/notifications' as never) : undefined} accessibilityRole={label === 'Đổi mật khẩu tài khoản' || label === 'Cài đặt thông báo & Nhắc lịch tập' ? 'button' : undefined}><FontAwesome name={icon as never} size={14} color="#d9ff00" /><Text style={styles.menuText}>{label}</Text><Text style={styles.menuArrow}>›</Text></Pressable>)}</View>
         <Pressable style={styles.logout} onPress={handleLogout} accessibilityRole="button" accessibilityLabel="Đăng xuất tài khoản"><FontAwesome name="sign-out" size={13} color="#ff8d82" /><Text style={styles.logoutText}>Đăng xuất tài khoản</Text></Pressable>
         <Text style={styles.version}>QA-GYM APP V2.4.0 • BUILD FOR CHAMPIONS</Text>
       </ScrollView>

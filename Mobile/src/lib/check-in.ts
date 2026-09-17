@@ -1,4 +1,6 @@
 import { readLocal, writeLocal } from '@/lib/local-store';
+import { getActiveMembership } from '@/lib/membership';
+import { checkAccess, getPackageById } from '@/lib/packages';
 
 export type CheckInStatus = 'in_progress' | 'completed';
 export type CheckInRecord = {
@@ -15,9 +17,16 @@ async function allRecords() { return JSON.parse(await readLocal(RECORDS) ?? '[]'
 export async function getCheckInHistory(userId: string) { return (await allRecords()).filter(row => row.userId === userId).sort((a, b) => b.checkInAt.localeCompare(a.checkInAt)); }
 export async function getCurrentSession(userId: string) { return (await getCheckInHistory(userId)).find(row => row.status === 'in_progress' && !row.checkOutAt) ?? null; }
 export async function createCheckIn(input: Omit<CheckInRecord, 'id' | 'status' | 'checkInAt'>) {
+  const permission = await validateCheckIn(input.userId, input.membershipId);
+  if (permission !== 'OK') throw new Error(permission);
   const rows = await allRecords();
   const row: CheckInRecord = { ...input, id: `QA-CI-${Date.now().toString(36).toUpperCase()}`, status: 'in_progress', checkInAt: new Date().toISOString() };
   await writeLocal(RECORDS, JSON.stringify([row, ...rows])); return row;
+}
+export async function validateCheckIn(userId: string, membershipId: string, now = new Date()) {
+  const membership = await getActiveMembership(userId);
+  if (!membership || membership.id !== membershipId || membership.expiryDate < `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`) return 'MEMBERSHIP_INACTIVE' as const;
+  return checkAccess(getPackageById(membership.packageId), now);
 }
 export async function completeCheckIn(userId: string, id: string) {
   const rows = await allRecords(); const checkOutAt = new Date().toISOString();

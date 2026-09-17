@@ -14,10 +14,10 @@ type AuthValue = {
   resetPassword: (password: string) => Promise<boolean>;
   recovery: Recovery | null;
 };
-const SEED: Account = { name: 'Nguyễn Tuấn Anh', email: 'admin@qagym.vn', phone: '0988123678', password: '12345678', role: 'member', avatar: null, height: 178, weight: 74, birthDate: '1998-09-12', fitnessGoal: 'Tăng cơ siết mỡ (Lean Muscle)' };
-const ACCOUNTS = 'qa-gym-dev-accounts';
-const SESSION = 'qa-gym-dev-session';
-const REMEMBERED = 'qa-gym-dev-credential';
+const SEED: Account = { name: 'Admin QA-Gym', email: 'admin', phone: '0123456789', password: '12345678', role: 'member', avatar: null, height: 178, weight: 74, birthDate: '1998-09-12', fitnessGoal: 'Tăng cơ siết mỡ (Lean Muscle)' };
+const ACCOUNTS = 'qa-gym-dev-accounts-v2';
+const SESSION = 'qa-gym-dev-session-v2';
+const REMEMBERED = 'qa-gym-dev-credential-v2';
 const AuthContext = createContext<AuthValue | null>(null);
 
 // ponytail: local development accounts only; replace this store with server auth before production.

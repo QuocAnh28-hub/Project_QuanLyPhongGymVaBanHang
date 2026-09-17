@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getPackageById } from '@/constants/package-detail';
+import { getPackageById } from '@/lib/packages';
 import { useAuth } from '@/context/AuthContext';
 import { getCheckInHistory, type CheckInRecord } from '@/lib/check-in';
 import { getActiveMembership, type MembershipEnrollment } from '@/lib/membership';
