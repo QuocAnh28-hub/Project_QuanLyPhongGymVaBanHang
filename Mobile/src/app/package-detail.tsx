@@ -5,9 +5,8 @@ import { Image, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getPackageById, type PackageClass } from '@/constants/package-detail';
 import { AuthColors as C } from '@/constants/theme';
-import { useAuth } from '@/context/AuthContext';
-import { addCalendarMonths, diamondDurations, formatVND, localDate, periodLabel } from '@/lib/package-logic';
-import { createEnrollment, getFavorite, setFavorite, type MembershipEnrollment } from '@/lib/membership';
+import { diamondDurations, formatVND, periodLabel } from '@/lib/package-logic';
+import { getFavorite, setFavorite } from '@/lib/membership';
 
 function Icon({ name, color = C.lime, size = 19 }: { name: keyof typeof Ionicons.glyphMap; color?: string; size?: number }) { return <Ionicons name={name} size={size} color={color} />; }
 function SectionHeading({ title, badge }: { title: string; badge?: string }) { return <View style={s.sectionHeading}><Text style={s.sectionTitle}>{title}</Text>{badge ? <Text style={s.sectionBadge}>{badge}</Text> : null}</View>; }
@@ -16,15 +15,10 @@ function Action({ title, onPress, muted = false, disabled = false }: { title: st
 export default function PackageDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const item = getPackageById(typeof id === 'string' ? id : '');
-  const { user } = useAuth();
   const [selectedMonths, setSelectedMonths] = useState(12);
   const [favorite, setFavoriteState] = useState(false);
   const [toast, setToast] = useState('');
-  const [enrollOpen, setEnrollOpen] = useState(false);
-  const [created, setCreated] = useState<MembershipEnrollment | null>(null);
   const [selectedClass, setSelectedClass] = useState<PackageClass | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const submittingRef = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const packageId = item?.id;
   useEffect(() => { if (!packageId) return; let active = true; getFavorite(packageId).then(value => { if (active) setFavoriteState(value); }).catch(() => { if (active) setToast('Không thể tải mục yêu thích.'); }); return () => { active = false; }; }, [packageId]);
@@ -33,8 +27,6 @@ export default function PackageDetailScreen() {
   const back = () => router.canGoBack() ? router.back() : router.replace('/packages');
   if (!item) return <SafeAreaView style={s.safe}><View style={s.header}><Pressable onPress={back}><Icon name="arrow-back" color={C.text} /></Pressable><Text style={s.headerTitle}>CHI TIẾT GÓI TẬP</Text></View><View style={s.notFound}><Text style={s.title}>Không tìm thấy gói tập</Text><Action title="VỀ GÓI TẬP" onPress={() => router.replace('/packages')} /></View></SafeAreaView>;
   const option = diamondDurations.find(x => x.months === selectedMonths)!;
-  const starts = new Date();
-  const expires = addCalendarMonths(starts, option.months + option.bonusMonths);
   async function toggleFavorite() {
     const next = !favorite;
     try { await setFavorite(item!.id, next); setFavoriteState(next); showToast(next ? 'Đã lưu gói Diamond All-Access vào danh sách yêu thích!' : 'Đã bỏ lưu gói tập.'); }
@@ -43,14 +35,6 @@ export default function PackageDetailScreen() {
   async function sharePackage() {
     try { await Share.share({ title: `${item!.name} | QA-Gym`, message: `${item!.name} | QA-Gym\n${option.months} tháng${option.bonusMonths ? ` + ${option.bonusMonths} tháng tặng` : ''}\n${formatVND(option.monthlyPrice)}/tháng\nTổng ${formatVND(option.totalPrice)}` }); }
     catch { showToast('Không thể mở chia sẻ trên thiết bị này.'); }
-  }
-  async function confirmEnrollment() {
-    if (submittingRef.current || !user) return;
-    submittingRef.current = true;
-    setSubmitting(true);
-    try { const row = await createEnrollment(user.email, item!.id, item!.name, option); setCreated(row); setEnrollOpen(false); }
-    catch { showToast('Không thể lưu đăng ký. Vui lòng thử lại.'); }
-    finally { submittingRef.current = false; setSubmitting(false); }
   }
   return <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
     <View style={s.header}><Pressable onPress={back} accessibilityLabel="Quay lại Gói tập" hitSlop={12}><Icon name="arrow-back" color={C.text} size={22} /></Pressable><Text style={s.headerTitle}>EXERCISE DETAIL</Text><View style={s.headerRight}><Pressable accessibilityLabel="Trợ giúp" onPress={() => showToast('Lễ tân QA-Gym: 1900 8899')}><Icon name="help-circle-outline" color={C.muted} size={19} /></Pressable><Pressable accessibilityLabel="Hồ sơ" onPress={() => router.push('/profile')} style={s.avatar}><Icon name="person-outline" color="#283500" size={17} /></Pressable></View></View>
@@ -64,9 +48,7 @@ export default function PackageDetailScreen() {
       <View style={s.policyCard}><View style={s.policyHeading}><Icon name="shield-checkmark-outline" /><Text style={s.policyTitle}>CAM KẾT & CHÍNH SÁCH LINH HOẠT</Text></View>{item.policies.map(policy => <View style={s.policy} key={policy.id}><Icon name={policy.icon as keyof typeof Ionicons.glyphMap} color={C.mint} size={17} /><View style={{ flex: 1 }}><Text style={s.policyName}>{policy.title}</Text><Text style={s.policyCopy}>{policy.description}</Text></View></View>)}</View>
     </ScrollView>
     {toast ? <View style={s.toast}><Text style={s.toastText}>{toast}</Text></View> : null}
-    <View style={s.checkout}><View style={s.checkoutInfo}><Text style={s.checkoutLabel}>TỔNG ƯỚC TÍNH</Text><Text style={s.checkoutPrice}>{formatVND(option.totalPrice)}</Text><Text style={s.checkoutPeriod}>{periodLabel(option)}</Text></View><Pressable style={s.checkoutButton} onPress={() => setEnrollOpen(true)}><Text style={s.checkoutButtonText}>ĐĂNG KÝ NGAY</Text><Icon name="arrow-forward" color="#283500" size={17} /></Pressable></View>
-    <Modal visible={enrollOpen} transparent animationType="slide" onRequestClose={() => setEnrollOpen(false)}><View style={s.modalBackdrop}><View style={s.modalCard}><Text style={s.modalKicker}>THÔNG TIN GÓI</Text><Text style={s.modalTitle}>{item.name}</Text><Summary label="Người đăng ký" value={user?.name ?? ''} /><Summary label="Thời hạn thanh toán" value={`${option.months} tháng`} /><Summary label="Thời gian sử dụng" value={`${option.months + option.bonusMonths} tháng${option.bonusMonths ? ` (tặng ${option.bonusMonths} tháng)` : ''}`} /><Summary label="Giá/tháng" value={formatVND(option.monthlyPrice)} /><Summary label="Ngày bắt đầu" value={localDate(starts)} /><Summary label="Ngày hết hạn" value={localDate(expires)} /><Summary label="Ưu đãi" value={option.discountLabel} /><View style={s.modalTotal}><Text style={s.modalTotalLabel}>TỔNG THANH TOÁN</Text><Text style={s.modalTotalPrice}>{formatVND(option.totalPrice)}</Text></View><Text style={s.modalNote}>Đơn sẽ ở trạng thái chờ thanh toán. Chưa có khoản tiền nào được thu.</Text><Action title={submitting ? 'ĐANG LƯU...' : 'XÁC NHẬN ĐĂNG KÝ'} onPress={confirmEnrollment} disabled={submitting} /><Pressable onPress={() => setEnrollOpen(false)} style={s.cancel}><Text style={s.cancelText}>HỦY</Text></Pressable></View></View></Modal>
-    <Modal visible={!!created} transparent animationType="fade" onRequestClose={() => setCreated(null)}><View style={s.modalBackdrop}><View style={s.modalCard}><Icon name="checkmark-circle-outline" size={34} /><Text style={s.modalTitle}>Đăng ký đã được tạo</Text><Summary label="Mã đăng ký" value={created?.id ?? ''} /><Summary label="Gói" value={created?.packageName ?? ''} /><Summary label="Tổng tiền" value={formatVND(created?.totalPrice ?? 0)} /><Summary label="Trạng thái" value="Chờ thanh toán" /><Text style={s.modalNote}>Vui lòng thanh toán tại quầy để kích hoạt thẻ hội viên.</Text><Action title="ĐÓNG" onPress={() => setCreated(null)} /></View></View></Modal>
+    <View style={s.checkout}><View style={s.checkoutInfo}><Text style={s.checkoutLabel}>TỔNG ƯỚC TÍNH</Text><Text style={s.checkoutPrice}>{formatVND(option.totalPrice)}</Text><Text style={s.checkoutPeriod}>{periodLabel(option)}</Text></View><Pressable style={s.checkoutButton} onPress={() => router.push({ pathname: '/package-enrollment', params: { id: item.id, duration: String(option.months) } })}><Text style={s.checkoutButtonText}>ĐĂNG KÝ NGAY</Text><Icon name="arrow-forward" color="#283500" size={17} /></Pressable></View>
     <Modal visible={!!selectedClass} transparent animationType="fade" onRequestClose={() => setSelectedClass(null)}><View style={s.modalBackdrop}><View style={s.modalCard}>{selectedClass && <><Image source={selectedClass.image} style={s.modalClassImage} /><Text style={s.modalTitle}>{selectedClass.name}</Text><Text style={s.modalNote}>{selectedClass.description}</Text><Summary label="Thời lượng" value={`${selectedClass.minutes} phút`} /><Summary label="Năng lượng" value={`${selectedClass.kcal} kcal`} /></>}<Action title="ĐÓNG" onPress={() => setSelectedClass(null)} /></View></View></Modal>
   </SafeAreaView>;
 }

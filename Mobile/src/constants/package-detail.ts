@@ -2,6 +2,17 @@ import type { ImageSourcePropType } from 'react-native';
 import { diamondDurations } from '@/lib/package-logic';
 
 export type PackageClass = { id: string; name: string; minutes: number; kcal: number; description: string; tag: string; image: ImageSourcePropType };
+export const enrollmentGifts = [
+  { id: 'duffle', quantity: 1, name: 'Túi trống thể thao QA-Gym Duffle Pro', detail: 'Trị giá 850.000₫ · Miễn phí', image: require('../../assets/packages/diamond/enrollment/duffle-pro.jpg') as ImageSourcePropType },
+  { id: 'shaker', quantity: 1, name: 'Bình lắc Shaker Pro 800ml cách nhiệt', detail: 'Trị giá 320.000₫ · Miễn phí', image: require('../../assets/packages/diamond/enrollment/shaker-pro.jpg') as ImageSourcePropType },
+  { id: 'pt-gift', quantity: 3, name: 'Buổi huấn luyện viên cá nhân 1-1 (PT)', detail: 'Đo InBody & xây dựng lộ trình tập', image: require('../../assets/packages/diamond/enrollment/pt-training.jpg') as ImageSourcePropType },
+] as const;
+export const homeClubs = [
+  { id: 'q1-vincom', name: 'QA-Gym Center - Chi nhánh Quận 1' },
+  { id: 'q7-platinum', name: 'QA-Gym Platinum - Chi nhánh Quận 7' },
+  { id: 'cau-giay', name: 'QA-Gym Center - Cầu Giấy, Hà Nội' },
+  { id: 'binh-thanh', name: 'QA-Gym Express - Bình Thạnh' },
+] as const;
 export const diamondPackage = {
   id: 'diamond-all-access',
   name: 'Diamond All-Access Pass',
