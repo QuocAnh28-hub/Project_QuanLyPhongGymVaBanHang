@@ -1,2 +1,1 @@
-export { default } from '../pt';
-
+export { default } from "../pt";

@@ -1,29 +1,443 @@
-import { FontAwesome } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesome } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const week = [['T2', '09'], ['T3', '10'], ['T4', '11'], ['T5', '12'], ['T6', '13'], ['T7', '14'], ['CN', '15']];
+const week = [
+  ["T2", "09"],
+  ["T3", "10"],
+  ["T4", "11"],
+  ["T5", "12"],
+  ["T6", "13"],
+  ["T7", "14"],
+  ["CN", "15"],
+];
 
 export default function PTScheduleScreen() {
   const [selectedDay, setSelectedDay] = useState(3);
-  return <View style={styles.container}><SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-    <View style={styles.header}><Pressable style={styles.iconButton} onPress={() => router.back()} accessibilityLabel="Quay lại"><FontAwesome name="angle-left" size={21} color="#edf2e8" /></Pressable><Text style={styles.headerTitle}>PT SCHEDULE VIEWS</Text><View style={styles.account}><FontAwesome name="user" size={11} color="#516000" /></View></View>
-    <View style={styles.heading}><View><Text style={styles.kicker}>HUẤN LUYỆN CÁ NHÂN</Text><Text style={styles.title}>LỊCH TẬP VỚI PT</Text></View><View style={styles.headingActions}><Pressable style={styles.smallButton}><FontAwesome name="sliders" size={11} color="#d9ff00" /></Pressable><Pressable style={styles.addButton} onPress={() => router.push('/pt')} accessibilityLabel="Đặt lịch PT mới"><FontAwesome name="plus" size={13} color="#182000" /></Pressable></View></View>
-    <View style={styles.memberCard}><Image source={{ uri: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=500&q=85' }} style={styles.memberImage} contentFit="cover" /><View style={styles.memberCopy}><Text style={styles.memberKicker}>● HLV HIỆN BIỆT</Text><Text style={styles.memberName}>Trần Hoàng Nam</Text><Text style={styles.memberDetail}>Gói 24 Buổi • Còn 18 buổi</Text></View><Text style={styles.memberTag}>1-1-ON1 VIP</Text></View>
-    <SectionTitle title="LỊCH TẬP TUẦN NÀY" action="Tháng 5, 2026" /><View style={styles.calendar}>{week.map(([day, date], index) => <Pressable key={date} onPress={() => setSelectedDay(index)} style={[styles.date, selectedDay === index && styles.dateActive]}><Text style={[styles.day, selectedDay === index && styles.activeText]}>{day}</Text><Text style={[styles.dateNumber, selectedDay === index && styles.activeText]}>{date}</Text></Pressable>)}</View>
-    <View style={styles.nextSession}><View style={styles.nextHeader}><Text style={styles.nextLabel}>● BUỔI TẬP SẮP TỚI</Text><Text style={styles.confirmed}>ĐÃ XÁC NHẬN</Text></View><Text style={styles.sessionDate}>HÔM NAY • THỨ NĂM</Text><Text style={styles.sessionTime}>18:30 - 19:30</Text><Text style={styles.sessionTitle}>Thân Dưới & Core Chuẩn Sâu</Text><Text style={styles.sessionDetail}>Các bài tập trọng tâm: Barbell Back Squat, Romanian Deadlift, Hip Thrust & Cable Woodchopper.</Text>
-    <View style={styles.sessionMeta}><Text style={styles.sessionMetaText}>⚡ 5 bài tập</Text><Text style={styles.sessionMetaText}>◉ 60 phút</Text><Text style={styles.sessionMetaText}>◉ ~520 kcal</Text></View><Text style={styles.location}>◎ QA-Gym Vincom Đồng Khởi{`\n`}Khu vực Strength & Free Weights (Tầng 3)</Text><Pressable style={styles.checkin}><FontAwesome name="qrcode" size={12} color="#182000" /><Text style={styles.checkinText}>CHECK-IN BUỔI TẬP (QUÉT MÃ)</Text></Pressable><View style={styles.sessionActions}><Pressable style={styles.mutedButton}><Text style={styles.mutedText}>⌑ Xin dời lịch</Text></Pressable><Pressable style={styles.mutedButton}><Text style={styles.mutedText}>☷ Ghi chú cho HLV</Text></Pressable></View></View>
-    <SectionTitle title="BUỔI TIẾP THEO TRONG TUẦN" action="Đã lên lịch" /><View style={styles.upcoming}><Text style={styles.upcomingDate}>T7{`\n`}16</Text><View style={styles.upcomingCopy}><Text style={styles.upcomingTime}>09:00 - 10:00 • Buổi 16</Text><Text style={styles.upcomingName}>Cardio HIIT & Đốt Mỡ</Text><Text style={styles.upcomingDetail}>Khu vực Functional Turf • HLV Hoàng Nam</Text></View><FontAwesome name="ellipsis-v" size={13} color="#9ca79c" /></View>
-    <SectionTitle title="NHẬT KÝ ĐÃ TẬP" action="Xem tất cả →" /><View style={styles.logCard}><View style={styles.logTop}><Text style={styles.logDate}>Buổi 14 • Hôm qua • 18:30</Text><Text style={styles.stars}>★★★★★</Text></View><Text style={styles.logTitle}>Lưng Xô & Cánh Tay Trước</Text><Text style={styles.logTag}>✓ KỶ LỤC MỚI (PR): Deadlift 120kg × 3 reps</Text><Text style={styles.logNote}>Nhận xét từ HLV Hoàng Nam: “Khóa hông tốt, biên độ kiểm soát chắc chắn set cuối.”</Text></View>
-    <View style={styles.options}><Text style={styles.optionsTitle}>☷ TÙY CHỌN HỖ TRỢ ĐẶT LỊCH</Text><View style={styles.optionRow}><Pressable style={styles.option}><FontAwesome name="calendar" size={13} color="#d9ff00" /><Text style={styles.optionTitle}>Đặt hẹn linh hoạt</Text><Text style={styles.optionDetail}>Chọn giờ ngoài giờ tập</Text></Pressable><Pressable style={styles.option}><FontAwesome name="exchange" size={13} color="#d9ff00" /><Text style={styles.optionTitle}>Đổi HLV phụ trách</Text><Text style={styles.optionDetail}>Yêu cầu bảo lưu / đổi người</Text></Pressable></View></View>
-  </ScrollView></SafeAreaView></View>;
+  return (
+    <View style={styles.container}>
+      <SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
+        >
+          <View style={styles.header}>
+            <Pressable
+              style={styles.iconButton}
+              onPress={() => router.back()}
+              accessibilityLabel="Quay lại"
+            >
+              <FontAwesome name="angle-left" size={21} color="#edf2e8" />
+            </Pressable>
+            <Text style={styles.headerTitle}>PT SCHEDULE VIEWS</Text>
+            <View style={styles.account}>
+              <FontAwesome name="user" size={11} color="#516000" />
+            </View>
+          </View>
+          <View style={styles.heading}>
+            <View>
+              <Text style={styles.kicker}>HUẤN LUYỆN CÁ NHÂN</Text>
+              <Text style={styles.title}>LỊCH TẬP VỚI PT</Text>
+            </View>
+            <View style={styles.headingActions}>
+              <Pressable style={styles.smallButton}>
+                <FontAwesome name="sliders" size={11} color="#d9ff00" />
+              </Pressable>
+              <Pressable
+                style={styles.addButton}
+                onPress={() => router.push("/pt")}
+                accessibilityLabel="Đặt lịch PT mới"
+              >
+                <FontAwesome name="plus" size={13} color="#182000" />
+              </Pressable>
+            </View>
+          </View>
+          <View style={styles.memberCard}>
+            <Image
+              source={{
+                uri: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=500&q=85",
+              }}
+              style={styles.memberImage}
+              contentFit="cover"
+            />
+            <View style={styles.memberCopy}>
+              <Text style={styles.memberKicker}>● HLV HIỆN BIỆT</Text>
+              <Text style={styles.memberName}>Trần Hoàng Nam</Text>
+              <Text style={styles.memberDetail}>Gói 24 Buổi • Còn 18 buổi</Text>
+            </View>
+            <Text style={styles.memberTag}>1-1-ON1 VIP</Text>
+          </View>
+          <SectionTitle title="LỊCH TẬP TUẦN NÀY" action="Tháng 5, 2026" />
+          <View style={styles.calendar}>
+            {week.map(([day, date], index) => (
+              <Pressable
+                key={date}
+                onPress={() => setSelectedDay(index)}
+                style={[
+                  styles.date,
+                  selectedDay === index && styles.dateActive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.day,
+                    selectedDay === index && styles.activeText,
+                  ]}
+                >
+                  {day}
+                </Text>
+                <Text
+                  style={[
+                    styles.dateNumber,
+                    selectedDay === index && styles.activeText,
+                  ]}
+                >
+                  {date}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <View style={styles.nextSession}>
+            <View style={styles.nextHeader}>
+              <Text style={styles.nextLabel}>● BUỔI TẬP SẮP TỚI</Text>
+              <Text style={styles.confirmed}>ĐÃ XÁC NHẬN</Text>
+            </View>
+            <Text style={styles.sessionDate}>HÔM NAY • THỨ NĂM</Text>
+            <Text style={styles.sessionTime}>18:30 - 19:30</Text>
+            <Text style={styles.sessionTitle}>Thân Dưới & Core Chuẩn Sâu</Text>
+            <Text style={styles.sessionDetail}>
+              Các bài tập trọng tâm: Barbell Back Squat, Romanian Deadlift, Hip
+              Thrust & Cable Woodchopper.
+            </Text>
+            <View style={styles.sessionMeta}>
+              <Text style={styles.sessionMetaText}>⚡ 5 bài tập</Text>
+              <Text style={styles.sessionMetaText}>◉ 60 phút</Text>
+              <Text style={styles.sessionMetaText}>◉ ~520 kcal</Text>
+            </View>
+            <Text style={styles.location}>
+              ◎ QA-Gym Vincom Đồng Khởi{`\n`}Khu vực Strength & Free Weights
+              (Tầng 3)
+            </Text>
+            <Pressable style={styles.checkin}>
+              <FontAwesome name="qrcode" size={12} color="#182000" />
+              <Text style={styles.checkinText}>
+                CHECK-IN BUỔI TẬP (QUÉT MÃ)
+              </Text>
+            </Pressable>
+            <View style={styles.sessionActions}>
+              <Pressable style={styles.mutedButton}>
+                <Text style={styles.mutedText}>⌑ Xin dời lịch</Text>
+              </Pressable>
+              <Pressable style={styles.mutedButton}>
+                <Text style={styles.mutedText}>☷ Ghi chú cho HLV</Text>
+              </Pressable>
+            </View>
+          </View>
+          <SectionTitle
+            title="BUỔI TIẾP THEO TRONG TUẦN"
+            action="Đã lên lịch"
+          />
+          <View style={styles.upcoming}>
+            <Text style={styles.upcomingDate}>T7{`\n`}16</Text>
+            <View style={styles.upcomingCopy}>
+              <Text style={styles.upcomingTime}>09:00 - 10:00 • Buổi 16</Text>
+              <Text style={styles.upcomingName}>Cardio HIIT & Đốt Mỡ</Text>
+              <Text style={styles.upcomingDetail}>
+                Khu vực Functional Turf • HLV Hoàng Nam
+              </Text>
+            </View>
+            <FontAwesome name="ellipsis-v" size={13} color="#9ca79c" />
+          </View>
+          <SectionTitle title="NHẬT KÝ ĐÃ TẬP" action="Xem tất cả →" />
+          <View style={styles.logCard}>
+            <View style={styles.logTop}>
+              <Text style={styles.logDate}>Buổi 14 • Hôm qua • 18:30</Text>
+              <Text style={styles.stars}>★★★★★</Text>
+            </View>
+            <Text style={styles.logTitle}>Lưng Xô & Cánh Tay Trước</Text>
+            <Text style={styles.logTag}>
+              ✓ KỶ LỤC MỚI (PR): Deadlift 120kg × 3 reps
+            </Text>
+            <Text style={styles.logNote}>
+              Nhận xét từ HLV Hoàng Nam: “Khóa hông tốt, biên độ kiểm soát chắc
+              chắn set cuối.”
+            </Text>
+          </View>
+          <View style={styles.options}>
+            <Text style={styles.optionsTitle}>☷ TÙY CHỌN HỖ TRỢ ĐẶT LỊCH</Text>
+            <View style={styles.optionRow}>
+              <Pressable style={styles.option}>
+                <FontAwesome name="calendar" size={13} color="#d9ff00" />
+                <Text style={styles.optionTitle}>Đặt hẹn linh hoạt</Text>
+                <Text style={styles.optionDetail}>Chọn giờ ngoài giờ tập</Text>
+              </Pressable>
+              <Pressable style={styles.option}>
+                <FontAwesome name="exchange" size={13} color="#d9ff00" />
+                <Text style={styles.optionTitle}>Đổi HLV phụ trách</Text>
+                <Text style={styles.optionDetail}>
+                  Yêu cầu bảo lưu / đổi người
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
+  );
 }
 
-function SectionTitle({ title, action }: { title: string; action: string }) { return <View style={styles.sectionTitle}><Text style={styles.sectionTitleText}>{title}</Text><Text style={styles.sectionAction}>{action}</Text></View>; }
+function SectionTitle({ title, action }: { title: string; action: string }) {
+  return (
+    <View style={styles.sectionTitle}>
+      <Text style={styles.sectionTitleText}>{title}</Text>
+      <Text style={styles.sectionAction}>{action}</Text>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0d1011' }, safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' }, content: { paddingHorizontal: 10, paddingBottom: 25 }, header: { height: 43, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, iconButton: { width: 31, height: 31, borderRadius: 9, backgroundColor: '#242829', alignItems: 'center', justifyContent: 'center' }, headerTitle: { color: '#e9f0e5', fontSize: 9, fontWeight: '900' }, account: { width: 25, height: 25, borderRadius: 13, backgroundColor: '#edf5dc', alignItems: 'center', justifyContent: 'center' }, heading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 }, kicker: { color: '#d9ff00', fontSize: 6, fontWeight: '900' }, title: { color: '#f0f5eb', fontSize: 16, fontWeight: '900', marginTop: 4 }, headingActions: { flexDirection: 'row', gap: 7 }, smallButton: { width: 28, height: 28, borderRadius: 6, backgroundColor: '#252b2d', alignItems: 'center', justifyContent: 'center' }, addButton: { width: 28, height: 28, borderRadius: 6, backgroundColor: '#caff00', alignItems: 'center', justifyContent: 'center' }, memberCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1b2022', borderRadius: 7, padding: 9 }, memberImage: { width: 48, height: 48, borderRadius: 5 }, memberCopy: { flex: 1, marginLeft: 8 }, memberKicker: { color: '#49d79e', fontSize: 6, fontWeight: '900' }, memberName: { color: '#eff5e9', fontSize: 10, fontWeight: '900', marginTop: 3 }, memberDetail: { color: '#aab5aa', fontSize: 7, marginTop: 3 }, memberTag: { color: '#d9ff00', backgroundColor: '#304216', fontSize: 6, fontWeight: '900', padding: 5, borderRadius: 3 }, sectionTitle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15, marginBottom: 7 }, sectionTitleText: { color: '#e9f0e5', fontSize: 9, fontWeight: '900' }, sectionAction: { color: '#d9ff00', fontSize: 6, fontWeight: '900' }, calendar: { flexDirection: 'row', gap: 5, backgroundColor: '#181d1e', borderRadius: 7, padding: 6 }, date: { flex: 1, alignItems: 'center', paddingVertical: 6, borderRadius: 5 }, dateActive: { backgroundColor: '#caff00' }, day: { color: '#aeb9ad', fontSize: 6, fontWeight: '900' }, dateNumber: { color: '#eff5eb', fontSize: 13, fontWeight: '900', marginTop: 3 }, activeText: { color: '#182000' }, nextSession: { backgroundColor: '#1b2022', borderRadius: 8, padding: 10, marginTop: 8, borderTopWidth: 2, borderTopColor: '#caff00' }, nextHeader: { flexDirection: 'row', justifyContent: 'space-between' }, nextLabel: { color: '#d9ff00', fontSize: 7, fontWeight: '900' }, confirmed: { color: '#182000', backgroundColor: '#caff00', borderRadius: 7, paddingHorizontal: 6, paddingVertical: 3, fontSize: 6, fontWeight: '900' }, sessionDate: { color: '#d9ff00', fontSize: 6, fontWeight: '900', marginTop: 9 }, sessionTime: { color: '#e9f0e5', fontSize: 17, fontWeight: '900', marginTop: 3 }, sessionTitle: { color: '#e8efe4', fontSize: 10, fontWeight: '900', marginTop: 5 }, sessionDetail: { color: '#a7b2a7', fontSize: 7, lineHeight: 11, marginTop: 4 }, sessionMeta: { color: '#ffffff', flexDirection: 'row', gap: 12, marginTop: 8}, sessionMetaText: { color: '#ffffff', fontSize: 12 }, location: { color: '#abb6aa', fontSize: 7, lineHeight: 11, marginTop: 9, backgroundColor: '#242a2b', borderRadius: 5, padding: 7 }, checkin: { height: 34, backgroundColor: '#caff00', borderRadius: 6, marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 }, checkinText: { color: '#182000', fontSize: 7, fontWeight: '900' }, sessionActions: { flexDirection: 'row', gap: 6, marginTop: 6 }, mutedButton: { flex: 1, height: 28, borderRadius: 5, backgroundColor: '#303638', alignItems: 'center', justifyContent: 'center' }, mutedText: { color: '#aeb9ad', fontSize: 7 }, upcoming: { backgroundColor: '#1b2022', borderRadius: 7, padding: 9, flexDirection: 'row', alignItems: 'center' }, upcomingDate: { color: '#d9ff00', backgroundColor: '#263522', borderRadius: 5, padding: 5, textAlign: 'center', fontSize: 8, fontWeight: '900' }, upcomingCopy: { flex: 1, marginLeft: 8 }, upcomingTime: { color: '#44d69c', fontSize: 6, fontWeight: '900' }, upcomingName: { color: '#e8efe4', fontSize: 9, fontWeight: '900', marginTop: 4 }, upcomingDetail: { color: '#919c91', fontSize: 6, marginTop: 3 }, logCard: { backgroundColor: '#1b2022', borderRadius: 7, padding: 10 }, logTop: { flexDirection: 'row', justifyContent: 'space-between' }, logDate: { color: '#93a093', fontSize: 6 }, stars: { color: '#d9ff00', fontSize: 9 }, logTitle: { color: '#e8efe4', fontSize: 11, fontWeight: '900', marginTop: 5 }, logTag: { color: '#49d79e', backgroundColor: '#163a2d', fontSize: 6, padding: 5, marginTop: 6 }, logNote: { color: '#adb8ad', fontSize: 7, lineHeight: 11, marginTop: 7 }, options: { backgroundColor: '#252b2d', borderRadius: 7, padding: 10, marginTop: 10 }, optionsTitle: { color: '#cbd800', fontSize: 7, fontWeight: '900', marginBottom: 8 }, optionRow: { flexDirection: 'row', gap: 7 }, option: { flex: 1, backgroundColor: '#303638', borderRadius: 5, padding: 8 }, optionTitle: { color: '#eef4e8', fontSize: 7, fontWeight: '900', marginTop: 7 }, optionDetail: { color: '#98a399', fontSize: 6, marginTop: 3 },
+  container: { flex: 1, backgroundColor: "#0d1011" },
+  safeArea: { flex: 1, width: "100%", maxWidth: 540, alignSelf: "center" },
+  content: { paddingHorizontal: 10, paddingBottom: 25 },
+  header: {
+    height: 43,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  iconButton: {
+    width: 31,
+    height: 31,
+    borderRadius: 9,
+    backgroundColor: "#242829",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: { color: "#e9f0e5", fontSize: 9, fontWeight: "900" },
+  account: {
+    width: 25,
+    height: 25,
+    borderRadius: 13,
+    backgroundColor: "#edf5dc",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heading: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  kicker: { color: "#d9ff00", fontSize: 6, fontWeight: "900" },
+  title: { color: "#f0f5eb", fontSize: 16, fontWeight: "900", marginTop: 4 },
+  headingActions: { flexDirection: "row", gap: 7 },
+  smallButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: "#252b2d",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: "#caff00",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  memberCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1b2022",
+    borderRadius: 7,
+    padding: 9,
+  },
+  memberImage: { width: 48, height: 48, borderRadius: 5 },
+  memberCopy: { flex: 1, marginLeft: 8 },
+  memberKicker: { color: "#49d79e", fontSize: 6, fontWeight: "900" },
+  memberName: {
+    color: "#eff5e9",
+    fontSize: 10,
+    fontWeight: "900",
+    marginTop: 3,
+  },
+  memberDetail: { color: "#aab5aa", fontSize: 7, marginTop: 3 },
+  memberTag: {
+    color: "#d9ff00",
+    backgroundColor: "#304216",
+    fontSize: 6,
+    fontWeight: "900",
+    padding: 5,
+    borderRadius: 3,
+  },
+  sectionTitle: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 15,
+    marginBottom: 7,
+  },
+  sectionTitleText: { color: "#e9f0e5", fontSize: 9, fontWeight: "900" },
+  sectionAction: { color: "#d9ff00", fontSize: 6, fontWeight: "900" },
+  calendar: {
+    flexDirection: "row",
+    gap: 5,
+    backgroundColor: "#181d1e",
+    borderRadius: 7,
+    padding: 6,
+  },
+  date: { flex: 1, alignItems: "center", paddingVertical: 6, borderRadius: 5 },
+  dateActive: { backgroundColor: "#caff00" },
+  day: { color: "#aeb9ad", fontSize: 6, fontWeight: "900" },
+  dateNumber: {
+    color: "#eff5eb",
+    fontSize: 13,
+    fontWeight: "900",
+    marginTop: 3,
+  },
+  activeText: { color: "#182000" },
+  nextSession: {
+    backgroundColor: "#1b2022",
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 8,
+    borderTopWidth: 2,
+    borderTopColor: "#caff00",
+  },
+  nextHeader: { flexDirection: "row", justifyContent: "space-between" },
+  nextLabel: { color: "#d9ff00", fontSize: 7, fontWeight: "900" },
+  confirmed: {
+    color: "#182000",
+    backgroundColor: "#caff00",
+    borderRadius: 7,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    fontSize: 6,
+    fontWeight: "900",
+  },
+  sessionDate: {
+    color: "#d9ff00",
+    fontSize: 6,
+    fontWeight: "900",
+    marginTop: 9,
+  },
+  sessionTime: {
+    color: "#e9f0e5",
+    fontSize: 17,
+    fontWeight: "900",
+    marginTop: 3,
+  },
+  sessionTitle: {
+    color: "#e8efe4",
+    fontSize: 10,
+    fontWeight: "900",
+    marginTop: 5,
+  },
+  sessionDetail: {
+    color: "#a7b2a7",
+    fontSize: 7,
+    lineHeight: 11,
+    marginTop: 4,
+  },
+  sessionMeta: {
+    color: "#ffffff",
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+  },
+  sessionMetaText: { color: "#ffffff", fontSize: 12 },
+  location: {
+    color: "#abb6aa",
+    fontSize: 7,
+    lineHeight: 11,
+    marginTop: 9,
+    backgroundColor: "#242a2b",
+    borderRadius: 5,
+    padding: 7,
+  },
+  checkin: {
+    height: 34,
+    backgroundColor: "#caff00",
+    borderRadius: 6,
+    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+  },
+  checkinText: { color: "#182000", fontSize: 7, fontWeight: "900" },
+  sessionActions: { flexDirection: "row", gap: 6, marginTop: 6 },
+  mutedButton: {
+    flex: 1,
+    height: 28,
+    borderRadius: 5,
+    backgroundColor: "#303638",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mutedText: { color: "#aeb9ad", fontSize: 7 },
+  upcoming: {
+    backgroundColor: "#1b2022",
+    borderRadius: 7,
+    padding: 9,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  upcomingDate: {
+    color: "#d9ff00",
+    backgroundColor: "#263522",
+    borderRadius: 5,
+    padding: 5,
+    textAlign: "center",
+    fontSize: 8,
+    fontWeight: "900",
+  },
+  upcomingCopy: { flex: 1, marginLeft: 8 },
+  upcomingTime: { color: "#44d69c", fontSize: 6, fontWeight: "900" },
+  upcomingName: {
+    color: "#e8efe4",
+    fontSize: 9,
+    fontWeight: "900",
+    marginTop: 4,
+  },
+  upcomingDetail: { color: "#919c91", fontSize: 6, marginTop: 3 },
+  logCard: { backgroundColor: "#1b2022", borderRadius: 7, padding: 10 },
+  logTop: { flexDirection: "row", justifyContent: "space-between" },
+  logDate: { color: "#93a093", fontSize: 6 },
+  stars: { color: "#d9ff00", fontSize: 9 },
+  logTitle: { color: "#e8efe4", fontSize: 11, fontWeight: "900", marginTop: 5 },
+  logTag: {
+    color: "#49d79e",
+    backgroundColor: "#163a2d",
+    fontSize: 6,
+    padding: 5,
+    marginTop: 6,
+  },
+  logNote: { color: "#adb8ad", fontSize: 7, lineHeight: 11, marginTop: 7 },
+  options: {
+    backgroundColor: "#252b2d",
+    borderRadius: 7,
+    padding: 10,
+    marginTop: 10,
+  },
+  optionsTitle: {
+    color: "#cbd800",
+    fontSize: 7,
+    fontWeight: "900",
+    marginBottom: 8,
+  },
+  optionRow: { flexDirection: "row", gap: 7 },
+  option: { flex: 1, backgroundColor: "#303638", borderRadius: 5, padding: 8 },
+  optionTitle: {
+    color: "#eef4e8",
+    fontSize: 7,
+    fontWeight: "900",
+    marginTop: 7,
+  },
+  optionDetail: { color: "#98a399", fontSize: 6, marginTop: 3 },
 });
