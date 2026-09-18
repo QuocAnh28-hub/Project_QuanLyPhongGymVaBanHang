@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Header from './components/Header'
 import Login from './components/Login'
 import Signup from './components/Signup'
+import ForgotPassword from './components/ForgotPassword'
 import Navigation from './components/Navigation'
 import './App.css'
 
@@ -24,10 +25,11 @@ const hours = [34, 52, 64, 45, 33, 47, 67, 37, 18, 62, 72, 79, 68, 45, 28, 22]
 
 function App() {
   const [activePage, setActivePage] = useState('Dashboard')
-  const [screen, setScreen] = useState<'login' | 'signup' | 'dashboard'>('login')
+  const [screen, setScreen] = useState<'login' | 'signup' | 'forgot' | 'dashboard'>('login')
 
-  if (screen === 'login') return <Login onLogin={() => setScreen('dashboard')} onSignup={() => setScreen('signup')} />
+  if (screen === 'login') return <Login onLogin={() => setScreen('dashboard')} onSignup={() => setScreen('signup')} onForgot={() => setScreen('forgot')} />
   if (screen === 'signup') return <Signup onLogin={() => setScreen('login')} onRegister={() => setScreen('dashboard')} />
+  if (screen === 'forgot') return <ForgotPassword onBack={() => setScreen('login')} />
 
   return <main className="app-shell">
     <Navigation activeItem={activePage} onNavigate={setActivePage} onLogout={() => setScreen('login')} />
