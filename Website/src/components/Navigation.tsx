@@ -1,6 +1,7 @@
 type NavigationItem = {
   label: string;
   icon: string;
+  children?: string[];
 };
 
 type NavigationProps = {
@@ -15,9 +16,13 @@ const navigation: { group: string; items: NavigationItem[] }[] = [
     items: [
       { label: "Dashboard", icon: "▦" },
       { label: "Hội viên", icon: "♙" },
-      { label: "Gói tập", icon: "◇" },
-      { label: "Check-In", icon: "✓" },
-      { label: "Huấn luyện viên", icon: "♟" },
+      {
+        label: "Quản lý Gói tập & Đăng ký",
+        icon: "◇",
+        children: ["Danh sách gói tập", "Quản lý đăng ký gói tập"],
+      },
+      { label: "Check-In", icon: "⌗" },
+      { label: "Huấn luyện viên", icon: "⚒" },
     ],
   },
   {
@@ -27,7 +32,7 @@ const navigation: { group: string; items: NavigationItem[] }[] = [
       { label: "Danh mục", icon: "☷" },
       { label: "Đơn hàng", icon: "▤" },
       { label: "Kho hàng", icon: "□" },
-      { label: "Hóa đơn", icon: "▧" },
+      { label: "Hóa đơn", icon: "▥" },
       { label: "Khuyến mãi", icon: "%" },
     ],
   },
@@ -40,45 +45,41 @@ const navigation: { group: string; items: NavigationItem[] }[] = [
   },
 ];
 
-export default function Navigation({
-  activeItem,
-  onNavigate,
-  onLogout,
-}: NavigationProps) {
+export default function Navigation({ activeItem, onNavigate, onLogout }: NavigationProps) {
   return (
     <aside className="sidebar">
       <div className="brand">
         <span className="brand-mark">QA</span>
-        <div>
-          <b>QA-GYM</b>
-          <small>PERFORMANCE CLUB</small>
-        </div>
+        <div><b>QA-GYM</b><small>PERFORMANCE CLUB</small></div>
       </div>
       <nav aria-label="Điều hướng chính">
         {navigation.map(({ group, items }) => (
           <section className="nav-group" key={group}>
             <p>{group}</p>
-            {items.map(({ label, icon }) => (
-              <button
-                key={label}
-                className={`nav-item ${activeItem === label ? "active" : ""}`}
-                onClick={() => onNavigate(label)}
-              >
-                <span className="nav-icon">{icon}</span>
-                {label}
-              </button>
+            {items.map(({ label, icon, children }) => (
+              <div className="nav-entry" key={label}>
+                <button
+                  className={`nav-item ${activeItem === label || children?.includes(activeItem) ? "active" : ""}`}
+                  onClick={() => onNavigate(children?.[0] ?? label)}
+                >
+                  <span className="nav-icon">{icon}</span>{label}
+                </button>
+                {children && (
+                  <div className="nav-submenu">
+                    {children.map(child => (
+                      <button className={activeItem === child ? "active" : ""} onClick={() => onNavigate(child)} key={child}>
+                        {child}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </section>
         ))}
       </nav>
-      <button className="logout-button" type="button" onClick={onLogout}>
-        <span className="nav-icon">↪</span>
-        Đăng xuất
-      </button>
-      <div className="sidebar-bottom">
-        <span className="online-dot" />
-        Hệ thống hoạt động tốt
-      </div>
+      <button className="logout-button" type="button" onClick={onLogout}><span className="nav-icon">↪</span>Đăng xuất</button>
+      <div className="sidebar-bottom"><span className="online-dot" />Hệ thống hoạt động tốt</div>
     </aside>
   );
 }

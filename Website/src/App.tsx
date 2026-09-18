@@ -4,7 +4,11 @@ import Login from "./components/Login";
 import Signup from "./components/Signup";
 import ForgotPassword from "./components/ForgotPassword";
 import Navigation from "./components/Navigation";
+import PackagesPage from "./pages/PackagesPage";
+import RegistrationsPage from "./pages/RegistrationsPage";
 import "./App.css";
+import "./AdminBase.css";
+import "./AdminExtra.css";
 
 const metrics = [
   [
@@ -119,6 +123,7 @@ function App() {
       />
       <section className="workspace">
         <Header />
+        {activePage !== "Danh sách gói tập" && activePage !== "Quản lý đăng ký gói tập" ? (
         <div className="dashboard">
           <section className="dashboard-hero">
             <div className="hero-copy">
@@ -346,6 +351,15 @@ function App() {
             lệnh hóa đơn VAT　　◉ Hotline Vận Hành CLB　1900 8899
           </footer>
         </div>
+        ) : (
+          <div className="module-content">
+            <nav className="module-tabs" aria-label="Điều hướng quản lý gói tập">
+              <button className={activePage === "Danh sách gói tập" ? "active" : ""} onClick={() => setActivePage("Danh sách gói tập")}>DANH SÁCH GÓI TẬP</button>
+              <button className={activePage === "Quản lý đăng ký gói tập" ? "active" : ""} onClick={() => setActivePage("Quản lý đăng ký gói tập")}>QUẢN LÝ ĐĂNG KÝ</button>
+            </nav>
+            {activePage === "Quản lý đăng ký gói tập" ? <RegistrationsPage /> : <PackagesPage />}
+          </div>
+        )}
       </section>
     </main>
   );
