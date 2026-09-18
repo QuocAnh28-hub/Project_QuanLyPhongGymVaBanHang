@@ -4,11 +4,18 @@ import Login from "./components/Login";
 import Signup from "./components/Signup";
 import ForgotPassword from "./components/ForgotPassword";
 import Navigation from "./components/Navigation";
+import type { PageId } from "./components/Navigation";
 import PackagesPage from "./pages/PackagesPage";
 import RegistrationsPage from "./pages/RegistrationsPage";
+import CheckInLivePage from "./pages/CheckInLivePage";
+import CheckInHistoryPage from "./pages/CheckInHistoryPage";
+import CheckInQrPage from "./pages/CheckInQrPage";
 import "./App.css";
 import "./AdminBase.css";
 import "./AdminExtra.css";
+import "./CheckIn.css";
+import "./Typography.css";
+import "./Sidebar.css";
 
 const metrics = [
   [
@@ -91,7 +98,7 @@ const clubs = [
 const hours = [34, 52, 64, 45, 33, 47, 67, 37, 18, 62, 72, 79, 68, 45, 28, 22];
 
 function App() {
-  const [activePage, setActivePage] = useState("Dashboard");
+  const [activePage, setActivePage] = useState<PageId>("dashboard");
   const [screen, setScreen] = useState<
     "login" | "signup" | "forgot" | "dashboard"
   >("login");
@@ -117,13 +124,13 @@ function App() {
   return (
     <main className="app-shell">
       <Navigation
-        activeItem={activePage}
+        activePage={activePage}
         onNavigate={setActivePage}
         onLogout={() => setScreen("login")}
       />
       <section className="workspace">
         <Header />
-        {activePage !== "Danh sách gói tập" && activePage !== "Quản lý đăng ký gói tập" ? (
+        {!['packages-list', 'package-registrations', 'checkin-live', 'checkin-history', 'checkin-qr'].includes(activePage) ? (
         <div className="dashboard">
           <section className="dashboard-hero">
             <div className="hero-copy">
@@ -353,11 +360,13 @@ function App() {
         </div>
         ) : (
           <div className="module-content">
+            {activePage === "checkin-live" ? <CheckInLivePage /> : activePage === "checkin-history" ? <CheckInHistoryPage /> : activePage === "checkin-qr" ? <CheckInQrPage /> : <>
             <nav className="module-tabs" aria-label="Điều hướng quản lý gói tập">
-              <button className={activePage === "Danh sách gói tập" ? "active" : ""} onClick={() => setActivePage("Danh sách gói tập")}>DANH SÁCH GÓI TẬP</button>
-              <button className={activePage === "Quản lý đăng ký gói tập" ? "active" : ""} onClick={() => setActivePage("Quản lý đăng ký gói tập")}>QUẢN LÝ ĐĂNG KÝ</button>
+              <button className={activePage === "packages-list" ? "active" : ""} onClick={() => setActivePage("packages-list")}>DANH SÁCH GÓI TẬP</button>
+              <button className={activePage === "package-registrations" ? "active" : ""} onClick={() => setActivePage("package-registrations")}>QUẢN LÝ ĐĂNG KÝ</button>
             </nav>
-            {activePage === "Quản lý đăng ký gói tập" ? <RegistrationsPage /> : <PackagesPage />}
+            {activePage === "package-registrations" ? <RegistrationsPage /> : <PackagesPage />}
+            </>}
           </div>
         )}
       </section>

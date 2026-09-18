@@ -40,7 +40,7 @@ select {
   border-radius: 10px;
   color: #0b0f13;
   background: #c8ff00;
-  font-weight: 900;
+  font-weight: 700;
   font-size: 10px;
 }
 .brand small,
@@ -61,7 +61,7 @@ select {
   margin: 0 8px 8px;
   color: #657481;
   font-size: 8px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
 }
@@ -89,7 +89,7 @@ select {
   color: #071000;
   background: #c6fb00;
   box-shadow: 0 6px 18px #adf50027;
-  font-weight: 800;
+  font-weight: 700;
 }
 .nav-icon {
   width: 13px;
@@ -172,7 +172,7 @@ select {
   align-items: center;
   white-space: nowrap;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
 }
 .system-status i {
   width: 9px;
@@ -194,7 +194,7 @@ select {
   gap: 11px;
   padding: 0 16px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   white-space: nowrap;
 }
 .location-select svg {
@@ -248,7 +248,7 @@ select {
   color: #f0f2f0;
   font-size: 13px;
   line-height: 1.15;
-  font-weight: 800;
+  font-weight: 700;
   white-space: nowrap;
 }
 .user small {
@@ -256,7 +256,7 @@ select {
   font-size: 12px;
   letter-spacing: 0;
   margin-top: 4px;
-  font-weight: 800;
+  font-weight: 700;
 }
 .user b {
   display: grid;
@@ -266,7 +266,7 @@ select {
   border-radius: 50%;
   background: #f8faf4;
   color: #53602f;
-  font-family: Georgia, serif;
+  font-family: var(--font-heading);
   font-size: 22px;
   line-height: 1;
 }
@@ -291,7 +291,7 @@ select {
   color: #172000;
   padding: 3px 7px;
   border-radius: 6px;
-  font-weight: 900;
+  font-weight: 700;
   font-size: 8px;
 }
 .telemetry {
@@ -321,7 +321,7 @@ select {
   border-radius: 7px;
   color: #d9e0e3;
   background: #252c2b;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 10px;
   padding: 10px 7px;
 }
@@ -384,7 +384,7 @@ select {
 }
 .eyebrow {
   color: #80cde5;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 8px;
   letter-spacing: 0.5px;
 }
@@ -483,7 +483,7 @@ select {
 }
 .club-line span {
   color: #c8ff00;
-  font-weight: 800;
+  font-weight: 700;
 }
 .club-line i {
   grid-column: 1/-1;
@@ -607,7 +607,7 @@ select {
   background: transparent;
   color: #b9ff00;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 }
 .recovery-page {
@@ -646,7 +646,7 @@ select {
   background: #303434;
   color: #baff00;
   font-size: 8px;
-  font-weight: 900;
+  font-weight: 700;
 }
 .security-chip i {
   width: 6px;
@@ -667,7 +667,7 @@ select {
   box-shadow: 0 0 22px #aaff0033;
   color: #bcff00;
   font-size: 36px;
-  font-weight: 900;
+  font-weight: 700;
 }
 .recovery-copy h1 {
   margin: 23px 0 7px;
@@ -706,7 +706,7 @@ select {
 }
 .security-stats span {
   font-size: 8px;
-  font-weight: 900;
+  font-weight: 700;
 }
 .security-stats b,
 .security-stats small {
@@ -754,7 +754,7 @@ select {
   padding: 6px;
   color: #baff00;
   background: #15231b;
-  font-weight: 900;
+  font-weight: 700;
 }
 .help-desk {
   position: absolute;
@@ -781,7 +781,7 @@ select {
 }
 .help-desk span {
   font-size: 7px;
-  font-weight: 900;
+  font-weight: 700;
   color: #b0b8b2;
 }
 .help-desk b {
@@ -862,7 +862,7 @@ select {
 .recovery-field {
   color: #baff00;
   font-size: 8px;
-  font-weight: 900;
+  font-weight: 700;
 }
 .recovery-heading h2 {
   margin: 6px 0 4px;
@@ -893,7 +893,7 @@ select {
   background: #090c0e;
   color: #e3e6e1;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 }
 .method-picker button.selected {
@@ -967,7 +967,7 @@ select {
   background: #baff00;
   color: #121900;
   font-size: 10px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
 }
 .recovery-footer {
@@ -975,14 +975,14 @@ select {
   justify-content: space-between;
   margin-top: 67px;
   font-size: 8px;
-  font-weight: 800;
+  font-weight: 700;
 }
 .recovery-footer button {
   border: 0;
   background: transparent;
   color: #dce2dc;
   font-size: 8px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 }
 .recovery-footer span {
@@ -1088,7 +1088,7 @@ select {
   background: #21272d;
   color: #dde5e5;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   padding: 11px 6px;
 }
 .hero-actions .primary {
@@ -1124,7 +1124,7 @@ select {
   margin-left: auto;
   font-size: 8px;
   color: #84a7b5;
-  font-weight: 800;
+  font-weight: 700;
 }
 .hero-status select {
   margin-left: 8px;
@@ -1156,7 +1156,7 @@ select {
 .metric-top span,
 .dash-eyebrow {
   font-size: 8px;
-  font-weight: 900;
+  font-weight: 700;
   color: #75b9d1;
   letter-spacing: 0.35px;
 }
@@ -1186,7 +1186,7 @@ select {
   display: block;
   font-style: normal;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
   color: #bafa00;
   line-height: 1.5;
   margin: 7px 0 15px;
@@ -1516,7 +1516,7 @@ select {
   border-radius: 6px;
   padding: 9px;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
 }
 .system-footer {
   margin-top: 20px;
@@ -1671,7 +1671,7 @@ select {
   align-items: center;
   gap: 11px;
   font-size: 17px;
-  font-weight: 900;
+  font-weight: 700;
 }
 .login-brand > b {
   display: grid;
@@ -1709,7 +1709,7 @@ select {
   background: #2b3032;
   color: #c2c7c4;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
 }
 .club-online::first-letter {
   color: #b9ff00;
@@ -1722,7 +1722,7 @@ select {
 .promo-copy > span,
 .login-kicker {
   font-size: 10px;
-  font-weight: 900;
+  font-weight: 700;
   color: #b9ff00;
 }
 .promo-copy h1 {
@@ -1821,7 +1821,7 @@ select {
   color: #e4e7e4;
   height: 58px;
   font-size: 19px;
-  font-weight: 900;
+  font-weight: 700;
 }
 .social-login small {
   font-size: 9px;
@@ -1845,7 +1845,7 @@ select {
 .login-panel label {
   display: block;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   color: #d7dcda;
   margin: 12px 0;
 }
@@ -1899,12 +1899,12 @@ select {
   background: #b9ff00;
 }
 .remember input::after {
-  content: "✓";
+  content: "âœ“";
   display: block;
   color: #172000;
   text-align: center;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
 }
 .login-submit {
   width: 100%;
@@ -1915,7 +1915,7 @@ select {
   background: #b9ff00;
   color: #142000;
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 700;
   box-shadow: 0 5px 14px #b9ff0024;
 }
 .signup-link {
@@ -2173,7 +2173,7 @@ select {
   align-items: center;
   gap: 9px;
   font-size: 17px;
-  font-weight: 900;
+  font-weight: 700;
 }
 .signup-brand > b {
   display: grid;
@@ -2225,7 +2225,7 @@ select {
   background: #303638;
   color: #cad1ce;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
 }
 .signup-benefits h1 {
   line-height: 1.2;
@@ -2285,7 +2285,7 @@ select {
 }
 .signup-title > span {
   color: #b9ff00;
-  font-weight: 900;
+  font-weight: 700;
 }
 .signup-title h2 {
   margin-top: 4px;
@@ -2305,7 +2305,7 @@ select {
   grid-template-columns: 1fr 1.15fr;
 }
 .signup-fields label {
-  font-weight: 800;
+  font-weight: 700;
   color: #d6dcd9;
 }
 .signup-fields label > div {
@@ -2335,7 +2335,7 @@ select {
   border-radius: 5px;
   background: #343a39;
   color: #b9ff00;
-  font-weight: 900;
+  font-weight: 700;
 }
 .goals > div {
   display: flex;
@@ -2359,7 +2359,7 @@ select {
   border-radius: 9px;
   background: #292e32;
   color: #c7cdca;
-  font-weight: 800;
+  font-weight: 700;
 }
 .goals button i {
   color: #b9ff00;
@@ -2395,7 +2395,7 @@ select {
   border-radius: 10px;
   background: #b9ff00;
   color: #152000;
-  font-weight: 900;
+  font-weight: 700;
   box-shadow: 0 5px 14px #b9ff0038;
 }
 .have-account {
@@ -2406,7 +2406,7 @@ select {
   border: 0;
   background: transparent;
   color: #b9ff00;
-  font-weight: 900;
+  font-weight: 700;
 }
 .signup-security {
   background: #181c1f;
