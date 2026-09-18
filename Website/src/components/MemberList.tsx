@@ -1,4 +1,4 @@
-type Member = {
+export type Member = {
   id: string
   name: string
   phone: string
@@ -45,7 +45,7 @@ const statistics = [
   },
 ]
 
-const members: Member[] = [
+export const members: Member[] = [
   {
     id: 'QA-84928',
     name: 'Alex Tran\n(Trần Minh Hoàng)',
@@ -141,7 +141,11 @@ const members: Member[] = [
 const splitLine = (value: string) =>
   value.split('\n').map((line) => <span key={line}>{line}</span>)
 
-export default function MemberList() {
+type MemberListProps = {
+  onSelectMember: (member: Member) => void
+}
+
+export default function MemberList({ onSelectMember }: MemberListProps) {
   return (
     <div className="members-page">
       <section className="members-heading">
@@ -266,14 +270,18 @@ export default function MemberList() {
                     <input aria-label={`Chọn ${member.name}`} type="checkbox" />
                   </td>
                   <td>
-                    <div className="member-profile">
+                    <button
+                      className="member-profile member-profile-button"
+                      type="button"
+                      onClick={() => onSelectMember(member)}
+                    >
                       <i>{member.avatar}</i>
                       <div>
                         <strong>{splitLine(member.name)}</strong>
                         <small>⌁ {member.id}</small>
                         <em>{member.phone}</em>
                       </div>
-                    </div>
+                    </button>
                   </td>
                   <td>
                     <span
@@ -302,7 +310,12 @@ export default function MemberList() {
                   </td>
                   <td>
                     <div className="member-actions">
-                      <button aria-label="Xem chi tiết">◉</button>
+                      <button
+                        aria-label="Xem chi tiết"
+                        onClick={() => onSelectMember(member)}
+                      >
+                        ◉
+                      </button>
                       <button aria-label="Chỉnh sửa">✎</button>
                       <button aria-label="Thêm thao tác">⋮</button>
                     </div>

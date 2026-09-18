@@ -4,6 +4,9 @@ import Login from './components/Login'
 import Signup from './components/Signup'
 import ForgotPassword from './components/ForgotPassword'
 import MemberList from './components/MemberList'
+import MemberDetail from './components/MemberDetail'
+import type { Member } from './components/MemberList'
+import ActivityHistory from './components/ActivityHistory'
 import Navigation from './components/Navigation'
 import './App.css'
 
@@ -89,6 +92,8 @@ const hours = [34, 52, 64, 45, 33, 47, 67, 37, 18, 62, 72, 79, 68, 45, 28, 22]
 
 function App() {
   const [activePage, setActivePage] = useState('Dashboard')
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null)
+  const [showActivityHistory, setShowActivityHistory] = useState(false)
   const [screen, setScreen] = useState<
     'login' | 'signup' | 'forgot' | 'dashboard'
   >('login')
@@ -121,7 +126,22 @@ function App() {
       <section className="workspace">
         <Header />
         {activePage === 'Hội viên' ? (
-          <MemberList />
+          selectedMember ? (
+            showActivityHistory ? (
+              <ActivityHistory
+                member={selectedMember}
+                onBack={() => setShowActivityHistory(false)}
+              />
+            ) : (
+              <MemberDetail
+                member={selectedMember}
+                onBack={() => setSelectedMember(null)}
+                onActivityHistory={() => setShowActivityHistory(true)}
+              />
+            )
+          ) : (
+            <MemberList onSelectMember={setSelectedMember} />
+          )
         ) : (
           <div className="dashboard">
             <section className="dashboard-hero">
