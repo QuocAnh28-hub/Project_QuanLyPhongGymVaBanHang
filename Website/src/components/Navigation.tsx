@@ -1,13 +1,14 @@
 import { useState } from "react";
 
-type MenuKey = "packages" | "checkin";
-export type PageId = "dashboard" | "members" | "packages-list" | "package-registrations" | "checkin-live" | "checkin-history" | "checkin-qr" | "trainers" | "orders" | "revenue" | "equipment" | "settings";
+type MenuKey = "packages" | "checkin" | "trainers";
+export type PageId = "dashboard" | "members" | "packages-list" | "package-registrations" | "checkin-live" | "checkin-history" | "checkin-qr" | "trainers-list" | "pt-sessions" | "trainer-roster" | "orders" | "revenue" | "equipment" | "settings";
 type NavigationItem = { id: PageId; label: string; icon: string; menu?: MenuKey; children?: { id: PageId; label: string }[] };
 type NavigationProps = { activePage: PageId; onNavigate: (page: PageId) => void; onLogout: () => void };
 
 const packagePages: PageId[] = ["packages-list", "package-registrations"];
 const checkinPages: PageId[] = ["checkin-live", "checkin-history", "checkin-qr"];
-const menuFor = (page: PageId): MenuKey | null => packagePages.includes(page) ? "packages" : checkinPages.includes(page) ? "checkin" : null;
+const trainerPages: PageId[] = ["trainers-list", "pt-sessions", "trainer-roster"];
+const menuFor = (page: PageId): MenuKey | null => packagePages.includes(page) ? "packages" : checkinPages.includes(page) ? "checkin" : trainerPages.includes(page) ? "trainers" : null;
 
 const navigation: { group: string; items: NavigationItem[] }[] = [
   { group: "VẬN HÀNH CHÍNH", items: [
@@ -15,7 +16,7 @@ const navigation: { group: string; items: NavigationItem[] }[] = [
     { id: "members", label: "Quản lý Hội viên & HĐ", icon: "group" },
     { id: "packages-list", label: "Quản lý Gói tập & Đăng ký", icon: "card_membership", menu: "packages", children: [{ id: "packages-list", label: "Danh sách gói tập" }, { id: "package-registrations", label: "Quản lý đăng ký gói tập" }] },
     { id: "checkin-live", label: "Cổng Check-in & Kiểm soát QR", icon: "qr_code_scanner", menu: "checkin", children: [{ id: "checkin-live", label: "Giám sát Check-in hôm nay" }, { id: "checkin-history", label: "Lịch sử Check-in" }, { id: "checkin-qr", label: "Quản lý mã QR" }] },
-    { id: "trainers", label: "HLV & Lịch tập PT", icon: "fitness_center" },
+    { id: "trainers-list", label: "HLV & Lịch tập PT", icon: "fitness_center", menu: "trainers", children: [{ id: "trainers-list", label: "Quản lý Huấn luyện viên" }, { id: "pt-sessions", label: "Lịch thuê PT & Buổi tập 1-1" }, { id: "trainer-roster", label: "Lịch làm việc & Phân ca HLV" }] },
   ]},
   { group: "KINH DOANH & THƯƠNG MẠI", items: [
     { id: "orders", label: "Đơn hàng QA Pro Shop", icon: "shopping_bag" },

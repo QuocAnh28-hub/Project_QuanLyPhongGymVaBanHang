@@ -1,0 +1,1007 @@
+<!DOCTYPE html><html class="dark" lang="vi"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-tertiary-container": "#006c93",
+          "on-primary-fixed": "#161e00",
+          "on-background": "#e2e2e6",
+          "on-primary": "#283500",
+          "inverse-surface": "#e2e2e6",
+          "tertiary-fixed-dim": "#7bd0ff",
+          "tertiary-container": "#c4e7ff",
+          "on-surface": "#e2e2e6",
+          "on-secondary-fixed": "#002113",
+          "surface-container-low": "#1a1c1f",
+          "on-primary-fixed-variant": "#3c4d00",
+          "secondary-fixed-dim": "#4edea3",
+          "surface-dim": "#111316",
+          "primary-container": "#c3f400",
+          "on-surface-variant": "#c4c9ac",
+          "on-primary-container": "#556d00",
+          "surface": "#111316",
+          "surface-container-high": "#282a2d",
+          "primary-fixed": "#c3f400",
+          "primary-fixed-dim": "#abd600",
+          "outline": "#8e9379",
+          "on-secondary-container": "#00311f",
+          "on-secondary-fixed-variant": "#005236",
+          "error": "#ffb4ab",
+          "surface-variant": "#333538",
+          "on-tertiary-fixed": "#001e2c",
+          "surface-tint": "#abd600",
+          "surface-bright": "#37393d",
+          "on-error": "#690005",
+          "on-tertiary-fixed-variant": "#004c69",
+          "tertiary": "#ffffff",
+          "surface-container-highest": "#333538",
+          "inverse-primary": "#506600",
+          "primary": "#ffffff",
+          "surface-container": "#1e2023",
+          "tertiary-fixed": "#c4e7ff",
+          "on-error-container": "#ffdad6",
+          "secondary-container": "#00a572",
+          "error-container": "#93000a",
+          "on-secondary": "#003824",
+          "surface-container-lowest": "#0c0e11",
+          "inverse-on-surface": "#2f3034",
+          "secondary-fixed": "#6ffbbe",
+          "on-tertiary": "#00354a",
+          "background": "#111316",
+          "outline-variant": "#444933",
+          "secondary": "#4edea3"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.25rem",
+          "lg": "0.5rem",
+          "xl": "0.75rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "space-sm": "0.75rem",
+          "gutter-desktop": "1.5rem",
+          "margin-tablet": "1.5rem",
+          "margin-desktop": "2.5rem",
+          "space-2xs": "0.25rem",
+          "space-2xl": "3rem",
+          "space-xs": "0.5rem",
+          "space-xl": "2rem",
+          "space-lg": "1.5rem",
+          "space-md": "1rem",
+          "gutter-mobile": "0.75rem",
+          "margin-mobile": "1rem"
+        },
+        "fontFamily": {
+          "headline-lg": [
+            "Space Grotesk"
+          ],
+          "headline-sm": [
+            "Space Grotesk"
+          ],
+          "metric-display": [
+            "Space Grotesk"
+          ],
+          "display-hero-mobile": [
+            "Space Grotesk"
+          ],
+          "body-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "label-md": [
+            "Space Grotesk"
+          ],
+          "display-hero": [
+            "Space Grotesk"
+          ],
+          "headline-md": [
+            "Space Grotesk"
+          ],
+          "label-lg": [
+            "Space Grotesk"
+          ],
+          "label-sm": [
+            "Space Grotesk"
+          ],
+          "headline-lg-mobile": [
+            "Space Grotesk"
+          ],
+          "body-sm": [
+            "Plus Jakarta Sans"
+          ],
+          "body-md": [
+            "Plus Jakarta Sans"
+          ]
+        },
+        "fontSize": {
+          "headline-lg": [
+            "32px",
+            {
+              "lineHeight": "38px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-sm": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "0em",
+              "fontWeight": "600"
+            }
+          ],
+          "metric-display": [
+            "40px",
+            {
+              "lineHeight": "44px",
+              "letterSpacing": "-0.03em",
+              "fontWeight": "700"
+            }
+          ],
+          "display-hero-mobile": [
+            "36px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.03em",
+              "fontWeight": "700"
+            }
+          ],
+          "body-lg": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "400"
+            }
+          ],
+          "label-md": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.04em",
+              "fontWeight": "600"
+            }
+          ],
+          "display-hero": [
+            "48px",
+            {
+              "lineHeight": "52px",
+              "letterSpacing": "-0.04em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-md": [
+            "22px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "label-lg": [
+            "14px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.06em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-lg-mobile": [
+            "26px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.01em",
+              "fontWeight": "400"
+            }
+          ],
+          "body-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0em",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-low z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="flex flex-col"><div class="h-16 px-space-lg flex items-center justify-between bg-surface-container-lowest"><div class="flex items-center gap-space-xs"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center"><span class="material-symbols-outlined text-on-primary-container text-[20px]">fitness_center</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">QA-GYM</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Performance Club</span></div></div><span class="font-label-sm text-label-sm px-space-xs py-0.5 rounded bg-surface-container-high text-primary-fixed">HQ OPS</span></div><div class="px-space-md py-space-sm"><div class="flex items-center justify-between px-space-sm py-space-xs rounded-lg bg-surface-container-lowest"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span><span class="font-label-sm text-label-sm uppercase tracking-wide text-on-surface-variant">Hệ thống 24/7</span></div><span class="font-label-sm text-label-sm text-secondary-fixed">LIVE SYNC</span></div></div><nav class="px-space-md flex flex-col gap-1 overflow-y-auto" data-active-classes="bg-primary-container text-on-primary-container font-headline-sm font-semibold rounded-lg shadow-[0_0_16px_rgba(195,244,0,0.2)]"><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-body-md text-body-md" data-path="dashboard-tong-quan" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span>Dashboard Tổng quan</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-body-md text-body-md" data-path="quan-ly-hoi-vien-va-hd" href="#"><span class="material-symbols-outlined text-[20px]">badge</span><span>Quản lý Hội viên &amp; HĐ</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-body-md text-body-md" data-path="quan-ly-goi-tap-va-dang-ky" href="#"><span class="material-symbols-outlined text-[20px]">card_membership</span><span>Quản lý Gói tập &amp; Đăng ký</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-body-md text-body-md" data-path="cong-check-in-va-kiem-soat-qr" href="#"><span class="material-symbols-outlined text-[20px]">qr_code_scanner</span><span>Cổng Check-in &amp; Kiểm soát QR</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-body-md text-body-md" data-path="hlv-va-lich-tap-pt" href="#"><span class="material-symbols-outlined text-[20px]">sports_gymnastics</span><span>HLV &amp; Lịch tập PT</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-body-md text-body-md" data-path="san-pham-va-don-hang-qa-pro-shop" href="#"><span class="material-symbols-outlined text-[20px]">shopping_bag</span><span>Sản phẩm &amp; Đơn hàng QA Pro Shop</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-body-md text-body-md" data-path="doanh-thu-va-bao-cao-vat" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span>Doanh thu &amp; Báo cáo VAT</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-body-md text-body-md" data-path="thiet-bi-va-bao-tri-clb" href="#"><span class="material-symbols-outlined text-[20px]">build_circle</span><span>Thiết bị &amp; Bảo trì CLB</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-body-md text-body-md" data-path="phan-quyen-va-cai-dat" href="#"><span class="material-symbols-outlined text-[20px]">tune</span><span>Phân quyền &amp; Cài đặt</span></a></nav></div><div class="p-space-md bg-surface-container-lowest flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center"><span class="material-symbols-outlined text-primary-fixed text-[20px]">admin_panel_settings</span></div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface truncate">v3.8 Enterprise</span><span class="font-label-sm text-label-sm text-on-surface-variant">SLA 99.98% OK</span></div></div><span class="material-symbols-outlined text-on-surface-variant text-[18px]">verified</span></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/85 backdrop-blur-xl z-40 flex items-center justify-between px-space-xl shadow-[0_1px_8px_rgba(0,0,0,0.2)]"><div class="flex items-center gap-space-lg flex-1 max-w-2xl"><div class="relative flex-1"><span class="material-symbols-outlined absolute left-space-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span><input class="w-full h-10 pl-10 pr-space-md rounded-lg bg-surface-container-low text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm focus:outline-none focus:bg-surface-container transition-all" placeholder="Tra cứu nhanh: Hội viên (Phone/CCCD), Hợp đồng, Mã QR, Đơn hàng, Huấn luyện viên..." type="text"></div><div class="relative flex items-center"><select aria-label="Chọn cơ sở CLB" class="appearance-none h-10 pl-space-md pr-8 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md cursor-pointer focus:outline-none hover:bg-surface-container transition-colors"><option value="landmark">QA Club 01 - Landmark Center (Main HQ)</option><option value="riverside">QA Club 02 - Riverside District 7</option><option value="westlake">QA Club 03 - Westlake Premier Arena</option><option value="skyline">QA Club 04 - Skyline Tower District 1</option></select><span class="material-symbols-outlined absolute right-space-xs pointer-events-none text-on-surface-variant text-[18px]">expand_more</span></div></div><div class="flex items-center gap-space-md pl-space-md"><div class="flex items-center gap-1.5 px-space-sm py-1.5 rounded-full bg-surface-container-low"><span class="w-2 h-2 rounded-full bg-secondary-container animate-ping"></span><span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary-fixed font-semibold">Cơ sở: 4/4 Mở cửa</span></div><button aria-label="Thông báo hệ thống" class="relative w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary-fixed"></span></button><div class="flex items-center gap-space-sm pl-space-xs"><div class="flex flex-col text-right"><span class="font-label-md text-label-md text-on-surface font-semibold">Trần Minh Hoàng</span><span class="font-label-sm text-label-sm text-primary-fixed">Head Operations / Master Admin</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 bg-surface w-full px-8"><div class="flex flex-col w-full pb-space-2xl space-y-space-xl">
+<!-- Top Bar: Breadcrumb + Action Controls -->
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-space-md pt-space-md">
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">
+<span>VẬN HÀNH CHÍNH</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span>HLV &amp; LỊCH TẬP PT</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary-fixed">DANH SÁCH HUẤN LUYỆN VIÊN (PT)</span>
+</div>
+<div class="flex items-baseline gap-space-md">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight uppercase">
+          QUẢN LÝ ĐỘI NGŨ HUẤN LUYỆN VIÊN (PT)
+        </h1>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 rounded-full bg-surface-container-high text-secondary-fixed">
+          42 ACTIVE STAFF
+        </span>
+</div>
+</div>
+<!-- Main Action CTA Group -->
+<div class="flex items-center gap-space-sm self-start lg:self-auto">
+<button class="flex items-center gap-space-xs px-space-md py-3 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface transition-all shadow-md active:scale-95" type="button">
+<span class="material-symbols-outlined text-[18px]">download_for_offline</span>
+<span class="font-label-lg text-label-lg">Xuất bảng KPI HLV (Excel)</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-lg py-3 rounded-xl bg-primary-container text-on-primary-container font-headline-sm text-label-lg font-bold shadow-[0_0_24px_rgba(195,244,0,0.25)] hover:shadow-[0_0_32px_rgba(195,244,0,0.45)] transition-all active:scale-98" type="button">
+<span class="material-symbols-outlined text-[20px]">person_add</span>
+<span>+ Tuyển dụng / Thêm HLV mới</span>
+</button>
+</div>
+</div>
+<!-- KPI Pulse Ribbon (4 Athletic Cards) -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-md">
+<!-- Card 1: Headcount -->
+<div class="p-space-lg rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute -right-6 -bottom-6 w-28 h-28 rounded-full bg-primary-container/5 blur-2xl pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tổng số Huấn luyện viên</span>
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-fixed">
+<span class="material-symbols-outlined text-[18px]">sports</span>
+</div>
+</div>
+<div class="mt-space-md flex items-baseline gap-space-xs">
+<span class="font-metric-display text-metric-display text-on-surface tracking-tighter">42</span>
+<span class="font-label-md text-label-md text-primary-fixed font-semibold">HLV</span>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span>38 Full-time</span>
+<span class="w-1 h-1 rounded-full bg-on-surface-variant/40"></span>
+<span class="text-secondary-fixed">04 Master Coach</span>
+</div>
+</div>
+<!-- Card 2: Utilization Rate -->
+<div class="p-space-lg rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tỷ lệ Lấp kín lịch (Utilization)</span>
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary-fixed">
+<span class="material-symbols-outlined text-[18px]">timelapse</span>
+</div>
+</div>
+<div class="mt-space-md flex items-baseline gap-space-xs">
+<span class="font-metric-display text-metric-display text-secondary-fixed tracking-tighter">94.6</span>
+<span class="font-headline-sm text-headline-sm text-secondary-fixed">%</span>
+</div>
+<div class="mt-space-sm flex items-center gap-space-xs font-label-md text-label-md text-secondary">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span>+3.2% so với tháng trước</span>
+</div>
+</div>
+<!-- Card 3: Completed Sessions & Revenue -->
+<div class="p-space-lg rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tổng ca dạy trong tháng</span>
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-fixed">
+<span class="material-symbols-outlined text-[18px]">event_available</span>
+</div>
+</div>
+<div class="mt-space-md flex items-baseline gap-space-xs">
+<span class="font-metric-display text-metric-display text-on-surface tracking-tighter">3.420</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Buổi</span>
+</div>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between font-body-sm text-body-sm">
+<span class="text-on-surface-variant">Doanh thu PT:</span>
+<span class="font-label-md text-label-md text-primary-fixed">461.000.000 ₫</span>
+</div>
+</div>
+<!-- Card 4: Member CSAT Score -->
+<div class="p-space-lg rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Đánh giá trung bình CSAT</span>
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-fixed">
+<span class="material-symbols-outlined text-[18px]">star</span>
+</div>
+</div>
+<div class="mt-space-md flex items-baseline gap-space-xs">
+<span class="font-metric-display text-metric-display text-on-surface tracking-tighter">4.92</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">/ 5.0</span>
+</div>
+<div class="mt-space-sm flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<span class="inline-block w-2 h-2 rounded-full bg-secondary-fixed"></span>
+<span class="text-on-surface">98.4%</span> phản hồi hội viên hài lòng
+      </div>
+</div>
+</div>
+<!-- Smart Query & Multi-Level Filters -->
+<div class="p-space-md rounded-xl bg-surface-container-low shadow-sm space-y-space-md">
+<div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-space-md">
+<!-- Search Input -->
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-space-md top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">manage_search</span>
+<input class="w-full h-11 pl-11 pr-space-md rounded-lg bg-surface-container text-on-surface placeholder:text-on-surface-variant font-body-md text-body-md focus:outline-none focus:bg-surface-container-high transition-colors" id="pt-search" placeholder="Tìm theo tên, mã HLV (#QA-COACH-...), số điện thoại, chứng chỉ (CSCS/NASM)..." type="text">
+</div>
+<!-- Segmented Switches & Actions -->
+<div class="flex items-center gap-space-sm justify-between lg:justify-end">
+<div class="flex items-center p-1 rounded-lg bg-surface-container">
+<button class="px-space-md py-1.5 rounded bg-primary-container text-on-primary-container font-label-md text-label-md flex items-center gap-1.5 transition-all" id="view-table-btn">
+<span class="material-symbols-outlined text-[18px]">table_rows</span>
+<span>Bảng</span>
+</button>
+<button class="px-space-md py-1.5 rounded text-on-surface-variant hover:text-on-surface font-label-md text-label-md flex items-center gap-1.5 transition-all" id="view-grid-btn">
+<span class="material-symbols-outlined text-[18px]">grid_view</span>
+<span>Lưới</span>
+</button>
+</div>
+<button class="h-11 px-space-md rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface flex items-center gap-space-xs font-label-md text-label-md transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+<span>Làm mới</span>
+</button>
+</div>
+</div>
+<!-- Filter Dropdown Matrix -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-space-sm pt-space-xs">
+<!-- Cơ sở -->
+<div class="relative">
+<select aria-label="Lọc theo Cơ sở" class="appearance-none w-full h-10 px-space-md pr-8 rounded-lg bg-surface-container text-on-surface font-body-sm text-body-sm focus:outline-none cursor-pointer">
+<option value="all">Tất cả Cơ sở CLB (4)</option>
+<option value="q1">Cơ sở 01 - Vincom Đồng Khởi Q.1</option>
+<option value="q7">Cơ sở 02 - Crescent Elite Q.7</option>
+<option value="thaodien">Cơ sở 03 - Thảo Điền Hub Elite</option>
+<option value="westlake">Cơ sở 04 - West Lake Premier HN</option>
+</select>
+<span class="material-symbols-outlined absolute right-space-sm top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-[18px]">expand_more</span>
+</div>
+<!-- Cấp bậc -->
+<div class="relative">
+<select aria-label="Lọc theo Cấp bậc HLV" class="appearance-none w-full h-10 px-space-md pr-8 rounded-lg bg-surface-container text-on-surface font-body-sm text-body-sm focus:outline-none cursor-pointer">
+<option value="all">Cấp bậc: Toàn bộ</option>
+<option value="master">Master Coach (Level 4)</option>
+<option value="senior">Senior PT (Level 3)</option>
+<option value="pro">Pro Trainer (Level 2)</option>
+<option value="junior">Junior PT (Level 1)</option>
+</select>
+<span class="material-symbols-outlined absolute right-space-sm top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-[18px]">expand_more</span>
+</div>
+<!-- Chuyên môn -->
+<div class="relative">
+<select aria-label="Lọc theo Chuyên môn Huấn luyện" class="appearance-none w-full h-10 px-space-md pr-8 rounded-lg bg-surface-container text-on-surface font-body-sm text-body-sm focus:outline-none cursor-pointer">
+<option value="all">Chuyên môn: Tất cả</option>
+<option value="hyper">Hypertrophy / Bodybuilding</option>
+<option value="pilates">Pilates Reformer Clinical</option>
+<option value="boxing">Combat Boxing / Muay Thai</option>
+<option value="rehab">Functional Rehab / Chỉnh hình cột sống</option>
+<option value="fatloss">Fat Loss Acceleration (Giảm cân cấp tốc)</option>
+</select>
+<span class="material-symbols-outlined absolute right-space-sm top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-[18px]">expand_more</span>
+</div>
+<!-- Trạng thái Tiếp nhận -->
+<div class="relative">
+<select aria-label="Lọc theo Trạng thái Nhận học viên" class="appearance-none w-full h-10 px-space-md pr-8 rounded-lg bg-surface-container text-on-surface font-body-sm text-body-sm focus:outline-none cursor-pointer">
+<option value="all">Trạng thái: Tất cả</option>
+<option value="available">🟢 Đang nhận học viên mới</option>
+<option value="full">🔴 Đầy lịch (Waitlist only)</option>
+<option value="leave">⚪ Nghỉ phép / Đào tạo HQ</option>
+</select>
+<span class="material-symbols-outlined absolute right-space-sm top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-[18px]">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Main Split Layout: Data Table (8 cols) + High-Performance Leaderboard Widget (4 cols) -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<!-- Left Column: Master Table View -->
+<div class="xl:col-span-8 flex flex-col gap-space-md">
+<div class="rounded-xl bg-surface-container-low shadow-sm overflow-hidden">
+<!-- Table Header Bar -->
+<div class="px-space-lg py-space-md bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">DANH SÁCH NHÂN SỰ HUẤN LUYỆN VIÊN</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(Hiển thị 6 / 42 HLV)</span>
+</div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span>SẮP XẾP:</span>
+<button class="text-primary-fixed hover:underline flex items-center gap-0.5" type="button">
+<span>KPI CA DẠY CAO NHẤT</span>
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</button>
+</div>
+</div>
+<!-- Table Stream -->
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-md text-body-md">
+<thead class="bg-surface-container-lowest font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+<tr>
+<th class="py-space-md px-space-lg">HLV &amp; Mã số</th>
+<th class="py-space-md px-space-md">Cơ sở &amp; Cấp bậc</th>
+<th class="py-space-md px-space-md text-center">Học viên Active</th>
+<th class="py-space-md px-space-md">Tiến độ ca/tháng</th>
+<th class="py-space-md px-space-md">CSAT / Tái ký</th>
+<th class="py-space-md px-space-md">Hôm nay</th>
+<th class="py-space-md px-space-lg text-right">Thao tác</th>
+</tr>
+</thead>
+<tbody class="space-y-1">
+<!-- PT Row 1 -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<img class="w-11 h-11 rounded-lg object-cover bg-surface-container-high" data-alt="Athletic portrait of a professional male Vietnamese fitness trainer in a black sleek compression athletic t-shirt, cinematic dark gym lighting with neon green rim light, high resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVuL-vksAiy9ZvY1kBCNgJ2ND_Tmo7p_AJUy7UJv-y82HLvd_FI6HAQn04uYaSVjCivxRyVNOosfiZEfgDnpsri8XXSvSbzK6wzgyXOvI3kW6xoY3XSS3v8k32SD_SfU7ljxaFbEBkF6yFj2L2e0_lr881ZrFJX8rXajUNL2I7jtXXWq4fLspvrzYzh49HKXXj2W1INTcD-gnoVa53DXTo9MfCj6srGMesm2ez-EXyS0LruR8XRqHF">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Vũ Hoàng Nam</span>
+<span class="material-symbols-outlined text-[16px] text-primary-fixed" title="Certified Master Elite">verified</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">#QA-COACH-004 · CSCS, NASM-CPT</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-primary-container/15 text-primary-fixed w-max font-semibold">Master Coach</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Vincom Q.1 (Main)</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">19</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">/20</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface font-semibold">118 / 120</span>
+<span class="text-primary-fixed">98%</span>
+</div>
+<div class="w-24 h-1.5 rounded-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 98%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary-fixed flex items-center gap-0.5">
+                      4.98 <span class="material-symbols-outlined text-[14px]">star</span>
+</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed">92% Tái ký</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-primary-container/15 text-primary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+                    Dạy ca 16:30
+                  </span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="flex items-center justify-end gap-1">
+<button aria-label="Xem hồ sơ" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Chi tiết HLV" type="button">
+<span class="material-symbols-outlined text-[18px]">id_card</span>
+</button>
+<button aria-label="Phân bổ lịch dạy" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Lịch ca tập" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</button>
+<button aria-label="Chỉnh sửa" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Thao tác khác" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- PT Row 2 -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<img class="w-11 h-11 rounded-lg object-cover bg-surface-container-high" data-alt="Athletic portrait of a female Vietnamese Pilates instructor with sleek tied hair, wearing graphite technical performance tank top, soft cinematic rim lighting, premium health club background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1GnIsPvk9usFYeN6jirHTmziMrx-DxPdABxfJ4GAKKcztqlO-s8JTGL-7HIVYnS7f9JsAS7vnOxw-gg3GEiUdAZTAWJq4cuehouF9Bm4L2N6MEaVvA8v72i6BsfKJ-sy4kupds7ttVXCzVec8J8C7R_p_sET1k4qNl_Ujok4URFoFgd0uYRse8CR3jymxZI5La2xTvh9SxGccVwi8qPoaFiw45vC75lz3dbCdJ5tsVF0XUgJXihWR">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Đặng Thảo Linh</span>
+<span class="material-symbols-outlined text-[16px] text-secondary-fixed" title="Reformer Specialist">spa</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">#QA-COACH-012 · PMA Certified, ACE</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-secondary-fixed/15 text-secondary-fixed w-max font-semibold">Senior PT</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Thảo Điền Hub</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">16</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">/16</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface font-semibold">104 / 100</span>
+<span class="text-secondary-fixed">104%</span>
+</div>
+<div class="w-24 h-1.5 rounded-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-secondary-fixed rounded-full" style="width: 100%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary-fixed flex items-center gap-0.5">
+                      4.96 <span class="material-symbols-outlined text-[14px]">star</span>
+</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed">95% Tái ký</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span>
+                    Trống 18:00
+                  </span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="flex items-center justify-end gap-1">
+<button aria-label="Xem hồ sơ" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">id_card</span>
+</button>
+<button aria-label="Phân bổ lịch dạy" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</button>
+<button aria-label="Chỉnh sửa" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- PT Row 3 -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<img class="w-11 h-11 rounded-lg object-cover bg-surface-container-high" data-alt="Portrait of a muscular male boxing and strength conditioning coach in gym apparel with wrapped wrists, high contrast dark cinematic athletic studio lights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLNg2gBVPzzbYMIcD2bISu_eNeESIH8hYMzRtMZrTjF_-1WoV_RWg67VI1t8qomeea-fNeF2DMsWFw_8oUTfLAcU7seDh7DAwZ1p9OWr1CHMQqI5oEnmMgbXsLkKCBJju9-Ba1UGS_EwCjCV8e5QAoxWWRY3RiUPzk_tOqxebabhCh7QVXNBlNrkdg6zdzTv9VNvdaTtM5KVdQ8AHagtS5zmPaOZKn2j6r19hLEFHJ8-S4GeQZTaSm">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Lê Minh Tuấn</span>
+<span class="material-symbols-outlined text-[16px] text-primary-fixed">sports_mma</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">#QA-COACH-018 · WBC Pro Coach</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container-high text-on-surface w-max font-semibold">Pro Trainer</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Crescent Elite Q.7</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">15</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">/18</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface font-semibold">88 / 100</span>
+<span class="text-on-surface-variant">88%</span>
+</div>
+<div class="w-24 h-1.5 rounded-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 88%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary-fixed flex items-center gap-0.5">
+                      4.89 <span class="material-symbols-outlined text-[14px]">star</span>
+</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">82% Tái ký</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-primary-container/15 text-primary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+                    Dạy ca 17:00
+                  </span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="flex items-center justify-end gap-1">
+<button aria-label="Xem hồ sơ" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">id_card</span>
+</button>
+<button aria-label="Phân bổ lịch dạy" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</button>
+<button aria-label="Chỉnh sửa" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- PT Row 4 -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<div class="w-11 h-11 rounded-lg bg-surface-container-high flex items-center justify-center font-headline-sm text-headline-sm text-primary-fixed">
+                      QH
+                    </div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Nguyễn Quang Huy</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">#QA-COACH-021 · NASM-CES Rehab</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-secondary-fixed/15 text-secondary-fixed w-max font-semibold">Senior PT</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">West Lake HN</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">14</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">/15</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface font-semibold">92 / 90</span>
+<span class="text-secondary-fixed">102%</span>
+</div>
+<div class="w-24 h-1.5 rounded-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-secondary-fixed rounded-full" style="width: 100%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary-fixed flex items-center gap-0.5">
+                      4.95 <span class="material-symbols-outlined text-[14px]">star</span>
+</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed">90% Tái ký</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-surface-variant"></span>
+                    Nghỉ ca tối
+                  </span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="flex items-center justify-end gap-1">
+<button aria-label="Xem hồ sơ" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">id_card</span>
+</button>
+<button aria-label="Phân bổ lịch dạy" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</button>
+<button aria-label="Chỉnh sửa" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- PT Row 5 -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<div class="w-11 h-11 rounded-lg bg-surface-container-high flex items-center justify-center font-headline-sm text-headline-sm text-secondary-fixed">
+                      MA
+                    </div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Trần Mai Anh</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">#QA-COACH-029 · ACE-CPT, Precision Nutrition</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container-high text-on-surface w-max font-semibold">Pro Trainer</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Vincom Q.1</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">12</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">/15</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface font-semibold">76 / 85</span>
+<span class="text-on-surface-variant">89%</span>
+</div>
+<div class="w-24 h-1.5 rounded-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 89%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary-fixed flex items-center gap-0.5">
+                      4.91 <span class="material-symbols-outlined text-[14px]">star</span>
+</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed">86% Tái ký</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-primary-container/15 text-primary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+                    Dạy ca 16:00
+                  </span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="flex items-center justify-end gap-1">
+<button aria-label="Xem hồ sơ" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">id_card</span>
+</button>
+<button aria-label="Phân bổ lịch dạy" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</button>
+<button aria-label="Chỉnh sửa" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- PT Row 6 (Junior) -->
+<tr class="hover:bg-surface-container transition-colors group">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<div class="w-11 h-11 rounded-lg bg-surface-container-high flex items-center justify-center font-headline-sm text-headline-sm text-on-surface-variant">
+                      DK
+                    </div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Đoàn Kiên Cường</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">#QA-COACH-041 · VFF Fitness Lv1</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant w-max font-semibold">Junior PT</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Crescent Elite Q.7</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="font-headline-sm text-headline-sm text-on-surface">8</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">/10</span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface font-semibold">48 / 60</span>
+<span class="text-on-surface-variant">80%</span>
+</div>
+<div class="w-24 h-1.5 rounded-full bg-surface-container-high overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 80%;"></div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface flex items-center gap-0.5">
+                      4.82 <span class="material-symbols-outlined text-[14px] text-on-surface-variant">star</span>
+</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">75% Tái ký</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span>
+                    Trống 19:30
+                  </span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="flex items-center justify-end gap-1">
+<button aria-label="Xem hồ sơ" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">id_card</span>
+</button>
+<button aria-label="Phân bổ lịch dạy" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</button>
+<button aria-label="Chỉnh sửa" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination Controller -->
+<div class="px-space-lg py-space-md bg-surface-container flex flex-col sm:flex-row items-center justify-between gap-space-sm font-label-sm text-label-sm text-on-surface-variant">
+<div class="flex items-center gap-space-xs">
+<span>Hiển thị</span>
+<select aria-label="Số dòng mỗi trang" class="bg-surface-container-high text-on-surface rounded px-2 py-1 focus:outline-none">
+<option value="6">6</option>
+<option value="12">12</option>
+<option value="24">24</option>
+</select>
+<span>trên 42 huấn luyện viên</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded flex items-center justify-center bg-surface-container-high hover:bg-surface-container-highest text-on-surface" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center bg-primary-container text-on-primary-container font-bold" type="button">
+              1
+            </button>
+<button class="w-8 h-8 rounded flex items-center justify-center bg-surface-container-high hover:bg-surface-container-highest text-on-surface" type="button">
+              2
+            </button>
+<button class="w-8 h-8 rounded flex items-center justify-center bg-surface-container-high hover:bg-surface-container-highest text-on-surface" type="button">
+              3
+            </button>
+<button class="w-8 h-8 rounded flex items-center justify-center bg-surface-container-high hover:bg-surface-container-highest text-on-surface" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Top Performer Leaderboard & Shift Snapshot -->
+<div class="xl:col-span-4 flex flex-col gap-space-lg">
+<!-- Widget 1: Leaderboard of the Month -->
+<div class="p-space-lg rounded-xl bg-surface-container-low shadow-sm relative overflow-hidden">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-fixed text-[22px]">workspace_premium</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-tight">Top HLV Xuất Sắc</h2>
+</div>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 rounded bg-primary-container/15 text-primary-fixed font-bold">THÁNG NÀY</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant pb-space-md">
+          Tính điểm dựa trên tổng giờ dạy chuẩn hoá, mức độ CSAT của hội viên và tỷ lệ gia hạn gói PT.
+        </p>
+<!-- Leaderboard Stack -->
+<div class="space-y-space-sm">
+<!-- Rank 1 -->
+<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between gap-space-sm hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="relative flex-shrink-0">
+<span class="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-primary-container text-on-primary-container font-headline-sm text-[11px] font-bold flex items-center justify-center shadow-md">
+                  1
+                </span>
+<img class="w-12 h-12 rounded-lg object-cover bg-surface-container-high" data-alt="Headshot of elite male gym trainer Vũ Hoàng Nam in high-contrast studio setting, athletic posture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAztUL8ekZCZ3Jiptq7tdC2BDRCLrjeHrwKee6B2dm6tx3hZ8oustKJhN9kvQFprh-DYNnpyOq6LeGNUvw_HcUbWgtpl_XTAlYEox_gX3yXdadF6_rAf-ee5O7dJfNAHYie9BJ_D9iy8e1nrA8EaweaUcda58Nq_bcvGZ249i-bcJQCuvWpeSpATXJvVMc4MwvY_F_7iQK-RayHicHP2IdFBVlpnRb_SJV1Vt6LsZZhb06wq8BSgo0M">
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Vũ Hoàng Nam</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed">118 ca · 4.98 ⭐ CSAT</span>
+</div>
+</div>
+<div class="flex flex-col items-end flex-shrink-0">
+<span class="font-headline-sm text-headline-sm text-primary-fixed">98.5</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">KPI PTS</span>
+</div>
+</div>
+<!-- Rank 2 -->
+<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between gap-space-sm hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="relative flex-shrink-0">
+<span class="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-surface-bright text-on-surface font-headline-sm text-[11px] font-bold flex items-center justify-center">
+                  2
+                </span>
+<img class="w-12 h-12 rounded-lg object-cover bg-surface-container-high" data-alt="Headshot of female Pilates instructor Đặng Thảo Linh in high-contrast luxury studio." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCZ68_C1Fm_mmlVE7VvA173gkQRzWVvBeSmSagxCeEw28GIFjxM4Gu4JPLR6SZBwxO5zHnvZKMtkPfUDHoEuAv-PqhzcL0HhmhvFGCu-CvDS3cPuayXPg-gtZ35u5QQstaX3HR2xMGkpHaD5oLKCtGfDBQXmwJaGsY-hGhE5JW0LFn0v_gxiE1_OTA0tWGtl5FKJmYG1UfRMmcxMMzY8gSgsPK1JheBE6MbmSoGDLsyRpgFHKdiv2d">
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Đặng Thảo Linh</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed">104 ca · 4.96 ⭐ CSAT</span>
+</div>
+</div>
+<div class="flex flex-col items-end flex-shrink-0">
+<span class="font-headline-sm text-headline-sm text-on-surface">96.2</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">KPI PTS</span>
+</div>
+</div>
+<!-- Rank 3 -->
+<div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between gap-space-sm hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="relative flex-shrink-0">
+<span class="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-surface-container-highest text-on-surface-variant font-headline-sm text-[11px] font-bold flex items-center justify-center">
+                  3
+                </span>
+<div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center font-headline-sm text-headline-sm text-primary-fixed">
+                  QH
+                </div>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-semibold truncate">Nguyễn Quang Huy</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed">92 ca · 4.95 ⭐ CSAT</span>
+</div>
+</div>
+<div class="flex flex-col items-end flex-shrink-0">
+<span class="font-headline-sm text-headline-sm text-on-surface">94.0</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">KPI PTS</span>
+</div>
+</div>
+</div>
+<!-- Metric Spark Summary Bar -->
+<div class="mt-space-md p-space-md rounded-lg bg-surface-container-lowest flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Quỹ thưởng HLV Quý 3</span>
+<span class="font-headline-sm text-headline-sm text-primary-fixed">75.000.000 ₫</span>
+</div>
+<span class="material-symbols-outlined text-secondary-fixed text-[28px]">military_tech</span>
+</div>
+</div>
+<!-- Widget 2: Floor Presence Live Gauge -->
+<div class="p-space-lg rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-tight">Trạng Thái Sàn Tập (Live)</h3>
+<span class="font-label-sm text-label-sm text-secondary-fixed flex items-center gap-1 font-semibold">
+<span class="w-2 h-2 rounded-full bg-secondary-fixed animate-ping"></span>
+            16:45 REALTIME
+          </span>
+</div>
+<div class="mt-space-md space-y-space-sm">
+<!-- Item 1 -->
+<div class="flex items-center justify-between font-body-sm text-body-sm">
+<span class="text-on-surface-variant">Đang trong giờ dạy 1-on-1</span>
+<span class="font-label-md text-label-md text-primary-fixed font-bold">28 / 42 HLV</span>
+</div>
+<!-- 5-segment Kinetic Bar -->
+<div class="grid grid-cols-5 gap-1 h-2">
+<div class="rounded-full bg-primary-container"></div>
+<div class="rounded-full bg-primary-container"></div>
+<div class="rounded-full bg-primary-container"></div>
+<div class="rounded-full bg-primary-container"></div>
+<div class="rounded-full bg-surface-container-high"></div>
+</div>
+<div class="pt-space-xs grid grid-cols-2 gap-space-sm">
+<div class="p-space-sm rounded bg-surface-container flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Trống lịch ca tới (18:00)</span>
+<span class="font-headline-sm text-headline-sm text-secondary-fixed">08 HLV</span>
+</div>
+<div class="p-space-sm rounded bg-surface-container flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Học viên chưa phân PT</span>
+<span class="font-headline-sm text-headline-sm text-error">03 Yêu cầu</span>
+</div>
+</div>
+</div>
+<button class="mt-space-md w-full py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md transition-colors flex items-center justify-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_view_week</span>
+<span>Xem Lịch Biểu Tổng 4 Cơ Sở</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Inline Interaction Handler (Search filter micro-interaction demo) -->
+<script>
+    (function () {
+      const searchInput = document.getElementById('pt-search');
+      if (searchInput) {
+        searchInput.addEventListener('input', function (e) {
+          const query = e.target.value.toLowerCase();
+          const rows = document.querySelectorAll('tbody tr');
+          rows.forEach((row) => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+          });
+        });
+      }
+
+      const tableBtn = document.getElementById('view-table-btn');
+      const gridBtn = document.getElementById('view-grid-btn');
+      if (tableBtn && gridBtn) {
+        gridBtn.addEventListener('click', function () {
+          gridBtn.className = 'px-space-md py-1.5 rounded bg-primary-container text-on-primary-container font-label-md text-label-md flex items-center gap-1.5 transition-all';
+          tableBtn.className = 'px-space-md py-1.5 rounded text-on-surface-variant hover:text-on-surface font-label-md text-label-md flex items-center gap-1.5 transition-all';
+        });
+        tableBtn.addEventListener('click', function () {
+          tableBtn.className = 'px-space-md py-1.5 rounded bg-primary-container text-on-primary-container font-label-md text-label-md flex items-center gap-1.5 transition-all';
+          gridBtn.className = 'px-space-md py-1.5 rounded text-on-surface-variant hover:text-on-surface font-label-md text-label-md flex items-center gap-1.5 transition-all';
+        });
+      }
+    })();
+  </script>
+</div></main></div></body></html>

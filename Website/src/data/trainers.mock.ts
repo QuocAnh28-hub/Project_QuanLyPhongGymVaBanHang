@@ -1,0 +1,10 @@
+export type Trainer = { id:number; code:string; name:string; avatar:string; certifications:string; level:string; branch:string; specialty:string; activeMembers:number; maxMembers:number; monthlySessions:number; monthlyTarget:number; csat:number; renewalRate:number; status:"active"|"leave"; todayStatus:string };
+
+export const trainers: Trainer[] = [
+  {id:1,code:"QA-COACH-004",name:"Vũ Hoàng Nam",avatar:"VN",certifications:"CSCS, NASM-CPT",level:"Master Coach",branch:"Vincom Q.1",specialty:"Hypertrophy",activeMembers:19,maxMembers:20,monthlySessions:118,monthlyTarget:120,csat:4.98,renewalRate:92,status:"active",todayStatus:"Đang dạy 1-1"},
+  {id:2,code:"QA-COACH-012",name:"Đặng Thảo Linh",avatar:"TL",certifications:"PMA Certified, ACE",level:"Senior PT",branch:"Thảo Điền Hub",specialty:"Pilates",activeMembers:16,maxMembers:16,monthlySessions:104,monthlyTarget:100,csat:4.96,renewalRate:95,status:"active",todayStatus:"Trống 18:00"},
+  {id:3,code:"QA-COACH-018",name:"Lê Minh Tuấn",avatar:"MT",certifications:"WBC Pro Coach",level:"Pro Trainer",branch:"Crescent Elite Q.7",specialty:"Boxing",activeMembers:15,maxMembers:18,monthlySessions:88,monthlyTarget:100,csat:4.89,renewalRate:82,status:"active",todayStatus:"Đang dạy 1-1"},
+  {id:4,code:"QA-COACH-021",name:"Nguyễn Quang Huy",avatar:"QH",certifications:"NASM-CES Rehab",level:"Senior PT",branch:"West Lake HN",specialty:"Rehab",activeMembers:14,maxMembers:15,monthlySessions:92,monthlyTarget:90,csat:4.95,renewalRate:90,status:"active",todayStatus:"Trực sàn"},
+  {id:5,code:"QA-COACH-029",name:"Trần Mai Anh",avatar:"MA",certifications:"ACE-CPT, Precision Nutrition",level:"Pro Trainer",branch:"Vincom Q.1",specialty:"Nutrition",activeMembers:12,maxMembers:15,monthlySessions:76,monthlyTarget:85,csat:4.91,renewalRate:86,status:"active",todayStatus:"Đang dạy 1-1"},
+  {id:6,code:"QA-COACH-041",name:"Đoàn Kiên Cường",avatar:"ĐK",certifications:"VFF Fitness Lv1",level:"Junior PT",branch:"Crescent Elite Q.7",specialty:"Strength",activeMembers:8,maxMembers:10,monthlySessions:48,monthlyTarget:60,csat:4.82,renewalRate:75,status:"leave",todayStatus:"Nghỉ phép"},
+];
