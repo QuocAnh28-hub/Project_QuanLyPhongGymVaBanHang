@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import Header from './components/Header'
 import Login from './components/Login'
 import Signup from './components/Signup'
@@ -11,6 +11,21 @@ import Navigation from './components/Navigation'
 import Promotions from './components/Promotions'
 import Reports from './components/Reports'
 import Employees from './components/Employees'
+import PackagesPage from './pages/PackagesPage'
+import RegistrationsPage from './pages/RegistrationsPage'
+import CheckInLivePage from './pages/CheckInLivePage'
+import CheckInHistoryPage from './pages/CheckInHistoryPage'
+import CheckInQrPage from './pages/CheckInQrPage'
+import TrainerManagementPage from './pages/TrainerManagementPage'
+import PtSessionsPage from './pages/PtSessionsPage'
+import TrainerRosterPage from './pages/TrainerRosterPage'
+import ShopProductsPage from './pages/ShopProductsPage'
+import ShopCategoriesPage from './pages/ShopCategoriesPage'
+import ShopOrdersPage from './pages/ShopOrdersPage'
+import WarehouseInboundPage from './pages/WarehouseInboundPage'
+import WarehouseInventoryPage from './pages/WarehouseInventoryPage'
+import WarehouseHistoryPage from './pages/WarehouseHistoryPage'
+import RevenueInvoicePage from './pages/RevenueInvoicePage'
 import './App.css'
 
 const metrics = [
@@ -97,9 +112,52 @@ function App() {
   const [activePage, setActivePage] = useState('Dashboard')
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const [showActivityHistory, setShowActivityHistory] = useState(false)
+  const [moduleTab, setModuleTab] = useState(0)
   const [screen, setScreen] = useState<
     'login' | 'signup' | 'forgot' | 'dashboard'
   >('login')
+
+  const moduleViews: Record<string, { tabs: string[]; pages: ReactNode[] }> = {
+    'Gói tập': {
+      tabs: ['Danh sách gói tập', 'Quản lý đăng ký'],
+      pages: [
+        <PackagesPage key="packages" />,
+        <RegistrationsPage key="registrations" />,
+      ],
+    },
+    'Check-In': {
+      tabs: ['Giám sát', 'Lịch sử', 'Quản lý QR'],
+      pages: [
+        <CheckInLivePage key="live" />,
+        <CheckInHistoryPage key="history" />,
+        <CheckInQrPage key="qr" />,
+      ],
+    },
+    'Huấn luyện viên': {
+      tabs: ['Danh sách HLV', 'Lịch PT', 'Phân ca'],
+      pages: [
+        <TrainerManagementPage
+          key="trainers"
+          onOpenRoster={() => setModuleTab(2)}
+        />,
+        <PtSessionsPage key="sessions" />,
+        <TrainerRosterPage key="roster" />,
+      ],
+    },
+    'Sản phẩm': { tabs: [], pages: [<ShopProductsPage key="products" />] },
+    'Danh mục': { tabs: [], pages: [<ShopCategoriesPage key="categories" />] },
+    'Đơn hàng': { tabs: [], pages: [<ShopOrdersPage key="orders" />] },
+    'Kho hàng': {
+      tabs: ['Nhập kho', 'Tồn kho', 'Lịch sử kho'],
+      pages: [
+        <WarehouseInboundPage key="inbound" />,
+        <WarehouseInventoryPage key="inventory" />,
+        <WarehouseHistoryPage key="audit" />,
+      ],
+    },
+    'Hóa đơn': { tabs: [], pages: [<RevenueInvoicePage key="vat" />] },
+  }
+  const activeModule = moduleViews[activePage]
 
   if (screen === 'login')
     return (
@@ -123,7 +181,12 @@ function App() {
     <main className="app-shell">
       <Navigation
         activeItem={activePage}
-        onNavigate={setActivePage}
+        onNavigate={(item) => {
+          setActivePage(item)
+          setModuleTab(0)
+          setSelectedMember(null)
+          setShowActivityHistory(false)
+        }}
         onLogout={() => setScreen('login')}
       />
       <section className="workspace">
@@ -151,6 +214,24 @@ function App() {
           ) : (
             <MemberList onSelectMember={setSelectedMember} />
           )
+        ) : activeModule ? (
+          <div className="module-content">
+            {activeModule.tabs.length > 0 && (
+              <nav className="module-tabs" aria-label={`Trang ${activePage}`}>
+                {activeModule.tabs.map((label, index) => (
+                  <button
+                    key={label}
+                    type="button"
+                    className={moduleTab === index ? 'active' : ''}
+                    onClick={() => setModuleTab(index)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </nav>
+            )}
+            {activeModule.pages[moduleTab]}
+          </div>
         ) : (
           <div className="dashboard">
             <section className="dashboard-hero">

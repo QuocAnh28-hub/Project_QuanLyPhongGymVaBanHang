@@ -1,0 +1,427 @@
+import { useMemo, useState, type FormEvent } from 'react'
+import { MetricCard, Modal } from '../components/AdminLayout'
+import { trainers as seed, type Trainer } from '../data/trainers.mock'
+
+export default function TrainerManagementPage({
+  onOpenRoster,
+}: {
+  onOpenRoster: () => void
+}) {
+  const [items, setItems] = useState(seed),
+    [search, setSearch] = useState(''),
+    [branch, setBranch] = useState('all'),
+    [level, setLevel] = useState('all'),
+    [specialty, setSpecialty] = useState('all'),
+    [status, setStatus] = useState('all'),
+    [view, setView] = useState<'table' | 'grid'>('table'),
+    [page, setPage] = useState(1),
+    [modal, setModal] = useState<'add' | 'profile' | null>(null),
+    [selected, setSelected] = useState<Trainer | null>(null),
+    [toast, setToast] = useState('')
+  const filtered = useMemo(
+    () =>
+      items.filter(
+        (t) =>
+          `${t.name} ${t.code} ${t.certifications}`
+            .toLowerCase()
+            .includes(search.toLowerCase()) &&
+          (branch === 'all' || t.branch === branch) &&
+          (level === 'all' || t.level === level) &&
+          (specialty === 'all' || t.specialty === specialty) &&
+          (status === 'all' || t.status === status)
+      ),
+    [items, search, branch, level, specialty, status]
+  )
+  const rows = filtered.slice((page - 1) * 4, page * 4),
+    top = [...items]
+      .sort(
+        (a, b) =>
+          b.monthlySessions / a.monthlyTarget -
+          a.monthlySessions / a.monthlyTarget
+      )
+      .slice(0, 3)
+  const notify = (s: string) => {
+    setToast(s)
+    setTimeout(() => setToast(''), 1800)
+  }
+  const add = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const d = new FormData(e.currentTarget),
+      id = Date.now()
+    setItems([
+      {
+        id,
+        code: String(d.get('code')),
+        name: String(d.get('name')),
+        avatar: String(d.get('name'))
+          .split(' ')
+          .slice(-2)
+          .map((x) => x[0])
+          .join(''),
+        certifications: String(d.get('certifications')),
+        level: String(d.get('level')),
+        branch: String(d.get('branch')),
+        specialty: String(d.get('specialty')),
+        activeMembers: 0,
+        maxMembers: 15,
+        monthlySessions: 0,
+        monthlyTarget: 80,
+        csat: 5,
+        renewalRate: 0,
+        status: d.get('status') as Trainer['status'],
+        todayStatus: 'Mới tiếp nhận',
+      },
+      ...items,
+    ])
+    setModal(null)
+    notify('Đã thêm huấn luyện viên')
+  }
+  const profile = (t: Trainer) => {
+    setSelected(t)
+    setModal('profile')
+  }
+  return (
+    <div className="admin-page pt-page">
+      <header className="page-heading">
+        <div>
+          <p>
+            VẬN HÀNH CHÍNH　›　HLV & LỊCH TẬP PT　›　
+            <b>DANH SÁCH HUẤN LUYỆN VIÊN (PT)</b>
+          </p>
+          <h1>QUẢN LÝ ĐỘI NGŨ HUẤN LUYỆN VIÊN (PT)</h1>
+        </div>
+        <div className="heading-actions">
+          <button onClick={() => notify('Đã tạo bảng KPI Excel mock')}>
+            ⇩ Xuất bảng KPI HLV (Excel)
+          </button>
+          <button className="primary" onClick={() => setModal('add')}>
+            ＋ Tuyển dụng / Thêm HLV mới
+          </button>
+        </div>
+      </header>
+      <section className="metrics-grid">
+        <MetricCard
+          label="TỔNG SỐ HUẤN LUYỆN VIÊN"
+          value="42 HLV"
+          note="38 Full-time · 04 Master Coach"
+        />
+        <MetricCard
+          label="TỶ LỆ LẤP KÍN LỊCH"
+          value="94.6%"
+          note="+3.2% so với tháng trước"
+          tone="mint"
+        />
+        <MetricCard
+          label="TỔNG CA DẠY TRONG THÁNG"
+          value="3.420 Buổi"
+          note="Doanh thu PT: 461.000.000 đ"
+        />
+        <MetricCard
+          label="ĐÁNH GIÁ TRUNG BÌNH CSAT"
+          value="4.92 / 5.0"
+          note="98.4% phản hồi hài lòng"
+          tone="mint"
+        />
+      </section>
+      <section className="pt-filters">
+        <div>
+          <label>
+            ⌕
+            <input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
+              placeholder="Tên, mã HLV, SĐT, chứng chỉ..."
+            />
+          </label>
+          <button
+            className={view === 'table' ? 'active' : ''}
+            onClick={() => setView('table')}
+          >
+            ▤ Bảng
+          </button>
+          <button
+            className={view === 'grid' ? 'active' : ''}
+            onClick={() => setView('grid')}
+          >
+            ▦ Lưới
+          </button>
+        </div>
+        <div>
+          {[
+            [branch, setBranch, 'Cơ sở'],
+            [level, setLevel, 'Cấp bậc'],
+            [specialty, setSpecialty, 'Chuyên môn'],
+            [status, setStatus, 'Trạng thái'],
+          ].map(([value, setter, label]) => (
+            <select
+              value={value as string}
+              onChange={(e) => {
+                ;(setter as (v: string) => void)(e.target.value)
+                setPage(1)
+              }}
+              key={label as string}
+            >
+              <option value="all">{label as string}: Tất cả</option>
+              {[
+                ...new Set(
+                  items.map((t) =>
+                    label === 'Cơ sở'
+                      ? t.branch
+                      : label === 'Cấp bậc'
+                        ? t.level
+                        : label === 'Chuyên môn'
+                          ? t.specialty
+                          : t.status
+                  )
+                ),
+              ].map((x) => (
+                <option key={x}>{x}</option>
+              ))}
+            </select>
+          ))}
+        </div>
+      </section>
+      <div className="pt-two-col">
+        <section className="pt-panel">
+          <header>
+            <h2>DANH SÁCH NHÂN SỰ HUẤN LUYỆN VIÊN</h2>
+            <small>Hiển thị {filtered.length} / 42 HLV</small>
+          </header>
+          {view === 'table' ? (
+            <div className="pt-table-scroll">
+              <table className="pt-table">
+                <thead>
+                  <tr>
+                    <th>HLV & MÃ SỐ</th>
+                    <th>CƠ SỞ & CẤP BẬC</th>
+                    <th>HỌC VIÊN ACTIVE</th>
+                    <th>TIẾN ĐỘ CA/THÁNG</th>
+                    <th>CSAT / TÁI KÝ</th>
+                    <th>HÔM NAY</th>
+                    <th>THAO TÁC</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((t) => (
+                    <tr key={t.id}>
+                      <td>
+                        <div className="person">
+                          <i>{t.avatar}</i>
+                          <span>
+                            <b>{t.name}</b>
+                            <small>
+                              #{t.code} · {t.certifications}
+                            </small>
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <b className="tag">{t.level}</b>
+                        <small>{t.branch}</small>
+                      </td>
+                      <td>
+                        <strong>{t.activeMembers}</strong>/{t.maxMembers}
+                      </td>
+                      <td>
+                        {t.monthlySessions} / {t.monthlyTarget}
+                        <progress
+                          value={t.monthlySessions}
+                          max={t.monthlyTarget}
+                        />
+                      </td>
+                      <td>
+                        <b>{t.csat}★</b>
+                        <small>{t.renewalRate}% tái ký</small>
+                      </td>
+                      <td>{t.todayStatus}</td>
+                      <td>
+                        <button onClick={() => profile(t)}>Hồ sơ</button>
+                        <button onClick={onOpenRoster}>Phân lịch</button>
+                        <button
+                          onClick={() => notify(`Đã mở thao tác cho ${t.name}`)}
+                        >
+                          ⋮
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="trainer-grid">
+              {rows.map((t) => (
+                <article key={t.id}>
+                  <div className="person">
+                    <i>{t.avatar}</i>
+                    <span>
+                      <h3>{t.name}</h3>
+                      <small>{t.code}</small>
+                    </span>
+                  </div>
+                  <b className="tag">{t.level}</b>
+                  <p>
+                    {t.branch} · {t.specialty}
+                  </p>
+                  <strong>
+                    {t.monthlySessions}/{t.monthlyTarget} ca · {t.csat}★
+                  </strong>
+                  <footer>
+                    <button onClick={() => profile(t)}>Xem hồ sơ</button>
+                    <button onClick={onOpenRoster}>Phân lịch</button>
+                  </footer>
+                </article>
+              ))}
+            </div>
+          )}
+          <div className="pagination">
+            <span>
+              Trang {page} / {Math.max(1, Math.ceil(filtered.length / 4))}
+            </span>
+            <div>
+              <button onClick={() => setPage(Math.max(1, page - 1))}>‹</button>
+              {[1, 2].map((p) => (
+                <button
+                  className={page === p ? 'current' : ''}
+                  disabled={p > Math.ceil(filtered.length / 4)}
+                  onClick={() => setPage(p)}
+                  key={p}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                onClick={() =>
+                  setPage(
+                    Math.min(
+                      Math.max(1, Math.ceil(filtered.length / 4)),
+                      page + 1
+                    )
+                  )
+                }
+              >
+                ›
+              </button>
+            </div>
+          </div>
+        </section>
+        <aside className="pt-side">
+          <section className="pt-panel">
+            <header>
+              <h2>TOP HLV XUẤT SẮC</h2>
+            </header>
+            {top.map((t, i) => (
+              <div className="rank" key={t.id}>
+                <b>{i + 1}</b>
+                <i>{t.avatar}</i>
+                <span>
+                  <strong>{t.name}</strong>
+                  <small>
+                    {t.monthlySessions} ca · {t.csat} CSAT
+                  </small>
+                </span>
+                <em>
+                  {((t.monthlySessions / t.monthlyTarget) * 100).toFixed(1)}
+                </em>
+              </div>
+            ))}
+          </section>
+          <section className="pt-panel live-floor">
+            <header>
+              <h2>TRẠNG THÁI SÀN TẬP (LIVE)</h2>
+              <small>● REALTIME</small>
+            </header>
+            <strong>28 / 42 HLV</strong>
+            <p>Đang trong giờ dạy 1-on-1</p>
+            <div>
+              <span>
+                Trống lịch ca tối <b>08 HLV</b>
+              </span>
+              <span>
+                Học viên chưa phân PT <b>03 yêu cầu</b>
+              </span>
+            </div>
+          </section>
+        </aside>
+      </div>
+      {modal === 'add' && (
+        <Modal title="THÊM HUẤN LUYỆN VIÊN" onClose={() => setModal(null)}>
+          <form onSubmit={add}>
+            <div className="form-grid">
+              {[
+                ['name', 'Họ tên'],
+                ['phone', 'SĐT'],
+                ['email', 'Email'],
+                ['code', 'Mã HLV'],
+                ['certifications', 'Chứng chỉ'],
+              ].map(([name, label]) => (
+                <label key={name}>
+                  {label}
+                  <input name={name} required />
+                </label>
+              ))}
+              <label>
+                Cơ sở
+                <select name="branch">
+                  <option>Vincom Q.1</option>
+                  <option>Thảo Điền Hub</option>
+                  <option>Crescent Elite Q.7</option>
+                </select>
+              </label>
+              <label>
+                Cấp bậc
+                <select name="level">
+                  <option>Junior PT</option>
+                  <option>Pro Trainer</option>
+                  <option>Senior PT</option>
+                  <option>Master Coach</option>
+                </select>
+              </label>
+              <label>
+                Chuyên môn
+                <input name="specialty" required />
+              </label>
+              <label>
+                Trạng thái
+                <select name="status">
+                  <option value="active">Đang hoạt động</option>
+                  <option value="leave">Nghỉ phép</option>
+                </select>
+              </label>
+            </div>
+            <footer className="modal-actions">
+              <button type="button" onClick={() => setModal(null)}>
+                Hủy
+              </button>
+              <button className="primary">Thêm HLV</button>
+            </footer>
+          </form>
+        </Modal>
+      )}
+      {modal === 'profile' && selected && (
+        <Modal title="HỒ SƠ HUẤN LUYỆN VIÊN" onClose={() => setModal(null)}>
+          <div className="profile-card">
+            <div className="person">
+              <i>{selected.avatar}</i>
+              <span>
+                <h2>{selected.name}</h2>
+                <small>{selected.code}</small>
+              </span>
+            </div>
+            <p>{selected.certifications}</p>
+            <p>
+              {selected.level} · {selected.branch} · {selected.specialty}
+            </p>
+            <strong>
+              {selected.csat}★ CSAT · {selected.renewalRate}% tái ký
+            </strong>
+          </div>
+        </Modal>
+      )}
+      {toast && <div className="toast">✓ {toast}</div>}
+    </div>
+  )
+}

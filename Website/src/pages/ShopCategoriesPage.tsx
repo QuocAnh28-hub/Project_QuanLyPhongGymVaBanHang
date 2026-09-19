@@ -1,0 +1,319 @@
+import { useState, type FormEvent } from 'react'
+import { MetricCard, Modal } from '../components/AdminLayout'
+import {
+  shopCategories as seed,
+  type Category,
+} from '../data/shop-categories.mock'
+export default function ShopCategoriesPage() {
+  const [items, setItems] = useState(seed),
+    [selected, setSelected] = useState(seed[0].id),
+    [modal, setModal] = useState<'category' | 'edit' | null>(null),
+    [toast, setToast] = useState('')
+  const current = items.find((x) => x.id === selected)!
+  const notify = (x: string) => {
+      setToast(x)
+      setTimeout(() => setToast(''), 1600)
+    },
+    update = (fn: (c: Category) => Category) =>
+      setItems(items.map((c) => (c.id === selected ? fn(c) : c)))
+  const addCategory = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const d = new FormData(e.currentTarget),
+      id = String(d.get('name')).toLowerCase().replace(/\s+/g, '-')
+    setItems([
+      ...items,
+      {
+        id,
+        name: String(d.get('name')),
+        icon: String(d.get('icon')),
+        itemCount: 0,
+        revenueShare: 0,
+        pinned: !!d.get('pinned'),
+        position: Number(d.get('position')),
+        enabled: d.get('status') === 'on',
+        subcategories: [],
+      },
+    ])
+    setSelected(id)
+    setModal(null)
+  }
+  const addSub = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const d = new FormData(e.currentTarget)
+    update((c) => ({
+      ...c,
+      subcategories: [
+        ...c.subcategories,
+        {
+          id: Date.now(),
+          name: String(d.get('name')),
+          description: String(d.get('pair')),
+          slug: String(d.get('slug')),
+          skuCount: 0,
+          image: String(d.get('image') || '▧'),
+          visibleOnApp: true,
+          filters: [],
+        },
+      ],
+    }))
+    e.currentTarget.reset()
+    notify('Đã thêm phân nhóm')
+  }
+  return (
+    <div className="admin-page shop-page">
+      <header className="page-heading">
+        <div>
+          <p>
+            KINH DOANH & THƯƠNG MẠI　›　QA PRO SHOP　›　
+            <b>DANH MỤC & NHÓM SẢN PHẨM</b>
+          </p>
+          <h1>QUẢN LÝ DANH MỤC & PHÂN CẤP NHÓM SẢN PHẨM</h1>
+        </div>
+        <div className="heading-actions">
+          <button
+            onClick={() => {
+              setItems([...items].sort((a, b) => a.position - b.position))
+              notify('Đã sắp xếp theo thứ tự')
+            }}
+          >
+            ☷ Sắp xếp thứ tự hiển thị
+          </button>
+          <button className="primary" onClick={() => setModal('category')}>
+            ＋ Tạo danh mục mới
+          </button>
+        </div>
+      </header>
+      <section className="metrics-grid">
+        <MetricCard
+          label="TỔNG DANH MỤC CHÍNH"
+          value="06"
+          note="Phủ 100% kho phân phối"
+        />
+        <MetricCard
+          label="TỔNG PHÂN LOẠI CON"
+          value="24"
+          note="Đã đồng bộ bộ lọc thuộc tính"
+        />
+        <MetricCard
+          label="ĐÓNG GÓP DOANH THU CAO NHẤT"
+          value="Thực phẩm Bổ sung"
+          note="58% doanh thu 30 ngày"
+        />
+        <MetricCard
+          label="TỶ LỆ HIỂN THỊ APP / WEB"
+          value="100%"
+          note="ACTIVE SLA"
+          tone="mint"
+        />
+      </section>
+      <div className="category-layout">
+        <section className="category-tree pt-panel">
+          <header>
+            <h2>CÂY DANH MỤC CHÍNH</h2>
+            <small>{items.length} danh mục</small>
+          </header>
+          {items.map((c, i) => (
+            <article
+              className={selected === c.id ? 'active' : ''}
+              onClick={() => setSelected(c.id)}
+              key={c.id}
+            >
+              <span className="material-symbols-outlined">{c.icon}</span>
+              <div>
+                <b>{c.name}</b>
+                <small>
+                  {c.itemCount} mặt hàng · {c.revenueShare}% DT
+                </small>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const copy = [...items],
+                    at = copy.indexOf(c)
+                  if (at > 0)
+                    [copy[at - 1], copy[at]] = [copy[at], copy[at - 1]]
+                  setItems(copy)
+                }}
+              >
+                ↑
+              </button>
+              <em>{i + 1}</em>
+            </article>
+          ))}
+        </section>
+        <section>
+          <div className="pt-panel sub-table">
+            <header>
+              <div>
+                <h2>{current.name}</h2>
+                <small>Quản lý phân loại chuyên sâu</small>
+              </div>
+              <button onClick={() => setModal('edit')}>
+                Sửa danh mục chính
+              </button>
+            </header>
+            <div className="pt-table-scroll">
+              <table className="pt-table">
+                <thead>
+                  <tr>
+                    <th>PHÂN NHÓM CON</th>
+                    <th>BANNER ĐẠI DIỆN</th>
+                    <th>SEO SLUG URL</th>
+                    <th>SỐ SKU</th>
+                    <th>NAV BAR APP</th>
+                    <th>THAO TÁC</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {current.subcategories.map((s) => (
+                    <tr key={s.id}>
+                      <td>
+                        <b>{s.name}</b>
+                        <small>{s.description}</small>
+                      </td>
+                      <td>{s.image}</td>
+                      <td>
+                        <code>{s.slug}</code>
+                      </td>
+                      <td>{s.skuCount}</td>
+                      <td>
+                        <button
+                          className={`switch ${s.visibleOnApp ? 'on' : ''}`}
+                          onClick={() =>
+                            update((c) => ({
+                              ...c,
+                              subcategories: c.subcategories.map((x) =>
+                                x.id === s.id
+                                  ? { ...x, visibleOnApp: !x.visibleOnApp }
+                                  : x
+                              ),
+                            }))
+                          }
+                        >
+                          <i />
+                        </button>
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => notify(`Cấu hình filter: ${s.name}`)}
+                        >
+                          ☷
+                        </button>
+                        <button onClick={() => notify(`Đang sửa ${s.name}`)}>
+                          ✎
+                        </button>
+                        <button
+                          onClick={() =>
+                            update((c) => ({
+                              ...c,
+                              subcategories: c.subcategories.filter(
+                                (x) => x.id !== s.id
+                              ),
+                            }))
+                          }
+                        >
+                          ⌫
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <form className="sub-form pt-panel" onSubmit={addSub}>
+            <header>
+              <h2>THÊM PHÂN NHÓM CON MỚI VÀO DANH MỤC</h2>
+            </header>
+            <div className="form-grid">
+              <label>
+                Tên phân nhóm con
+                <input name="name" required />
+              </label>
+              <label>
+                SEO Slug
+                <input name="slug" required />
+              </label>
+              <label>
+                Thứ tự ưu tiên
+                <input name="position" type="number" defaultValue="1" />
+              </label>
+              <label>
+                Cross-selling pairing
+                <input name="pair" />
+              </label>
+              <label className="full">
+                Ảnh banner
+                <input name="image" type="file" />
+              </label>
+            </div>
+            <footer className="modal-actions">
+              <button className="primary">Lưu & Xuất bản phân nhóm</button>
+            </footer>
+          </form>
+        </section>
+      </div>
+      {modal === 'category' && (
+        <Modal title="TẠO DANH MỤC MỚI" onClose={() => setModal(null)}>
+          <form onSubmit={addCategory}>
+            <div className="form-grid">
+              <label>
+                Tên danh mục
+                <input name="name" required />
+              </label>
+              <label>
+                Icon
+                <input name="icon" defaultValue="category" />
+              </label>
+              <label className="full">
+                Mô tả
+                <textarea />
+              </label>
+              <label>
+                Thứ tự hiển thị
+                <input
+                  name="position"
+                  type="number"
+                  defaultValue={items.length + 1}
+                />
+              </label>
+              <label>
+                Ghim trang chủ
+                <input name="pinned" type="checkbox" />
+              </label>
+              <label>
+                Trạng thái
+                <select name="status">
+                  <option value="on">Hiển thị</option>
+                  <option value="off">Ẩn</option>
+                </select>
+              </label>
+            </div>
+            <footer className="modal-actions">
+              <button>Hủy</button>
+              <button className="primary">Tạo danh mục</button>
+            </footer>
+          </form>
+        </Modal>
+      )}
+      {modal === 'edit' && (
+        <Modal title="SỬA DANH MỤC" onClose={() => setModal(null)}>
+          <input className="shop-input" defaultValue={current.name} />
+          <footer className="modal-actions">
+            <button onClick={() => setModal(null)}>Hủy</button>
+            <button
+              className="primary"
+              onClick={() => {
+                setModal(null)
+                notify('Đã lưu danh mục')
+              }}
+            >
+              Lưu
+            </button>
+          </footer>
+        </Modal>
+      )}
+      {toast && <div className="toast">✓ {toast}</div>}
+    </div>
+  )
+}

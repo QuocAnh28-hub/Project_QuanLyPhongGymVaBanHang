@@ -1,0 +1,172 @@
+export type GymPackage = {
+  id: number
+  name: string
+  sku: string
+  category: string
+  badge: string
+  duration: number
+  price: number
+  originalPrice?: number
+  active: boolean
+  description: string
+  features: string[]
+  members: number
+  renewal: number
+}
+
+export const initialPackages: GymPackage[] = [
+  {
+    id: 1,
+    name: 'Diamond All-Access',
+    sku: 'QA-DIA-12M',
+    category: 'all',
+    badge: 'VIP ELITE',
+    duration: 12,
+    price: 21600000,
+    originalPrice: 26000000,
+    active: true,
+    description: 'Tốt nhất cho hội viên muốn trải nghiệm trọn vẹn',
+    features: [
+      'Tự do tập luyện tại 4 cơ sở toàn quốc',
+      'Sauna tuyết, bể sục Jacuzzi 24/7',
+      'Tủ locker cá nhân cố định + khăn tắm',
+      'Đi kèm 01 khách/tháng không tính phí',
+    ],
+    members: 3420,
+    renewal: 86,
+  },
+  {
+    id: 2,
+    name: 'Platinum Pro 6 Tháng',
+    sku: 'QA-PLA-06M',
+    category: 'all',
+    badge: 'PRO ACCESS',
+    duration: 6,
+    price: 11800000,
+    active: true,
+    description: 'Tiêu chuẩn cao cấp toàn hệ thống',
+    features: [
+      'Quyền ra vào 4 cơ sở thuộc hệ thống',
+      'Tặng kèm 02 buổi định hướng PT',
+      'Khăn tập thể thao miễn phí theo ca tập',
+      'Không bao gồm khu vực VIP Sauna',
+    ],
+    members: 5120,
+    renewal: 74,
+  },
+  {
+    id: 3,
+    name: 'Classic 12 Tháng',
+    sku: 'QA-CLS-VNQ1',
+    category: 'single',
+    badge: 'SINGLE CAMPUS',
+    duration: 12,
+    price: 9600000,
+    active: true,
+    description: 'Áp dụng: Cơ sở Vincom Q.1',
+    features: [
+      'Cố định tại Cơ sở Vincom Q.1',
+      'Toàn quyền giờ mở cửa (06:00 – 23:00)',
+      'Locker điện tử dùng tự do theo lượt',
+      'Phí chuyển nhượng/đổi cơ sở: 800.000đ',
+    ],
+    members: 8450,
+    renewal: 81,
+  },
+  {
+    id: 4,
+    name: 'Gold Off-Peak 3 Tháng',
+    sku: 'QA-OFP-03M',
+    category: 'single',
+    badge: 'GIỜ VÀNG OFF-PEAK',
+    duration: 3,
+    price: 3200000,
+    active: true,
+    description: 'Dành cho sinh viên & làm việc tự do',
+    features: [
+      'Khung giờ vào cửa: 09:00 – 16:00',
+      'Toàn quyền khu tạ Free Weights & Cardio',
+      'Tủ Locker thông minh dùng theo phiên',
+      'Check-in sau 16:00 phụ thu 120.000đ/lần',
+    ],
+    members: 2100,
+    renewal: 62,
+  },
+  {
+    id: 5,
+    name: 'Pilates Reformer Pro',
+    sku: 'QA-PLT-06M',
+    category: 'pt',
+    badge: 'SPECIALTY STUDIO',
+    duration: 6,
+    price: 14500000,
+    active: true,
+    description: 'Bao gồm 48 buổi tập Reformer Studio',
+    features: [
+      'Studio chuyên biệt máy Allegro 2 Reformer',
+      'Lớp kèm nhóm nhỏ tối đa 6 học viên',
+      'Bao gồm toàn bộ quyền tập Gym All-Access',
+      'Đặt lịch ưu tiên trước 7 ngày qua App',
+    ],
+    members: 1250,
+    renewal: 89,
+  },
+  {
+    id: 6,
+    name: 'Trải Nghiệm 14 Ngày',
+    sku: 'QA-TRL-14D',
+    category: 'trial',
+    badge: 'EXPERIENCE TRIAL',
+    duration: 0,
+    price: 499000,
+    originalPrice: 1200000,
+    active: true,
+    description: 'Hoàn 100% khi lên gói năm',
+    features: [
+      'Trải nghiệm không giới hạn tiện ích cơ bản',
+      '01 buổi tư vấn thể trạng 1:1 cùng Master Trainer',
+      'Tham gia các lớp Group-X',
+      'Chỉ áp dụng 1 lần duy nhất',
+    ],
+    members: 890,
+    renewal: 42,
+  },
+  {
+    id: 7,
+    name: 'Diamond Couple 12 Tháng',
+    sku: 'QA-DCP-12M',
+    category: 'all',
+    badge: 'COUPLE VIP',
+    duration: 12,
+    price: 38600000,
+    active: true,
+    description: 'Đặc quyền dành cho hai hội viên',
+    features: [
+      'Tập luyện tại toàn bộ 4 cơ sở',
+      'Khu vực Sauna & Jacuzzi',
+      '02 locker cá nhân',
+      'Ưu tiên lớp nhóm cao cấp',
+    ],
+    members: 680,
+    renewal: 91,
+  },
+  {
+    id: 8,
+    name: 'Classic 6 Tháng',
+    sku: 'QA-CLS-06M',
+    category: 'single',
+    badge: 'SINGLE CAMPUS',
+    duration: 6,
+    price: 5400000,
+    active: false,
+    description: 'Gói cơ bản tại một cơ sở',
+    features: [
+      'Tập tại 01 cơ sở đăng ký',
+      'Khung giờ tiêu chuẩn',
+      'Locker theo lượt',
+      'Miễn phí lớp Group-X cơ bản',
+    ],
+    members: 1260,
+    renewal: 67,
+  },
+]

@@ -1,0 +1,399 @@
+import { useState, type FormEvent } from 'react'
+import { Modal } from '../components/AdminLayout'
+import { PageTop, Toast } from '../components/CommerceUi'
+import { money } from '../data/admin-utils'
+import {
+  paymentTransactions,
+  type PaymentTransaction,
+} from '../data/revenue-invoices.mock'
+const tabs = [
+  'Tất cả giao dịch',
+  'Gói tập hội viên',
+  'Thuê HLV PT',
+  'Đơn hàng Pro Shop',
+]
+export default function RevenueInvoicePage() {
+  const [items, setItems] = useState(paymentTransactions),
+    [selectedId, setSelectedId] = useState(items[0].id),
+    [tab, setTab] = useState(tabs[0]),
+    [search, setSearch] = useState(''),
+    [status, setStatus] = useState('Tất cả'),
+    [gateway, setGateway] = useState('Tất cả'),
+    [advanced, setAdvanced] = useState(false),
+    [from, setFrom] = useState(''),
+    [to, setTo] = useState(''),
+    [modal, setModal] = useState<'create' | 'refund' | null>(null),
+    [toast, setToast] = useState('')
+  const notify = (s: string) => {
+    setToast(s)
+    setTimeout(() => setToast(''), 2500)
+  }
+  const selected = items.find((x) => x.id === selectedId) ?? items[0]
+  const shown = items.filter(
+    (x) =>
+      (tab === tabs[0] || x.category === tab) &&
+      (status === 'Tất cả' || x.status === status || x.vatStatus === status) &&
+      (gateway === 'Tất cả' || x.gateway === gateway) &&
+      (!from ||
+        x.timestamp.slice(0, 10).split('/').reverse().join('-') >= from) &&
+      (!to || x.timestamp.slice(0, 10).split('/').reverse().join('-') <= to) &&
+      `${x.id} ${x.invoiceId} ${x.memberName} ${x.companyTaxCode}`
+        .toLowerCase()
+        .includes(search.toLowerCase())
+  )
+  const create = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const d = new FormData(e.currentTarget),
+      amount = Number(d.get('amount')),
+      vat = Number(d.get('vat')),
+      invoiceId = `QA-VAT-${Date.now().toString().slice(-6)}`,
+      item: PaymentTransaction = {
+        id: `TXN-${Date.now().toString().slice(-6)}`,
+        timestamp:
+          new Date(String(d.get('date')) + 'T00:00:00').toLocaleDateString(
+            'vi-VN'
+          ) + ' 00:00',
+        memberName: String(d.get('customer')),
+        memberId: 'LOCAL',
+        service: String(d.get('service')),
+        category: 'Đơn hàng Pro Shop',
+        amount: Math.round(amount * (1 + vat / 100)),
+        vat: Math.round((amount * vat) / 100),
+        gateway: 'Thủ công',
+        vatStatus: 'Đã phát hành',
+        status: 'Thành công',
+        invoiceId,
+        companyTaxCode: String(d.get('tax')),
+        companyName: String(d.get('company')),
+        address: String(d.get('address')),
+      }
+    setItems([item, ...items])
+    setSelectedId(item.id)
+    setModal(null)
+    notify('Đã tạo hóa đơn VAT mock')
+  }
+  return (
+    <div className="admin-page commerce-page">
+      <PageTop
+        trail="TÀI CHÍNH & KẾ TOÁN　›　THANH TOÁN & HÓA ĐƠN VAT"
+        title="QUẢN LÝ THANH TOÁN & HÓA ĐƠN ĐIỆN TỬ VAT"
+        actions={
+          <>
+            <button onClick={() => notify('Đã đối soát cổng tự động mock')}>
+              Đối soát cổng tự động
+            </button>
+            <button className="primary" onClick={() => setModal('create')}>
+              ＋ XUẤT HÓA ĐƠN VAT ĐIỆN TỬ MỚI
+            </button>
+          </>
+        }
+        metrics={[
+          [
+            'TỔNG DOANH THU ĐÃ THU',
+            money(
+              items
+                .filter((x) => x.status === 'Thành công')
+                .reduce((s, x) => s + x.amount, 0)
+            ),
+            'Giao dịch thành công',
+          ],
+          [
+            'HÓA ĐƠN VAT ĐÃ PHÁT HÀNH',
+            String(items.filter((x) => x.vatStatus === 'Đã phát hành').length),
+            'Hóa đơn mock',
+          ],
+          [
+            'CHỜ XUẤT HÓA ĐƠN DN',
+            String(
+              items.filter((x) => x.vatStatus === 'Chờ xuất hóa đơn').length
+            ),
+            'Cần xử lý',
+          ],
+          [
+            'HOÀN TIỀN & XỬ LÝ KHIẾU NẠI',
+            String(items.filter((x) => x.status === 'Đã hoàn tiền').length),
+            'Giao dịch',
+          ],
+        ]}
+      />
+      <div className="commerce-filters">
+        <div className="chips">
+          {tabs.map((x) => (
+            <button
+              key={x}
+              className={tab === x ? 'selected' : ''}
+              onClick={() => setTab(x)}
+            >
+              {x}
+            </button>
+          ))}
+        </div>
+        <div className="commerce-fields">
+          <input
+            placeholder="Mã giao dịch, HĐ VAT, tên khách, MST"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            {[
+              'Tất cả',
+              'Thành công',
+              'Đã hoàn tiền',
+              'Đã phát hành',
+              'Chờ xuất hóa đơn',
+            ].map((x) => (
+              <option key={x}>{x}</option>
+            ))}
+          </select>
+          <select value={gateway} onChange={(e) => setGateway(e.target.value)}>
+            {['Tất cả', ...new Set(items.map((x) => x.gateway))].map((x) => (
+              <option key={x}>{x}</option>
+            ))}
+          </select>
+          <button onClick={() => setAdvanced(!advanced)}>
+            Bộ lọc nâng cao
+          </button>
+          {advanced && (
+            <>
+              <label>
+                Từ ngày
+                <input
+                  type="date"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                />
+              </label>
+              <label>
+                Đến ngày
+                <input
+                  type="date"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                />
+              </label>
+            </>
+          )}
+        </div>
+      </div>
+      <div className="commerce-split">
+        <section className="commerce-card">
+          <h2>DANH SÁCH GIAO DỊCH THANH TOÁN</h2>
+          <div className="commerce-table-wrap">
+            <table className="commerce-table">
+              <thead>
+                <tr>
+                  {[
+                    'MÃ GD / THỜI GIAN',
+                    'HỘI VIÊN & MÃ THẺ',
+                    'DỊCH VỤ & SẢN PHẨM',
+                    'TỔNG THANH TOÁN',
+                    'CỔNG & VAT STATUS',
+                    'THAO TÁC',
+                  ].map((x) => (
+                    <th key={x}>{x}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {shown.map((x) => (
+                  <tr
+                    key={x.id}
+                    className={selectedId === x.id ? 'selected' : ''}
+                    onClick={() => setSelectedId(x.id)}
+                  >
+                    <td>
+                      <b>{x.id}</b>
+                      <small>{x.timestamp}</small>
+                    </td>
+                    <td>
+                      <b>{x.memberName}</b>
+                      <small>{x.memberId}</small>
+                    </td>
+                    <td>
+                      {x.service}
+                      <small>{x.category}</small>
+                    </td>
+                    <td>{money(x.amount)}</td>
+                    <td>
+                      {x.gateway}
+                      <small>{x.vatStatus}</small>
+                    </td>
+                    <td className="row-actions">
+                      <button
+                        className="qa-btn-danger"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedId(x.id)
+                          setModal('refund')
+                        }}
+                      >
+                        Hoàn tiền
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {!shown.length && (
+              <p className="empty">Không có giao dịch phù hợp.</p>
+            )}
+          </div>
+        </section>
+        <aside className="commerce-card commerce-detail">
+          <h2>HÓA ĐƠN ĐIỆN TỬ VAT</h2>
+          <h3>{selected.invoiceId}</h3>
+          <dl>
+            {[
+              ['Series', 'QA/25E'],
+              [
+                'Cơ quan thuế cấp mã',
+                selected.invoiceId === '—' ? 'Chờ phát hành' : 'Đã cấp mã mock',
+              ],
+              ['Đơn vị bán hàng', 'QA-GYM Performance Club'],
+              ['Đơn vị mua hàng', selected.memberName],
+              ['MST', selected.companyTaxCode || '—'],
+              ['Địa chỉ', 'TP. Hồ Chí Minh'],
+              ['Người đại diện', selected.memberName],
+            ].map(([a, b]) => (
+              <div key={a}>
+                <dt>{a}</dt>
+                <dd>{b}</dd>
+              </div>
+            ))}
+          </dl>
+          <h4>CHI TIẾT DỊCH VỤ / DÒNG TIỀN</h4>
+          <div className="commerce-line">
+            <span>
+              {selected.service}
+              <small>{selected.category}</small>
+            </span>
+            <b>{money(selected.amount - selected.vat)}</b>
+          </div>
+          <dl>
+            <div>
+              <dt>Cộng tiền dịch vụ</dt>
+              <dd>{money(selected.amount - selected.vat)}</dd>
+            </div>
+            <div>
+              <dt>Thuế GTGT</dt>
+              <dd>{money(selected.vat)}</dd>
+            </div>
+            <div>
+              <dt>Tổng thanh toán</dt>
+              <dd>{money(selected.amount)}</dd>
+            </div>
+          </dl>
+          <p>
+            Chữ ký số doanh nghiệp: <b>QA-GYM (mô phỏng)</b>
+          </p>
+          <div className="commerce-actions">
+            <button onClick={() => notify('Đã tải XML/PDF mock')}>
+              Tải file XML/PDF
+            </button>
+            <button onClick={() => notify('Đã gửi link tra cứu mock')}>
+              Gửi link tra cứu
+            </button>
+            <button
+              className="qa-btn-danger"
+              onClick={() => notify('Đã lập HĐ điều chỉnh mock')}
+            >
+              Hủy / Lập HĐ điều chỉnh sai sót
+            </button>
+          </div>
+        </aside>
+      </div>
+      {modal === 'refund' && (
+        <Modal title="XÁC NHẬN HOÀN TIỀN" onClose={() => setModal(null)}>
+          <p>
+            Hoàn tiền giao dịch {selected.id} · {money(selected.amount)}?
+          </p>
+          <footer className="modal-actions">
+            <button onClick={() => setModal(null)}>Hủy</button>
+            <button
+              className="primary"
+              onClick={() => {
+                setItems(
+                  items.map((x) =>
+                    x.id === selectedId
+                      ? { ...x, status: 'Đã hoàn tiền', vatStatus: 'Hoàn tiền' }
+                      : x
+                  )
+                )
+                setModal(null)
+                notify('Đã hoàn tiền mock')
+              }}
+            >
+              Xác nhận
+            </button>
+          </footer>
+        </Modal>
+      )}
+      {modal === 'create' && (
+        <Modal
+          title="XUẤT HÓA ĐƠN VAT ĐIỆN TỬ MỚI"
+          onClose={() => setModal(null)}
+        >
+          <form onSubmit={create}>
+            <div className="form-grid">
+              <label>
+                Khách hàng
+                <input name="customer" required />
+              </label>
+              <label>
+                Tên công ty
+                <input name="company" required />
+              </label>
+              <label>
+                MST
+                <input name="tax" required />
+              </label>
+              <label>
+                Địa chỉ
+                <input name="address" required />
+              </label>
+              <label>
+                Email
+                <input name="email" type="email" required />
+              </label>
+              <label>
+                Dịch vụ
+                <input name="service" required />
+              </label>
+              <label>
+                Số tiền
+                <input name="amount" type="number" min="1" required />
+              </label>
+              <label>
+                VAT %
+                <input
+                  name="vat"
+                  type="number"
+                  min="0"
+                  max="100"
+                  defaultValue="8"
+                  required
+                />
+              </label>
+              <label>
+                Ngày hóa đơn
+                <input
+                  name="date"
+                  type="date"
+                  defaultValue={new Date().toISOString().slice(0, 10)}
+                  required
+                />
+              </label>
+            </div>
+            <footer className="modal-actions">
+              <button type="button" onClick={() => setModal(null)}>
+                Hủy
+              </button>
+              <button className="primary">Tạo hóa đơn</button>
+            </footer>
+          </form>
+        </Modal>
+      )}
+      <Toast message={toast} />
+    </div>
+  )
+}

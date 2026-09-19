@@ -1,0 +1,549 @@
+import { useMemo, useState, type FormEvent } from 'react'
+import { MetricCard, Modal } from '../components/AdminLayout'
+import { shopCategories } from '../data/shop-categories.mock'
+import { shopProducts as seed, type Product } from '../data/shop-products.mock'
+const total = (p: Product) =>
+    Object.values(p.stocks).reduce((a, b) => a + b, 0),
+  money = (n: number) => n.toLocaleString('vi-VN') + ' đ'
+export default function ShopProductsPage() {
+  const [items, setItems] = useState(seed),
+    [search, setSearch] = useState(''),
+    [category, setCategory] = useState('all'),
+    [stock, setStock] = useState('all'),
+    [brand, setBrand] = useState('all'),
+    [quick, setQuick] = useState('all'),
+    [page, setPage] = useState(1),
+    [modal, setModal] = useState<
+      'add' | 'stock' | 'edit' | 'barcode' | 'import' | 'transfer' | null
+    >(null),
+    [selected, setSelected] = useState<Product | null>(null),
+    [toast, setToast] = useState('')
+  const notify = (x: string) => {
+    setToast(x)
+    setTimeout(() => setToast(''), 1600)
+  }
+  const filtered = useMemo(
+      () =>
+        items.filter(
+          (p) =>
+            `${p.name} ${p.sku} ${p.upc}`
+              .toLowerCase()
+              .includes(search.toLowerCase()) &&
+            (category === 'all' || p.category === category) &&
+            (stock === 'all' || p.stockStatus === stock) &&
+            (brand === 'all' || p.brand === brand) &&
+            (quick === 'all' ||
+              (quick === 'urgent' && p.stockStatus !== 'ok') ||
+              (quick === 'margin' && p.margin > 35) ||
+              (quick === 'selling' && p.soldThisMonth > 100) ||
+              (quick === 'exclusive' && p.exclusive))
+        ),
+      [items, search, category, stock, brand, quick]
+    ),
+    rows = filtered.slice((page - 1) * 20, page * 20)
+  const open = (kind: typeof modal, p: Product) => {
+    setSelected(p)
+    setModal(kind)
+  }
+  const save = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const d = new FormData(e.currentTarget),
+      id = selected?.id || Date.now(),
+      value: Product = {
+        id,
+        sku: String(d.get('sku')),
+        upc: String(d.get('upc')),
+        name: String(d.get('name')),
+        image: '▣',
+        category: String(d.get('category')),
+        brand: String(d.get('brand')),
+        price: Number(d.get('price')),
+        cost: Number(d.get('cost')),
+        margin: Math.round(
+          (1 - Number(d.get('cost')) / Number(d.get('price'))) * 100
+        ),
+        stocks: {
+          q1: Number(d.get('q1')),
+          q7: Number(d.get('q7')),
+          thaoDien: Number(d.get('thaoDien')),
+          hanoi: Number(d.get('hanoi')),
+        },
+        enabled: !!d.get('enabled'),
+        soldThisMonth: selected?.soldThisMonth || 0,
+        stockStatus: 'ok',
+        exclusive: String(d.get('brand')) === 'QA Active',
+      }
+    setItems(
+      selected ? items.map((x) => (x.id === id ? value : x)) : [value, ...items]
+    )
+    setModal(null)
+    setSelected(null)
+    notify('Đã lưu sản phẩm')
+  }
+  const exportCsv = () => {
+    const blob = new Blob(
+        [
+          [
+            'SKU,Tên,Tồn kho',
+            ...items.map((p) => `${p.sku},${p.name},${total(p)}`),
+          ].join('\n'),
+        ],
+        { type: 'text/csv' }
+      ),
+      a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = 'qa-pro-shop-stock.csv'
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+  return (
+    <div className="admin-page shop-page">
+      <header className="page-heading">
+        <div>
+          <p>
+            KINH DOANH & THƯƠNG MẠI　›　QA PRO SHOP　›　
+            <b>DANH SÁCH SẢN PHẨM</b>
+          </p>
+          <h1>QUẢN LÝ DANH SÁCH SẢN PHẨM PRO SHOP</h1>
+        </div>
+        <div className="heading-actions">
+          <button onClick={() => setModal('import')}>
+            ▣ Nhập Excel / Batch Sync
+          </button>
+          <button onClick={exportCsv}>⇩ Xuất Báo cáo Tồn</button>
+          <button
+            className="primary"
+            onClick={() => {
+              setSelected(null)
+              setModal('add')
+            }}
+          >
+            ＋ Thêm sản phẩm mới
+          </button>
+        </div>
+      </header>
+      <section className="metrics-grid">
+        <MetricCard
+          label="TỔNG SẢN PHẨM KINH DOANH"
+          value="186 SKUs"
+          note="142 đang bán · 36 sắp hết · 8 hết"
+        />
+        <MetricCard
+          label="GIÁ TRỊ TỒN KHO TOÀN HỆ THỐNG"
+          value="845.200.000 đ"
+          note="4 chi nhánh active"
+        />
+        <MetricCard
+          label="DOANH THU LẺ THÁNG NÀY"
+          value="240.500.000 đ"
+          note="+16.8% MoM"
+        />
+        <MetricCard
+          label="TOP 1 VOLUME"
+          value="Rule 1 Isolate 5lbs"
+          note="245 hộp đã bán"
+        />
+      </section>
+      <div className="product-layout">
+        <section>
+          <div className="product-filters">
+            <div>
+              <label>
+                ⌕
+                <input
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                    setPage(1)
+                  }}
+                  placeholder="Tên sản phẩm, SKU, UPC, Barcode..."
+                />
+              </label>
+              <button
+                onClick={() => {
+                  setSearch('')
+                  setCategory('all')
+                  setStock('all')
+                  setBrand('all')
+                  setQuick('all')
+                }}
+              >
+                ↻ Đặt lại
+              </button>
+            </div>
+            <div>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                <option value="all">Nhóm danh mục: Tất cả</option>
+                {shopCategories.map((c) => (
+                  <option value={c.id} key={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <select value={stock} onChange={(e) => setStock(e.target.value)}>
+                <option value="all">Tình trạng tồn: Tất cả</option>
+                <option value="low">Sắp hết</option>
+                <option value="out">Hết hàng</option>
+                <option value="ok">Còn hàng</option>
+              </select>
+              <select value={brand} onChange={(e) => setBrand(e.target.value)}>
+                <option value="all">Thương hiệu: Tất cả</option>
+                {[...new Set(items.map((x) => x.brand))].map((x) => (
+                  <option key={x}>{x}</option>
+                ))}
+              </select>
+            </div>
+            <div className="chips">
+              {[
+                ['all', 'Tất cả'],
+                ['urgent', 'Cần đặt hàng gấp'],
+                ['margin', 'Margin cao >35%'],
+                ['selling', 'Bán chạy'],
+                ['exclusive', 'Dòng độc quyền QA Active'],
+              ].map(([k, v]) => (
+                <button
+                  className={quick === k ? 'selected' : ''}
+                  onClick={() => setQuick(k)}
+                  key={k}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="pt-table-scroll product-table">
+            <table className="pt-table">
+              <thead>
+                <tr>
+                  <th>□</th>
+                  <th>SẢN PHẨM & MÃ SKU</th>
+                  <th>DANH MỤC / HÃNG</th>
+                  <th>GIÁ BÁN & GIÁ VỐN</th>
+                  <th>TỒN KHO & PHÂN BỔ CLB</th>
+                  <th>WEB / APP</th>
+                  <th>ĐÃ BÁN</th>
+                  <th>THAO TÁC</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <input type="checkbox" />
+                    </td>
+                    <td>
+                      <div className="person">
+                        <i>{p.image}</i>
+                        <span>
+                          <b>{p.name}</b>
+                          <small>
+                            SKU: {p.sku} · UPC: {p.upc}
+                          </small>
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <b>
+                        {shopCategories.find((c) => c.id === p.category)?.name}
+                      </b>
+                      <small>{p.brand}</small>
+                    </td>
+                    <td>
+                      <b>{money(p.price)}</b>
+                      <small>
+                        Vốn {money(p.cost)} · {p.margin}%
+                      </small>
+                    </td>
+                    <td>
+                      <b className={p.stockStatus !== 'ok' ? 'danger' : ''}>
+                        {total(p)} SP
+                      </b>
+                      <small>
+                        Q1 {p.stocks.q1} · Q7 {p.stocks.q7} · TĐ{' '}
+                        {p.stocks.thaoDien} · HN {p.stocks.hanoi}
+                      </small>
+                    </td>
+                    <td>
+                      <button
+                        className={`switch ${p.enabled ? 'on' : ''}`}
+                        onClick={() =>
+                          setItems(
+                            items.map((x) =>
+                              x.id === p.id ? { ...x, enabled: !x.enabled } : x
+                            )
+                          )
+                        }
+                      >
+                        <i />
+                      </button>
+                    </td>
+                    <td>{p.soldThisMonth}</td>
+                    <td>
+                      <button onClick={() => open('stock', p)}>Nhập kho</button>
+                      <button onClick={() => open('edit', p)}>Sửa</button>
+                      <button onClick={() => open('barcode', p)}>Tem</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="pagination">
+              <span>20 sản phẩm/trang · {filtered.length} kết quả</span>
+              <div>
+                {[1, 2, 3, 10].map((x) => (
+                  <button
+                    className={page === x ? 'current' : ''}
+                    disabled={(x - 1) * 20 >= filtered.length}
+                    onClick={() => setPage(x)}
+                    key={x}
+                  >
+                    {x}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+        <aside className="pt-side">
+          <section className="pt-panel stock-alert">
+            <header>
+              <h2>CẢNH BÁO TỒN KHO</h2>
+              <b>{items.filter((x) => x.stockStatus !== 'ok').length} SKUs</b>
+            </header>
+            {items
+              .filter((x) => x.stockStatus !== 'ok')
+              .slice(0, 4)
+              .map((p) => (
+                <div key={p.id}>
+                  <b>{p.name}</b>
+                  <span>{total(p)} sản phẩm</span>
+                </div>
+              ))}
+            <button onClick={() => notify('Đã tạo đơn nhập NCC mock')}>
+              Tạo đơn nhập NCC hàng loạt
+            </button>
+          </section>
+          <section className="pt-panel transfer">
+            <header>
+              <h2>ĐIỀU CHUYỂN NỘI BỘ</h2>
+            </header>
+            <p>QA-Q1 → QA-HN</p>
+            <b>15 Rule 1 5lbs</b>
+            <small>ETA: Hôm nay</small>
+            <button onClick={() => setModal('transfer')}>
+              Tạo phiếu điều chuyển cơ sở
+            </button>
+          </section>
+        </aside>
+      </div>
+      {(modal === 'add' || modal === 'edit') && (
+        <ProductForm
+          value={selected}
+          onClose={() => setModal(null)}
+          onSave={save}
+        />
+      )}{' '}
+      {modal === 'stock' && selected && (
+        <Modal title="NHẬP KHO NHANH" onClose={() => setModal(null)}>
+          <label>
+            Số lượng nhập
+            <input
+              className="shop-input"
+              type="number"
+              id="stock-add"
+              defaultValue="10"
+            />
+          </label>
+          <footer className="modal-actions">
+            <button onClick={() => setModal(null)}>Hủy</button>
+            <button
+              className="primary"
+              onClick={() => {
+                const n = Number(
+                  (document.getElementById('stock-add') as HTMLInputElement)
+                    .value
+                )
+                setItems(
+                  items.map((x) =>
+                    x.id === selected.id
+                      ? {
+                          ...x,
+                          stocks: { ...x.stocks, q1: x.stocks.q1 + n },
+                          stockStatus: 'ok',
+                        }
+                      : x
+                  )
+                )
+                setModal(null)
+                notify('Đã cập nhật tồn kho')
+              }}
+            >
+              Cập nhật
+            </button>
+          </footer>
+        </Modal>
+      )}
+      {modal === 'barcode' && selected && (
+        <Modal title="TEM MÃ VẠCH" onClose={() => setModal(null)}>
+          <div className="barcode">
+            |||| ||| | ||||<b>{selected.upc}</b>
+          </div>
+        </Modal>
+      )}
+      {modal === 'import' && (
+        <Modal title="NHẬP EXCEL / BATCH SYNC" onClose={() => setModal(null)}>
+          <input type="file" accept=".csv,.xlsx" />
+          <footer className="modal-actions">
+            <button
+              className="primary"
+              onClick={() => {
+                setModal(null)
+                notify('Đã mô phỏng đồng bộ file')
+              }}
+            >
+              Đồng bộ
+            </button>
+          </footer>
+        </Modal>
+      )}
+      {modal === 'transfer' && (
+        <Modal title="TẠO PHIẾU ĐIỀU CHUYỂN" onClose={() => setModal(null)}>
+          <div className="form-grid">
+            <label>
+              Từ cơ sở
+              <select>
+                <option>Vincom Q.1</option>
+              </select>
+            </label>
+            <label>
+              Đến cơ sở
+              <select>
+                <option>Hà Nội</option>
+              </select>
+            </label>
+            <label>
+              Sản phẩm
+              <input />
+            </label>
+            <label>
+              Số lượng
+              <input type="number" />
+            </label>
+            <label>
+              ETA
+              <input type="date" />
+            </label>
+          </div>
+          <footer className="modal-actions">
+            <button
+              className="primary"
+              onClick={() => {
+                setModal(null)
+                notify('Đã tạo phiếu điều chuyển')
+              }}
+            >
+              Tạo phiếu
+            </button>
+          </footer>
+        </Modal>
+      )}
+      {toast && <div className="toast">✓ {toast}</div>}
+    </div>
+  )
+}
+function ProductForm({
+  value,
+  onClose,
+  onSave,
+}: {
+  value: Product | null
+  onClose: () => void
+  onSave: (e: FormEvent<HTMLFormElement>) => void
+}) {
+  return (
+    <Modal
+      title={value ? 'SỬA SẢN PHẨM' : 'THÊM SẢN PHẨM MỚI'}
+      onClose={onClose}
+    >
+      <form onSubmit={onSave}>
+        <div className="form-grid">
+          <label>
+            Tên sản phẩm
+            <input name="name" defaultValue={value?.name} required />
+          </label>
+          <label>
+            SKU
+            <input name="sku" defaultValue={value?.sku} required />
+          </label>
+          <label>
+            UPC
+            <input name="upc" defaultValue={value?.upc} required />
+          </label>
+          <label>
+            Danh mục
+            <select name="category" defaultValue={value?.category}>
+              {shopCategories.map((c) => (
+                <option value={c.id} key={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Thương hiệu
+            <input name="brand" defaultValue={value?.brand} required />
+          </label>
+          <label>
+            Giá bán
+            <input
+              name="price"
+              type="number"
+              defaultValue={value?.price}
+              required
+            />
+          </label>
+          <label>
+            Giá vốn
+            <input
+              name="cost"
+              type="number"
+              defaultValue={value?.cost}
+              required
+            />
+          </label>
+          {(['q1', 'q7', 'thaoDien', 'hanoi'] as const).map((k) => (
+            <label key={k}>
+              Stock {k}
+              <input
+                name={k}
+                type="number"
+                defaultValue={value?.stocks[k] || 0}
+              />
+            </label>
+          ))}
+          <label>
+            Ảnh
+            <input type="file" />
+          </label>
+          <label>
+            App/Web
+            <input
+              name="enabled"
+              type="checkbox"
+              defaultChecked={value?.enabled ?? true}
+            />
+          </label>
+        </div>
+        <footer className="modal-actions">
+          <button type="button" onClick={onClose}>
+            Hủy
+          </button>
+          <button className="primary">Lưu sản phẩm</button>
+        </footer>
+      </form>
+    </Modal>
+  )
+}
