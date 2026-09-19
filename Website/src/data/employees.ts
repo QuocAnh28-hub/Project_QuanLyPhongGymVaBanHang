@@ -1,0 +1,92 @@
+export const employees = [
+  [
+    'Trần Minh Hoàng',
+    'QA-EMP-001',
+    'Master Admin',
+    'Head Operations · Cơ sở: Crescent Elite Q.7',
+    '2FA FaceID / Authenticate',
+    'IP: 192.168.88.42',
+    'green',
+  ],
+  [
+    'Lê Văn Duyệt',
+    'QA-EMP-014',
+    'Kho & Logistics',
+    'Quản Trị Kho Trung tâm · Cơ sở: Thảo Điền Hub',
+    'Google OTP',
+    'Đăng nhập: 08:15 hôm nay',
+    'mint',
+  ],
+  [
+    'Nguyễn Thị Mai',
+    'QA-EMP-022',
+    'Lễ tân & Soát vé',
+    'Lễ tân Trưởng ca A · Cơ sở: Vincom Đồng Khởi Q.1',
+    'FaceID Turnstile Auth',
+    'Truy cập: Cổng Turnstile 01',
+    'green',
+  ],
+  [
+    'Trần Hoàng Nam',
+    'QA-EMP-031',
+    'HLV Thể hình',
+    'Head PT / Chuyên gia Thể lực · Cơ sở: West Lake HN',
+    'QA Coach Mobile App',
+    '12 ca PT hôm nay',
+    'mint',
+  ],
+  [
+    'Nguyễn Thanh Nga',
+    'QA-EMP-045',
+    'Kế toán',
+    'Kế toán trưởng Tập đoàn · Cơ sở: Trụ sở Landmark',
+    'Khóa tạm thời',
+    'Khóa bởi Admin: 10/01/2025',
+    'gray',
+  ],
+]
+
+export const permissions = [
+  'Dashboard Tổng quan CLB',
+  'Quản lý Hội viên & Hợp đồng',
+  'Cổng Turnstile & Soát vé QR',
+  'Kho hàng & Pro Shop Chi nhánh',
+  'Doanh thu & Xuất Hóa đơn VAT',
+  'Khuyến mãi & Chính sách Giảm giá',
+  'Cấu hình Phân quyền Hệ thống',
+]
+
+export const stats = [
+    [
+      'TỔNG NHÂN SỰ',
+      'Tổng Nhân Sự Vận hành',
+      '84',
+      'cán bộ NV',
+      '42 HLV · 18 Lễ tân · 12 Sales',
+      '6 Kho/K.T · 6 Quản lý',
+    ],
+    [
+      'TRẠNG THÁI TRUY CẬP',
+      'Tài Khoản Hoạt động',
+      '82',
+      '/ 84 Kích hoạt',
+      'Tạm khóa (Nghỉ thai sản &',
+      'Phép dài)',
+    ],
+    [
+      'CHÍNH SÁCH PHÂN QUYỀN',
+      'Vai Trò Hệ Thống',
+      '06',
+      'Nhóm quyền RBAC',
+      'Master Admin, GĐ CLB, Kế toán,...',
+      '',
+    ],
+    [
+      'CẢNH BÁO AN NINH 24H',
+      'Cảnh Báo An Ninh',
+      '00',
+      'Sự cố vi phạm',
+      '100% 2FA & Không IP rủi ro',
+      'CLB',
+    ],
+  ]

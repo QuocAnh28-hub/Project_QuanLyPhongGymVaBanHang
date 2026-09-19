@@ -1,4 +1,4 @@
-import type { Member } from './MemberList'
+import type { Member } from '../data/members'
 
 type MemberDetailProps = {
     member: Member
