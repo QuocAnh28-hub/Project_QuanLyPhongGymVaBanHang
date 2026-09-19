@@ -8,6 +8,9 @@ import MemberDetail from './components/MemberDetail'
 import type { Member } from './components/MemberList'
 import ActivityHistory from './components/ActivityHistory'
 import Navigation from './components/Navigation'
+import Promotions from './components/Promotions'
+import Reports from './components/Reports'
+import Employees from './components/Employees'
 import './App.css'
 
 const metrics = [
@@ -125,7 +128,13 @@ function App() {
       />
       <section className="workspace">
         <Header />
-        {activePage === 'Hội viên' ? (
+        {activePage === 'Nhân viên' ? (
+          <Employees />
+        ) : activePage === 'Báo cáo thống kê' ? (
+          <Reports />
+        ) : activePage === 'Khuyến mãi' ? (
+          <Promotions />
+        ) : activePage === 'Hội viên' ? (
           selectedMember ? (
             showActivityHistory ? (
               <ActivityHistory
