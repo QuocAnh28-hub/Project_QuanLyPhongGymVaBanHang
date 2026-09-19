@@ -1,14 +1,15 @@
 import { useState } from "react";
 
-type MenuKey = "packages" | "checkin" | "trainers";
-export type PageId = "dashboard" | "members" | "packages-list" | "package-registrations" | "checkin-live" | "checkin-history" | "checkin-qr" | "trainers-list" | "pt-sessions" | "trainer-roster" | "orders" | "revenue" | "equipment" | "settings";
+type MenuKey = "packages" | "checkin" | "trainers" | "proshop";
+export type PageId = "dashboard" | "members" | "packages-list" | "package-registrations" | "checkin-live" | "checkin-history" | "checkin-qr" | "trainers-list" | "pt-sessions" | "trainer-roster" | "shop-categories" | "shop-products" | "shop-orders" | "revenue" | "equipment" | "settings";
 type NavigationItem = { id: PageId; label: string; icon: string; menu?: MenuKey; children?: { id: PageId; label: string }[] };
 type NavigationProps = { activePage: PageId; onNavigate: (page: PageId) => void; onLogout: () => void };
 
 const packagePages: PageId[] = ["packages-list", "package-registrations"];
 const checkinPages: PageId[] = ["checkin-live", "checkin-history", "checkin-qr"];
 const trainerPages: PageId[] = ["trainers-list", "pt-sessions", "trainer-roster"];
-const menuFor = (page: PageId): MenuKey | null => packagePages.includes(page) ? "packages" : checkinPages.includes(page) ? "checkin" : trainerPages.includes(page) ? "trainers" : null;
+const shopPages: PageId[] = ["shop-categories", "shop-products", "shop-orders"];
+const menuFor = (page: PageId): MenuKey | null => packagePages.includes(page) ? "packages" : checkinPages.includes(page) ? "checkin" : trainerPages.includes(page) ? "trainers" : shopPages.includes(page) ? "proshop" : null;
 
 const navigation: { group: string; items: NavigationItem[] }[] = [
   { group: "VẬN HÀNH CHÍNH", items: [
@@ -19,7 +20,7 @@ const navigation: { group: string; items: NavigationItem[] }[] = [
     { id: "trainers-list", label: "HLV & Lịch tập PT", icon: "fitness_center", menu: "trainers", children: [{ id: "trainers-list", label: "Quản lý Huấn luyện viên" }, { id: "pt-sessions", label: "Lịch thuê PT & Buổi tập 1-1" }, { id: "trainer-roster", label: "Lịch làm việc & Phân ca HLV" }] },
   ]},
   { group: "KINH DOANH & THƯƠNG MẠI", items: [
-    { id: "orders", label: "Đơn hàng QA Pro Shop", icon: "shopping_bag" },
+    { id: "shop-products", label: "Sản phẩm & Đơn hàng QA Pro Shop", icon: "shopping_bag", menu: "proshop", children: [{id:"shop-categories",label:"Danh mục & nhóm sản phẩm"},{id:"shop-products",label:"Danh sách sản phẩm"},{id:"shop-orders",label:"Quản lý đơn hàng"}] },
     { id: "revenue", label: "Doanh thu & Báo cáo VAT", icon: "receipt_long" },
   ]},
   { group: "HỆ THỐNG KỸ THUẬT", items: [

@@ -13,6 +13,9 @@ import CheckInQrPage from "./pages/CheckInQrPage";
 import TrainerManagementPage from "./pages/TrainerManagementPage";
 import PtSessionsPage from "./pages/PtSessionsPage";
 import TrainerRosterPage from "./pages/TrainerRosterPage";
+import ShopCategoriesPage from "./pages/ShopCategoriesPage";
+import ShopProductsPage from "./pages/ShopProductsPage";
+import ShopOrdersPage from "./pages/ShopOrdersPage";
 import "./App.css";
 import "./AdminBase.css";
 import "./AdminExtra.css";
@@ -20,6 +23,7 @@ import "./CheckIn.css";
 import "./Typography.css";
 import "./Sidebar.css";
 import "./PtModule.css";
+import "./ShopModule.css";
 
 const metrics = [
   [
@@ -134,7 +138,7 @@ function App() {
       />
       <section className="workspace">
         <Header />
-        {!['packages-list', 'package-registrations', 'checkin-live', 'checkin-history', 'checkin-qr', 'trainers-list', 'pt-sessions', 'trainer-roster'].includes(activePage) ? (
+        {!['packages-list', 'package-registrations', 'checkin-live', 'checkin-history', 'checkin-qr', 'trainers-list', 'pt-sessions', 'trainer-roster', 'shop-categories', 'shop-products', 'shop-orders'].includes(activePage) ? (
         <div className="dashboard">
           <section className="dashboard-hero">
             <div className="hero-copy">
@@ -364,7 +368,7 @@ function App() {
         </div>
         ) : (
           <div className="module-content">
-            {activePage === "trainers-list" ? <TrainerManagementPage onOpenRoster={() => setActivePage("trainer-roster")} /> : activePage === "pt-sessions" ? <PtSessionsPage /> : activePage === "trainer-roster" ? <TrainerRosterPage /> : activePage === "checkin-live" ? <CheckInLivePage /> : activePage === "checkin-history" ? <CheckInHistoryPage /> : activePage === "checkin-qr" ? <CheckInQrPage /> : <>
+            {activePage === "shop-categories" ? <ShopCategoriesPage /> : activePage === "shop-products" ? <ShopProductsPage /> : activePage === "shop-orders" ? <ShopOrdersPage /> : activePage === "trainers-list" ? <TrainerManagementPage onOpenRoster={() => setActivePage("trainer-roster")} /> : activePage === "pt-sessions" ? <PtSessionsPage /> : activePage === "trainer-roster" ? <TrainerRosterPage /> : activePage === "checkin-live" ? <CheckInLivePage /> : activePage === "checkin-history" ? <CheckInHistoryPage /> : activePage === "checkin-qr" ? <CheckInQrPage /> : <>
             <nav className="module-tabs" aria-label="Điều hướng quản lý gói tập">
               <button className={activePage === "packages-list" ? "active" : ""} onClick={() => setActivePage("packages-list")}>DANH SÁCH GÓI TẬP</button>
               <button className={activePage === "package-registrations" ? "active" : ""} onClick={() => setActivePage("package-registrations")}>QUẢN LÝ ĐĂNG KÝ</button>
