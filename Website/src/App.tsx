@@ -16,6 +16,10 @@ import TrainerRosterPage from "./pages/TrainerRosterPage";
 import ShopCategoriesPage from "./pages/ShopCategoriesPage";
 import ShopProductsPage from "./pages/ShopProductsPage";
 import ShopOrdersPage from "./pages/ShopOrdersPage";
+import WarehouseInboundPage from "./pages/WarehouseInboundPage";
+import WarehouseInventoryPage from "./pages/WarehouseInventoryPage";
+import WarehouseHistoryPage from "./pages/WarehouseHistoryPage";
+import RevenueInvoicePage from "./pages/RevenueInvoicePage";
 import "./App.css";
 import "./AdminBase.css";
 import "./AdminExtra.css";
@@ -24,6 +28,7 @@ import "./Typography.css";
 import "./Sidebar.css";
 import "./PtModule.css";
 import "./ShopModule.css";
+import "./CommerceModule.css";
 
 const metrics = [
   [
@@ -138,7 +143,7 @@ function App() {
       />
       <section className="workspace">
         <Header />
-        {!['packages-list', 'package-registrations', 'checkin-live', 'checkin-history', 'checkin-qr', 'trainers-list', 'pt-sessions', 'trainer-roster', 'shop-categories', 'shop-products', 'shop-orders'].includes(activePage) ? (
+        {!['packages-list', 'package-registrations', 'checkin-live', 'checkin-history', 'checkin-qr', 'trainers-list', 'pt-sessions', 'trainer-roster', 'shop-categories', 'shop-products', 'shop-orders', 'warehouse-inbound', 'warehouse-stock', 'warehouse-history', 'revenue-vat'].includes(activePage) ? (
         <div className="dashboard">
           <section className="dashboard-hero">
             <div className="hero-copy">
@@ -368,7 +373,7 @@ function App() {
         </div>
         ) : (
           <div className="module-content">
-            {activePage === "shop-categories" ? <ShopCategoriesPage /> : activePage === "shop-products" ? <ShopProductsPage /> : activePage === "shop-orders" ? <ShopOrdersPage /> : activePage === "trainers-list" ? <TrainerManagementPage onOpenRoster={() => setActivePage("trainer-roster")} /> : activePage === "pt-sessions" ? <PtSessionsPage /> : activePage === "trainer-roster" ? <TrainerRosterPage /> : activePage === "checkin-live" ? <CheckInLivePage /> : activePage === "checkin-history" ? <CheckInHistoryPage /> : activePage === "checkin-qr" ? <CheckInQrPage /> : <>
+            {activePage === "warehouse-inbound" ? <WarehouseInboundPage /> : activePage === "warehouse-stock" ? <WarehouseInventoryPage /> : activePage === "warehouse-history" ? <WarehouseHistoryPage /> : activePage === "revenue-vat" ? <RevenueInvoicePage /> : activePage === "shop-categories" ? <ShopCategoriesPage /> : activePage === "shop-products" ? <ShopProductsPage /> : activePage === "shop-orders" ? <ShopOrdersPage /> : activePage === "trainers-list" ? <TrainerManagementPage onOpenRoster={() => setActivePage("trainer-roster")} /> : activePage === "pt-sessions" ? <PtSessionsPage /> : activePage === "trainer-roster" ? <TrainerRosterPage /> : activePage === "checkin-live" ? <CheckInLivePage /> : activePage === "checkin-history" ? <CheckInHistoryPage /> : activePage === "checkin-qr" ? <CheckInQrPage /> : <>
             <nav className="module-tabs" aria-label="Điều hướng quản lý gói tập">
               <button className={activePage === "packages-list" ? "active" : ""} onClick={() => setActivePage("packages-list")}>DANH SÁCH GÓI TẬP</button>
               <button className={activePage === "package-registrations" ? "active" : ""} onClick={() => setActivePage("package-registrations")}>QUẢN LÝ ĐĂNG KÝ</button>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-type MenuKey = "packages" | "checkin" | "trainers" | "proshop";
-export type PageId = "dashboard" | "members" | "packages-list" | "package-registrations" | "checkin-live" | "checkin-history" | "checkin-qr" | "trainers-list" | "pt-sessions" | "trainer-roster" | "shop-categories" | "shop-products" | "shop-orders" | "revenue" | "equipment" | "settings";
+type MenuKey = "packages" | "checkin" | "trainers" | "proshop" | "warehouse" | "revenue";
+export type PageId = "dashboard" | "members" | "packages-list" | "package-registrations" | "checkin-live" | "checkin-history" | "checkin-qr" | "trainers-list" | "pt-sessions" | "trainer-roster" | "shop-categories" | "shop-products" | "shop-orders" | "warehouse-inbound" | "warehouse-stock" | "warehouse-history" | "revenue-vat" | "equipment" | "settings";
 type NavigationItem = { id: PageId; label: string; icon: string; menu?: MenuKey; children?: { id: PageId; label: string }[] };
 type NavigationProps = { activePage: PageId; onNavigate: (page: PageId) => void; onLogout: () => void };
 
@@ -9,7 +9,7 @@ const packagePages: PageId[] = ["packages-list", "package-registrations"];
 const checkinPages: PageId[] = ["checkin-live", "checkin-history", "checkin-qr"];
 const trainerPages: PageId[] = ["trainers-list", "pt-sessions", "trainer-roster"];
 const shopPages: PageId[] = ["shop-categories", "shop-products", "shop-orders"];
-const menuFor = (page: PageId): MenuKey | null => packagePages.includes(page) ? "packages" : checkinPages.includes(page) ? "checkin" : trainerPages.includes(page) ? "trainers" : shopPages.includes(page) ? "proshop" : null;
+const menuFor = (page: PageId): MenuKey | null => packagePages.includes(page) ? "packages" : checkinPages.includes(page) ? "checkin" : trainerPages.includes(page) ? "trainers" : shopPages.includes(page) ? "proshop" : page.startsWith("warehouse-") ? "warehouse" : page === "revenue-vat" ? "revenue" : null;
 
 const navigation: { group: string; items: NavigationItem[] }[] = [
   { group: "VẬN HÀNH CHÍNH", items: [
@@ -21,7 +21,8 @@ const navigation: { group: string; items: NavigationItem[] }[] = [
   ]},
   { group: "KINH DOANH & THƯƠNG MẠI", items: [
     { id: "shop-products", label: "Sản phẩm & Đơn hàng QA Pro Shop", icon: "shopping_bag", menu: "proshop", children: [{id:"shop-categories",label:"Danh mục & nhóm sản phẩm"},{id:"shop-products",label:"Danh sách sản phẩm"},{id:"shop-orders",label:"Quản lý đơn hàng"}] },
-    { id: "revenue", label: "Doanh thu & Báo cáo VAT", icon: "receipt_long" },
+    { id: "warehouse-inbound", label: "Nhập kho & Tồn kho", icon: "inventory_2", menu: "warehouse", children: [{id:"warehouse-inbound",label:"Quản lý nhập kho"},{id:"warehouse-stock",label:"Quản lý tồn kho"},{id:"warehouse-history",label:"Lịch sử xuất nhập kho"}] },
+    { id: "revenue-vat", label: "Doanh thu & Hóa đơn", icon: "receipt_long", menu: "revenue", children: [{id:"revenue-vat",label:"Thanh toán & Hóa đơn VAT"}] },
   ]},
   { group: "HỆ THỐNG KỸ THUẬT", items: [
     { id: "equipment", label: "Thiết bị & Bảo trì CLB", icon: "build" },
