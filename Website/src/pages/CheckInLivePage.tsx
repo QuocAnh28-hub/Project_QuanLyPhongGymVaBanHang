@@ -1,18 +1,254 @@
-import { useMemo, useState } from "react";
-import { MetricCard, Modal } from "../components/AdminLayout";
-import { gateClusters, initialLiveFeed, type CheckInFeed } from "../data/checkin-live.mock";
+import { useMemo, useState } from 'react'
+import { MetricCard, Modal } from '../components/AdminLayout'
+import {
+  gateClusters,
+  initialLiveFeed,
+  type CheckInFeed,
+} from '../data/checkin-live.mock'
 
-export default function CheckInLivePage(){
- const [feed,setFeed]=useState(initialLiveFeed),[filter,setFilter]=useState("all"),[query,setQuery]=useState(""),[modal,setModal]=useState<"bypass"|"scan"|null>(null),[kiosk,setKiosk]=useState(false),[toast,setToast]=useState("");
- const notify=(m:string)=>{setToast(m);setTimeout(()=>setToast(""),1800)};
- const shown=useMemo(()=>feed.filter(x=>filter==="all"||x.kind===filter),[feed,filter]);
- const activate=()=>{if(!query.trim())return notify("Nhập SĐT, mã hợp đồng hoặc RFID");const item:CheckInFeed={id:Date.now(),name:"Hội viên tại quầy",tier:"CLASSIC MEMBER",memberId:query,time:new Date().toLocaleTimeString("vi-VN"),gate:"Quầy lễ tân - Gate 01",auth:"Kích hoạt thủ công tại quầy",result:"Mở cổng thành công",kind:"valid"};setFeed([item,...feed]);setQuery("");notify("Đã thêm lượt check-in mock")};
- const exportCsv=()=>{const blob=new Blob(["Tên,Mã hội viên,Thời gian,Cổng,Trạng thái\n"+feed.map(x=>[x.name,x.memberId,x.time,x.gate,x.result].join(",")).join("\n")],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="checkin-hom-nay.csv";a.click();URL.revokeObjectURL(a.href)};
- return <div className={`admin-page checkin-page ${kiosk?"kiosk-mode":""}`}><header className="page-heading"><div><p>VẬN HÀNH CHÍNH　›　CỔNG CHECK-IN　›　<b>CHECK-IN HÔM NAY</b></p><h1>GIÁM SÁT CHECK-IN HÔM NAY /<br/>REAL-TIME GATEWAY</h1><span className="online-badge">● TURNSTILE 18/18 ONLINE</span></div><div className="heading-actions"><button className="danger" onClick={()=>setModal("bypass")}>◇ MỞ CỔNG KHẨN CẤP (BYPASS)</button><button onClick={()=>setModal("scan")}>⌗ QUÉT QR TẠI QUẦY</button><button onClick={exportCsv}>⇩ XUẤT DANH SÁCH CÓ MẶT</button><button className={kiosk?"primary":""} onClick={()=>setKiosk(!kiosk)}>▣ CHẾ ĐỘ KIOSK</button></div></header>
- <section className="metrics-grid"><MetricCard label="TỔNG LƯỢT CHECK-IN" value="1,428" note="↗ +14% so với hôm qua"/><MetricCard label="ĐANG CÓ MẶT TẠI CLB" value="312" note="Q.1 142 · Q.7 86 · T.ĐIỀN 54 · HN 30" tone="mint"/><MetricCard label="CÔNG SUẤT KHUNG GIỜ" value="68%" note="PEAK HOUR · Ngưỡng 85%"/><MetricCard label="CHẶN CỔNG AN NINH" value="04" note="Thẻ hết hạn: 2 · Double-tap: 1" tone="error"/></section>
- <section><div className="section-title"><h2>TRẠNG THÁI CỤM CỔNG SOÁT VÉ TOÀN HỆ THỐNG</h2><span>⚡ Tốc độ sinh trắc học FaceID: <b>0.08s/lượt</b></span></div><div className="gate-grid">{gateClusters.map(g=><article className="gate-card" key={g.name}><header><div><h3>{g.name}</h3><small>{g.range}</small></div><b>100%<br/>ONLINE</b></header><div className="lanes">{g.lanes.map((n,i)=><div key={i}><small>G0{i+1}</small><span>⌁</span><b>{n}</b></div>)}</div><footer>Khách tại sàn: <b>{g.guests}</b><span>● Cam AI Active</span></footer></article>)}</div></section>
- <section className="quick-check"><div><b>♙</b><span><h2>QUẦY CHECK-IN NHANH & XỬ LÝ SỰ CỐ</h2><small>Nhập nhanh Số điện thoại, Mã hợp đồng, thẻ từ RFID</small></span></div><label>⌕<input value={query} onChange={e=>setQuery(e.target.value)} placeholder="SĐT / mã hợp đồng / RFID"/></label><button onClick={()=>notify("Đã đọc RFID mock")}>RFID Scan</button><button onClick={()=>notify("Webcam AI Match mock: 98.4%")}>▣ Webcam AI Match</button><button className="primary" onClick={activate}>✓ Kích hoạt vào cổng</button></section>
- <section className="live-section"><div className="section-title"><h2>● LUỒNG DỮ LIỆU CHECK-IN TRỰC TIẾP<br/>(REAL-TIME FEED)</h2><div className="chips">{[["all","Tất cả lượt quét"],["valid","Hợp lệ"],["warning","Cảnh báo an ninh"],["vip","Khách VIP Diamond"],["pt","Buổi tập PT hôm nay"]].map(([k,v])=><button className={filter===k?"selected":""} onClick={()=>setFilter(k)} key={k}>{v}</button>)}</div></div><div className="live-feed">{shown.map(x=><article className={x.kind==="warning"?"warning":""} key={x.id}><i>{x.name[0]}</i><div><h3>{x.name} <span>{x.tier}</span> <small>{x.memberId}</small></h3><p>◷ {x.time}　•　{x.gate}　•　{x.auth}</p></div><strong>{x.result}</strong><button>⋮</button></article>)}</div></section>
- {modal==="bypass"&&<Modal title="MỞ CỔNG KHẨN CẤP" onClose={()=>setModal(null)}><p>Đây là thao tác mô phỏng frontend. Xác nhận mở cổng bypass?</p><footer className="modal-actions"><button onClick={()=>setModal(null)}>Hủy</button><button className="danger" onClick={()=>{setModal(null);notify("Đã mô phỏng mở cổng khẩn cấp")}}>Xác nhận bypass</button></footer></Modal>}{modal==="scan"&&<Modal title="QUÉT QR TẠI QUẦY" onClose={()=>setModal(null)}><div className="scan-mock">⌗<p>Đưa mã QR vào vùng quét mô phỏng</p><button className="primary" onClick={()=>{setModal(null);notify("QR hợp lệ · Diamond VIP")}}>Mô phỏng quét thành công</button></div></Modal>}{toast&&<div className="toast">✓ {toast}</div>}
- </div>
+export default function CheckInLivePage() {
+  const [feed, setFeed] = useState(initialLiveFeed),
+    [filter, setFilter] = useState('all'),
+    [query, setQuery] = useState(''),
+    [modal, setModal] = useState<'bypass' | 'scan' | null>(null),
+    [kiosk, setKiosk] = useState(false),
+    [toast, setToast] = useState('')
+  const notify = (m: string) => {
+    setToast(m)
+    setTimeout(() => setToast(''), 1800)
+  }
+  const shown = useMemo(
+    () => feed.filter((x) => filter === 'all' || x.kind === filter),
+    [feed, filter]
+  )
+  const activate = () => {
+    if (!query.trim()) return notify('Nhập SĐT, mã hợp đồng hoặc RFID')
+    const item: CheckInFeed = {
+      id: Date.now(),
+      name: 'Hội viên tại quầy',
+      tier: 'CLASSIC MEMBER',
+      memberId: query,
+      time: new Date().toLocaleTimeString('vi-VN'),
+      gate: 'Quầy lễ tân - Gate 01',
+      auth: 'Kích hoạt thủ công tại quầy',
+      result: 'Mở cổng thành công',
+      kind: 'valid',
+    }
+    setFeed([item, ...feed])
+    setQuery('')
+    notify('Đã thêm lượt check-in mock')
+  }
+  const exportCsv = () => {
+    const blob = new Blob(
+      [
+        'Tên,Mã hội viên,Thời gian,Cổng,Trạng thái\n' +
+          feed
+            .map((x) =>
+              [x.name, x.memberId, x.time, x.gate, x.result].join(',')
+            )
+            .join('\n'),
+      ],
+      { type: 'text/csv' }
+    )
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = 'checkin-hom-nay.csv'
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+  return (
+    <div className={`admin-page checkin-page ${kiosk ? 'kiosk-mode' : ''}`}>
+      <header className="page-heading">
+        <div>
+          <p>
+            VẬN HÀNH CHÍNH　›　CỔNG CHECK-IN　›　<b>CHECK-IN HÔM NAY</b>
+          </p>
+          <h1>
+            GIÁM SÁT CHECK-IN HÔM NAY /<br />
+            REAL-TIME GATEWAY
+          </h1>
+          <span className="online-badge">● TURNSTILE 18/18 ONLINE</span>
+        </div>
+        <div className="heading-actions">
+          <button className="danger" onClick={() => setModal('bypass')}>
+            ◇ MỞ CỔNG KHẨN CẤP (BYPASS)
+          </button>
+          <button onClick={() => setModal('scan')}>⌗ QUÉT QR TẠI QUẦY</button>
+          <button onClick={exportCsv}>⇩ XUẤT DANH SÁCH CÓ MẶT</button>
+          <button
+            className={kiosk ? 'primary' : ''}
+            onClick={() => setKiosk(!kiosk)}
+          >
+            ▣ CHẾ ĐỘ KIOSK
+          </button>
+        </div>
+      </header>
+      <section className="metrics-grid">
+        <MetricCard
+          label="TỔNG LƯỢT CHECK-IN"
+          value="1,428"
+          note="↗ +14% so với hôm qua"
+        />
+        <MetricCard
+          label="ĐANG CÓ MẶT TẠI CLB"
+          value="312"
+          note="Q.1 142 · Q.7 86 · T.ĐIỀN 54 · HN 30"
+          tone="mint"
+        />
+        <MetricCard
+          label="CÔNG SUẤT KHUNG GIỜ"
+          value="68%"
+          note="PEAK HOUR · Ngưỡng 85%"
+        />
+        <MetricCard
+          label="CHẶN CỔNG AN NINH"
+          value="04"
+          note="Thẻ hết hạn: 2 · Double-tap: 1"
+          tone="error"
+        />
+      </section>
+      <section>
+        <div className="section-title">
+          <h2>TRẠNG THÁI CỤM CỔNG SOÁT VÉ TOÀN HỆ THỐNG</h2>
+          <span>
+            ⚡ Tốc độ sinh trắc học FaceID: <b>0.08s/lượt</b>
+          </span>
+        </div>
+        <div className="gate-grid">
+          {gateClusters.map((g) => (
+            <article className="gate-card" key={g.name}>
+              <header>
+                <div>
+                  <h3>{g.name}</h3>
+                  <small>{g.range}</small>
+                </div>
+                <b>
+                  100%
+                  <br />
+                  ONLINE
+                </b>
+              </header>
+              <div className="lanes">
+                {g.lanes.map((n, i) => (
+                  <div key={i}>
+                    <small>G0{i + 1}</small>
+                    <span>⌁</span>
+                    <b>{n}</b>
+                  </div>
+                ))}
+              </div>
+              <footer>
+                Khách tại sàn: <b>{g.guests}</b>
+                <span>● Cam AI Active</span>
+              </footer>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="quick-check">
+        <div>
+          <b>♙</b>
+          <span>
+            <h2>QUẦY CHECK-IN NHANH & XỬ LÝ SỰ CỐ</h2>
+            <small>Nhập nhanh Số điện thoại, Mã hợp đồng, thẻ từ RFID</small>
+          </span>
+        </div>
+        <label>
+          ⌕
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="SĐT / mã hợp đồng / RFID"
+          />
+        </label>
+        <button onClick={() => notify('Đã đọc RFID mock')}>RFID Scan</button>
+        <button onClick={() => notify('Webcam AI Match mock: 98.4%')}>
+          ▣ Webcam AI Match
+        </button>
+        <button className="primary" onClick={activate}>
+          ✓ Kích hoạt vào cổng
+        </button>
+      </section>
+      <section className="live-section">
+        <div className="section-title">
+          <h2>
+            ● LUỒNG DỮ LIỆU CHECK-IN TRỰC TIẾP
+            <br />
+            (REAL-TIME FEED)
+          </h2>
+          <div className="chips">
+            {[
+              ['all', 'Tất cả lượt quét'],
+              ['valid', 'Hợp lệ'],
+              ['warning', 'Cảnh báo an ninh'],
+              ['vip', 'Khách VIP Diamond'],
+              ['pt', 'Buổi tập PT hôm nay'],
+            ].map(([k, v]) => (
+              <button
+                className={filter === k ? 'selected' : ''}
+                onClick={() => setFilter(k)}
+                key={k}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="live-feed">
+          {shown.map((x) => (
+            <article
+              className={x.kind === 'warning' ? 'warning' : ''}
+              key={x.id}
+            >
+              <i>{x.name[0]}</i>
+              <div>
+                <h3>
+                  {x.name} <span>{x.tier}</span> <small>{x.memberId}</small>
+                </h3>
+                <p>
+                  ◷ {x.time}　•　{x.gate}　•　{x.auth}
+                </p>
+              </div>
+              <strong>{x.result}</strong>
+              <button>⋮</button>
+            </article>
+          ))}
+        </div>
+      </section>
+      {modal === 'bypass' && (
+        <Modal title="MỞ CỔNG KHẨN CẤP" onClose={() => setModal(null)}>
+          <p>Đây là thao tác mô phỏng frontend. Xác nhận mở cổng bypass?</p>
+          <footer className="modal-actions">
+            <button onClick={() => setModal(null)}>Hủy</button>
+            <button
+              className="danger"
+              onClick={() => {
+                setModal(null)
+                notify('Đã mô phỏng mở cổng khẩn cấp')
+              }}
+            >
+              Xác nhận bypass
+            </button>
+          </footer>
+        </Modal>
+      )}
+      {modal === 'scan' && (
+        <Modal title="QUÉT QR TẠI QUẦY" onClose={() => setModal(null)}>
+          <div className="scan-mock">
+            ⌗<p>Đưa mã QR vào vùng quét mô phỏng</p>
+            <button
+              className="primary"
+              onClick={() => {
+                setModal(null)
+                notify('QR hợp lệ · Diamond VIP')
+              }}
+            >
+              Mô phỏng quét thành công
+            </button>
+          </div>
+        </Modal>
+      )}
+      {toast && <div className="toast">✓ {toast}</div>}
+    </div>
+  )
 }

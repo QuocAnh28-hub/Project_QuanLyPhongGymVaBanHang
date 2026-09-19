@@ -1,7 +1,110 @@
-export type InboundOrder = { id:string; supplier:string; warehouse:string; createdAt:string; amount:number; paymentStatus:string; inspectionStatus:string; progress:number; invoice:string; shippingRef:string; items:{sku:string;name:string;quantity:number;price:number;vat:number}[]; status:string };
-export const inboundOrders:InboundOrder[] = [
-  {id:"PO-2025-1048",supplier:"Rule One Proteins",warehouse:"Kho Tổng HQ",createdAt:"18/10/2025",amount:128520000,paymentStatus:"Chờ thanh toán",inspectionStatus:"Đang kiểm đếm",progress:72,invoice:"VAT-R1-0842",shippingRef:"GHN-781209",items:[{sku:"R1-WHEY-5LB",name:"Rule 1 Isolate 5lbs",quantity:80,price:1487500,vat:8}],status:"Đang kiểm đếm"},
-  {id:"PO-2025-1047",supplier:"Nutrabolt Việt Nam",warehouse:"Kho Crescent Q7",createdAt:"17/10/2025",amount:78200000,paymentStatus:"Đã thanh toán",inspectionStatus:"Chờ kiểm đếm",progress:0,invoice:"Chờ NCC",shippingRef:"VTP-339271",items:[{sku:"C4-ORIGINAL",name:"C4 Original Pre-workout",quantity:100,price:724074,vat:8}],status:"Chờ nhập kho"},
-  {id:"PO-2025-1046",supplier:"Optimum Nutrition",warehouse:"Kho Thảo Điền",createdAt:"16/10/2025",amount:96500000,paymentStatus:"Đã thanh toán",inspectionStatus:"Hoàn tất",progress:100,invoice:"VAT-ON-6211",shippingRef:"GHN-781020",items:[{sku:"ON-GOLD-5LB",name:"ON Gold Standard Whey",quantity:50,price:1787037,vat:8}],status:"Đã nhập kho hoàn tất"},
-  {id:"PO-2025-1045",supplier:"MuscleTech",warehouse:"Kho West Lake HN",createdAt:"15/10/2025",amount:45900000,paymentStatus:"Hoàn tiền",inspectionStatus:"Đã hủy",progress:0,invoice:"—",shippingRef:"VTP-338810",items:[{sku:"MT-CREATINE",name:"Platinum Creatine",quantity:90,price:472222,vat:8}],status:"Đã hủy / Trả hàng"},
-];
+export type InboundOrder = {
+  id: string
+  supplier: string
+  warehouse: string
+  createdAt: string
+  amount: number
+  paymentStatus: string
+  inspectionStatus: string
+  progress: number
+  invoice: string
+  shippingRef: string
+  items: {
+    sku: string
+    name: string
+    quantity: number
+    price: number
+    vat: number
+  }[]
+  status: string
+}
+export const inboundOrders: InboundOrder[] = [
+  {
+    id: 'PO-2025-1048',
+    supplier: 'Rule One Proteins',
+    warehouse: 'Kho Tổng HQ',
+    createdAt: '18/10/2025',
+    amount: 128520000,
+    paymentStatus: 'Chờ thanh toán',
+    inspectionStatus: 'Đang kiểm đếm',
+    progress: 72,
+    invoice: 'VAT-R1-0842',
+    shippingRef: 'GHN-781209',
+    items: [
+      {
+        sku: 'R1-WHEY-5LB',
+        name: 'Rule 1 Isolate 5lbs',
+        quantity: 80,
+        price: 1487500,
+        vat: 8,
+      },
+    ],
+    status: 'Đang kiểm đếm',
+  },
+  {
+    id: 'PO-2025-1047',
+    supplier: 'Nutrabolt Việt Nam',
+    warehouse: 'Kho Crescent Q7',
+    createdAt: '17/10/2025',
+    amount: 78200000,
+    paymentStatus: 'Đã thanh toán',
+    inspectionStatus: 'Chờ kiểm đếm',
+    progress: 0,
+    invoice: 'Chờ NCC',
+    shippingRef: 'VTP-339271',
+    items: [
+      {
+        sku: 'C4-ORIGINAL',
+        name: 'C4 Original Pre-workout',
+        quantity: 100,
+        price: 724074,
+        vat: 8,
+      },
+    ],
+    status: 'Chờ nhập kho',
+  },
+  {
+    id: 'PO-2025-1046',
+    supplier: 'Optimum Nutrition',
+    warehouse: 'Kho Thảo Điền',
+    createdAt: '16/10/2025',
+    amount: 96500000,
+    paymentStatus: 'Đã thanh toán',
+    inspectionStatus: 'Hoàn tất',
+    progress: 100,
+    invoice: 'VAT-ON-6211',
+    shippingRef: 'GHN-781020',
+    items: [
+      {
+        sku: 'ON-GOLD-5LB',
+        name: 'ON Gold Standard Whey',
+        quantity: 50,
+        price: 1787037,
+        vat: 8,
+      },
+    ],
+    status: 'Đã nhập kho hoàn tất',
+  },
+  {
+    id: 'PO-2025-1045',
+    supplier: 'MuscleTech',
+    warehouse: 'Kho West Lake HN',
+    createdAt: '15/10/2025',
+    amount: 45900000,
+    paymentStatus: 'Hoàn tiền',
+    inspectionStatus: 'Đã hủy',
+    progress: 0,
+    invoice: '—',
+    shippingRef: 'VTP-338810',
+    items: [
+      {
+        sku: 'MT-CREATINE',
+        name: 'Platinum Creatine',
+        quantity: 90,
+        price: 472222,
+        vat: 8,
+      },
+    ],
+    status: 'Đã hủy / Trả hàng',
+  },
+]

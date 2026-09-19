@@ -1,8 +1,98 @@
-export type WarehouseAudit = {id:string;timestamp:string;type:string;product:string;sku:string;batch:string;quantityChange:number;before:number;after:number;source:string;destination:string;operator:string;linkedOrder:string;status:string};
-export const warehouseAudits:WarehouseAudit[] = [
- {id:"WH-8921",timestamp:"18/10/2025 14:32",type:"Nhập từ NCC",product:"Rule 1 Isolate 5lbs",sku:"R1-WHEY-5LB",batch:"R1-2510",quantityChange:80,before:120,after:200,source:"Rule One",destination:"Kho Tổng HQ",operator:"Nguyễn Minh Anh",linkedOrder:"PO-2025-1048",status:"Đã xác thực"},
- {id:"WH-8920",timestamp:"18/10/2025 13:17",type:"Xuất bán lẻ App/POS",product:"C4 Original",sku:"C4-ORIGINAL",batch:"C4-2509",quantityChange:-2,before:18,after:16,source:"Kho Tổng HQ",destination:"Đơn POS",operator:"Lê Quốc Huy",linkedOrder:"QA-ORD-90214",status:"Đã xác thực"},
- {id:"WH-8919",timestamp:"18/10/2025 11:06",type:"Điều chuyển kho nội bộ",product:"ON Gold Standard Whey",sku:"ON-GOLD-5LB",batch:"ON-2508",quantityChange:-15,before:101,after:86,source:"Kho Tổng HQ",destination:"Kho West Lake HN",operator:"Trần Hải Nam",linkedOrder:"TR-24018",status:"Đang vận chuyển"},
- {id:"WH-8918",timestamp:"17/10/2025 17:48",type:"Xuất cấp phát nội bộ",product:"QA Gym Shaker",sku:"QA-SHAKER-700",batch:"QA-2504",quantityChange:-10,before:230,after:220,source:"Kho Tổng HQ",destination:"CLB Crescent Q7",operator:"Phạm Gia Bảo",linkedOrder:"INT-331",status:"Đã xác thực"},
- {id:"WH-8917",timestamp:"17/10/2025 10:12",type:"Xuất hủy / Hao hụt",product:"BCAA Recovery",sku:"BCAA-2-1-1",batch:"BC-2406",quantityChange:-3,before:3,after:0,source:"Kho Thảo Điền",destination:"Hủy kiểm kê",operator:"Nguyễn Minh Anh",linkedOrder:"ADJ-120",status:"Đã xác thực"},
-];
+export type WarehouseAudit = {
+  id: string
+  timestamp: string
+  type: string
+  product: string
+  sku: string
+  batch: string
+  quantityChange: number
+  before: number
+  after: number
+  source: string
+  destination: string
+  operator: string
+  linkedOrder: string
+  status: string
+}
+export const warehouseAudits: WarehouseAudit[] = [
+  {
+    id: 'WH-8921',
+    timestamp: '18/10/2025 14:32',
+    type: 'Nhập từ NCC',
+    product: 'Rule 1 Isolate 5lbs',
+    sku: 'R1-WHEY-5LB',
+    batch: 'R1-2510',
+    quantityChange: 80,
+    before: 120,
+    after: 200,
+    source: 'Rule One',
+    destination: 'Kho Tổng HQ',
+    operator: 'Nguyễn Minh Anh',
+    linkedOrder: 'PO-2025-1048',
+    status: 'Đã xác thực',
+  },
+  {
+    id: 'WH-8920',
+    timestamp: '18/10/2025 13:17',
+    type: 'Xuất bán lẻ App/POS',
+    product: 'C4 Original',
+    sku: 'C4-ORIGINAL',
+    batch: 'C4-2509',
+    quantityChange: -2,
+    before: 18,
+    after: 16,
+    source: 'Kho Tổng HQ',
+    destination: 'Đơn POS',
+    operator: 'Lê Quốc Huy',
+    linkedOrder: 'QA-ORD-90214',
+    status: 'Đã xác thực',
+  },
+  {
+    id: 'WH-8919',
+    timestamp: '18/10/2025 11:06',
+    type: 'Điều chuyển kho nội bộ',
+    product: 'ON Gold Standard Whey',
+    sku: 'ON-GOLD-5LB',
+    batch: 'ON-2508',
+    quantityChange: -15,
+    before: 101,
+    after: 86,
+    source: 'Kho Tổng HQ',
+    destination: 'Kho West Lake HN',
+    operator: 'Trần Hải Nam',
+    linkedOrder: 'TR-24018',
+    status: 'Đang vận chuyển',
+  },
+  {
+    id: 'WH-8918',
+    timestamp: '17/10/2025 17:48',
+    type: 'Xuất cấp phát nội bộ',
+    product: 'QA Gym Shaker',
+    sku: 'QA-SHAKER-700',
+    batch: 'QA-2504',
+    quantityChange: -10,
+    before: 230,
+    after: 220,
+    source: 'Kho Tổng HQ',
+    destination: 'CLB Crescent Q7',
+    operator: 'Phạm Gia Bảo',
+    linkedOrder: 'INT-331',
+    status: 'Đã xác thực',
+  },
+  {
+    id: 'WH-8917',
+    timestamp: '17/10/2025 10:12',
+    type: 'Xuất hủy / Hao hụt',
+    product: 'BCAA Recovery',
+    sku: 'BCAA-2-1-1',
+    batch: 'BC-2406',
+    quantityChange: -3,
+    before: 3,
+    after: 0,
+    source: 'Kho Thảo Điền',
+    destination: 'Hủy kiểm kê',
+    operator: 'Nguyễn Minh Anh',
+    linkedOrder: 'ADJ-120',
+    status: 'Đã xác thực',
+  },
+]

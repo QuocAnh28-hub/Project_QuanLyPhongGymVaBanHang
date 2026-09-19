@@ -35,5 +35,5 @@ export default function Header() {
         <b aria-label="Tài khoản">♙</b>
       </div>
     </header>
-  );
+  )
 }

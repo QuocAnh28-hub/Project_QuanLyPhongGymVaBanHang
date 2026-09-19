@@ -1,18 +1,18 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 
 type LoginProps = {
-  onLogin: () => void;
-  onSignup: () => void;
-  onForgot: () => void;
-};
+  onLogin: () => void
+  onSignup: () => void
+  onForgot: () => void
+}
 
 export default function Login({ onLogin, onSignup, onForgot }: LoginProps) {
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false)
   const submit = (event: FormEvent) => {
-    event.preventDefault();
-    onLogin();
-  };
+    event.preventDefault()
+    onLogin()
+  }
 
   return (
     <main className="login-page">
@@ -97,19 +97,19 @@ export default function Login({ onLogin, onSignup, onForgot }: LoginProps) {
               <div className="login-input">
                 ♙
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   defaultValue="discipline2025"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? "◉" : "⊙"}
+                  {showPassword ? '◉' : '⊙'}
                 </button>
               </div>
             </label>
             <label className="remember">
-              <input type="checkbox" defaultChecked />{" "}
+              <input type="checkbox" defaultChecked />{' '}
               <span>Ghi nhớ đăng nhập trong 30 ngày</span>
             </label>
             <button className="login-submit" type="submit">
@@ -119,7 +119,7 @@ export default function Login({ onLogin, onSignup, onForgot }: LoginProps) {
               Chưa có tài khoản hội viên?　<b>Đăng ký ngay ›</b>
             </button>
             <footer>
-              ♙　Mã hóa SSL 256-bit{" "}
+              ♙　Mã hóa SSL 256-bit{' '}
               <span>
                 ● Hotline Lễ Tân: <b>1900 8899</b>
               </span>
@@ -128,5 +128,5 @@ export default function Login({ onLogin, onSignup, onForgot }: LoginProps) {
         </section>
       </section>
     </main>
-  );
+  )
 }

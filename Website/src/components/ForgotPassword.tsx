@@ -1,15 +1,15 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 
-type ForgotPasswordProps = { onBack: () => void };
+type ForgotPasswordProps = { onBack: () => void }
 
 export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
-  const [method, setMethod] = useState<"email" | "sms">("email");
-  const [sent, setSent] = useState(false);
+  const [method, setMethod] = useState<'email' | 'sms'>('email')
+  const [sent, setSent] = useState(false)
   const submit = (event: FormEvent) => {
-    event.preventDefault();
-    setSent(true);
-  };
+    event.preventDefault()
+    setSent(true)
+  }
 
   return (
     <main className="recovery-page">
@@ -86,32 +86,32 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
             <fieldset className="method-picker">
               <legend>PHƯƠNG THỨC TIẾP NHẬN MÃ XÁC THỰC</legend>
               <button
-                className={method === "email" ? "selected" : ""}
+                className={method === 'email' ? 'selected' : ''}
                 type="button"
-                onClick={() => setMethod("email")}
+                onClick={() => setMethod('email')}
               >
                 ✉　Nhận qua Email
               </button>
               <button
-                className={method === "sms" ? "selected" : ""}
+                className={method === 'sms' ? 'selected' : ''}
                 type="button"
-                onClick={() => setMethod("sms")}
+                onClick={() => setMethod('sms')}
               >
                 ▣　Nhận qua SMS
               </button>
             </fieldset>
             <label className="recovery-field">
-              {method === "email"
-                ? "ĐỊA CHỈ EMAIL HỘI VIÊN ĐÃ ĐĂNG KÝ"
-                : "SỐ ĐIỆN THOẠI HỘI VIÊN ĐÃ ĐĂNG KÝ"}
+              {method === 'email'
+                ? 'ĐỊA CHỈ EMAIL HỘI VIÊN ĐÃ ĐĂNG KÝ'
+                : 'SỐ ĐIỆN THOẠI HỘI VIÊN ĐÃ ĐĂNG KÝ'}
               <div>
-                <b>{method === "email" ? "@" : "⌁"}</b>
+                <b>{method === 'email' ? '@' : '⌁'}</b>
                 <input
-                  type={method === "email" ? "email" : "tel"}
+                  type={method === 'email' ? 'email' : 'tel'}
                   placeholder={
-                    method === "email"
-                      ? "ví dụ: member@qagym.vn"
-                      : "ví dụ: 09xx xxx xxx"
+                    method === 'email'
+                      ? 'ví dụ: member@qagym.vn'
+                      : 'ví dụ: 09xx xxx xxx'
                   }
                   required
                 />
@@ -120,19 +120,21 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
                 Hệ thống sẽ gửi chuỗi OTP gồm 6 chữ số tới hộp thư này.
               </small>
             </label>
-            <aside className={sent ? "recovery-alert sent" : "recovery-alert"}>
-              <b>{sent ? "✓" : "ⓘ"}</b>
+            <aside className={sent ? 'recovery-alert sent' : 'recovery-alert'}>
+              <b>{sent ? '✓' : 'ⓘ'}</b>
               <p>
                 <strong>
-                  {sent ? "Đã gửi mã xác thực." : "Lưu ý an ninh:"}
-                </strong>{" "}
+                  {sent ? 'Đã gửi mã xác thực.' : 'Lưu ý an ninh:'}
+                </strong>{' '}
                 {sent
-                  ? "Vui lòng kiểm tra hộp thư hoặc tin nhắn của bạn."
-                  : "Mã xác thực có hiệu lực trong vòng 5 phút. Nếu không nhận được mã trong thời gian này, vui lòng kiểm tra mục Thư rác (Spam) hoặc sử dụng nút Gửi lại mã."}
+                  ? 'Vui lòng kiểm tra hộp thư hoặc tin nhắn của bạn.'
+                  : 'Mã xác thực có hiệu lực trong vòng 5 phút. ' +
+                    'Nếu không nhận được mã trong thời gian này, ' +
+                    'vui lòng kiểm tra mục Thư rác (Spam) hoặc sử dụng nút Gửi lại mã.'}
               </p>
             </aside>
             <button className="send-otp" type="submit">
-              {sent ? "GỬI LẠI MÃ XÁC NHẬN OTP" : "GỬI MÃ XÁC NHẬN OTP"}　➜
+              {sent ? 'GỬI LẠI MÃ XÁC NHẬN OTP' : 'GỬI MÃ XÁC NHẬN OTP'}　➜
             </button>
             <footer className="recovery-footer">
               <button type="button" onClick={onBack}>
@@ -144,5 +146,5 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
         </section>
       </section>
     </main>
-  );
+  )
 }

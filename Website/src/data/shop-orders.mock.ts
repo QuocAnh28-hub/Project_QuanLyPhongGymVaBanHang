@@ -1,5 +1,82 @@
-import { shopProducts } from "./shop-products.mock";
-export type OrderStatus="pending_payment"|"packing"|"shipping"|"completed"|"cancelled"|"returned";
-export type ShopOrder={id:string;createdAt:string;member:{id:string;name:string;phone:string;email:string;tier:string;address:string};items:{productId:number;sku:string;name:string;qty:number;price:number}[];total:number;paymentMethod:string;paymentStatus:string;branch:string;fulfillmentType:string;status:OrderStatus;shipper:string;tracking:string;vat:number};
-const order=(n:number,status:OrderStatus,product:number):ShopOrder=>{const p=shopProducts[product];return{id:`QA-ORD-9021${n}`,createdAt:`15:${35-n*4} Hôm nay`,member:{id:`QA-MEM-880${n}`,name:["Alex Trần","Nguyễn Hữu Trí","Vũ Thùy Linh","Đoàn Kiều Trang","Phạm Minh Anh"][n],phone:`0903.882.19${n}`,email:`member${n}@icloud.com`,tier:n%2?"VIP Gold":"Diamond VIP",address:`Tòa Landmark ${n+1}, TP.HCM`},items:[{productId:p.id,sku:p.sku,name:p.name,qty:n%2+1,price:p.price}],total:p.price*(n%2+1),paymentMethod:n%2?"VietQR":"MoMo",paymentStatus:status==="pending_payment"?"Chờ khớp":"Đã thanh toán",branch:n%2?"Thảo Điền Hub":"Landmark Center HQ",fulfillmentType:n%2?"Nhận tại quầy":"Giao Hỏa tốc 2H",status,shipper:status==="shipping"?"Nguyễn Văn Hòa":"Chưa phân công",tracking:`AH-98218${n}`,vat:Math.round(p.price*.08)}};
-export const shopOrders=[order(0,"shipping",0),order(1,"packing",2),order(2,"pending_payment",6),order(3,"completed",7),order(4,"cancelled",4)];
+import { shopProducts } from './shop-products.mock'
+export type OrderStatus =
+  | 'pending_payment'
+  | 'packing'
+  | 'shipping'
+  | 'completed'
+  | 'cancelled'
+  | 'returned'
+export type ShopOrder = {
+  id: string
+  createdAt: string
+  member: {
+    id: string
+    name: string
+    phone: string
+    email: string
+    tier: string
+    address: string
+  }
+  items: {
+    productId: number
+    sku: string
+    name: string
+    qty: number
+    price: number
+  }[]
+  total: number
+  paymentMethod: string
+  paymentStatus: string
+  branch: string
+  fulfillmentType: string
+  status: OrderStatus
+  shipper: string
+  tracking: string
+  vat: number
+}
+const order = (n: number, status: OrderStatus, product: number): ShopOrder => {
+  const p = shopProducts[product]
+  return {
+    id: `QA-ORD-9021${n}`,
+    createdAt: `15:${35 - n * 4} Hôm nay`,
+    member: {
+      id: `QA-MEM-880${n}`,
+      name: [
+        'Alex Trần',
+        'Nguyễn Hữu Trí',
+        'Vũ Thùy Linh',
+        'Đoàn Kiều Trang',
+        'Phạm Minh Anh',
+      ][n],
+      phone: `0903.882.19${n}`,
+      email: `member${n}@icloud.com`,
+      tier: n % 2 ? 'VIP Gold' : 'Diamond VIP',
+      address: `Tòa Landmark ${n + 1}, TP.HCM`,
+    },
+    items: [
+      {
+        productId: p.id,
+        sku: p.sku,
+        name: p.name,
+        qty: (n % 2) + 1,
+        price: p.price,
+      },
+    ],
+    total: p.price * ((n % 2) + 1),
+    paymentMethod: n % 2 ? 'VietQR' : 'MoMo',
+    paymentStatus: status === 'pending_payment' ? 'Chờ khớp' : 'Đã thanh toán',
+    branch: n % 2 ? 'Thảo Điền Hub' : 'Landmark Center HQ',
+    fulfillmentType: n % 2 ? 'Nhận tại quầy' : 'Giao Hỏa tốc 2H',
+    status,
+    shipper: status === 'shipping' ? 'Nguyễn Văn Hòa' : 'Chưa phân công',
+    tracking: `AH-98218${n}`,
+    vat: Math.round(p.price * 0.08),
+  }
+}
+export const shopOrders = [
+  order(0, 'shipping', 0),
+  order(1, 'packing', 2),
+  order(2, 'pending_payment', 6),
+  order(3, 'completed', 7),
+  order(4, 'cancelled', 4),
+]

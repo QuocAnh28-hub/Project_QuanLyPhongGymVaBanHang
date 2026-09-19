@@ -1,17 +1,346 @@
-import { useMemo,useState } from "react";
-import { MetricCard,Modal } from "../components/AdminLayout";
-import { auditRows,heatmap,type AuditRow } from "../data/checkin-history.mock";
+import { useMemo, useState } from 'react'
+import { MetricCard, Modal } from '../components/AdminLayout'
+import { auditRows, heatmap, type AuditRow } from '../data/checkin-history.mock'
 
-export default function CheckInHistoryPage(){
- const [range,setRange]=useState("month"),[search,setSearch]=useState(""),[branch,setBranch]=useState("all"),[status,setStatus]=useState("all"),[page,setPage]=useState(1),[detail,setDetail]=useState<AuditRow|null>(null),[settings,setSettings]=useState(false),[toast,setToast]=useState("");
- const rows=useMemo(()=>auditRows.filter(x=>(!search||`${x.log} ${x.member} ${x.gate}`.toLowerCase().includes(search.toLowerCase()))&&(branch==="all"||x.branch.includes(branch))&&(status==="all"||x.kind===status)),[search,branch,status]);const shown=rows.slice((page-1)*8,page*8);
- const notify=(m:string)=>{setToast(m);setTimeout(()=>setToast(""),1800)};const exportCsv=()=>{const blob=new Blob(["Audit,Thời gian,Hội viên,Cơ sở,Xác thực,Trạng thái\n"+rows.map(x=>[x.log,x.time,x.member,x.branch,x.auth,x.status].join(",")).join("\n")],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="audit-trail.csv";a.click();URL.revokeObjectURL(a.href)};
- return <div className="admin-page checkin-page"><header className="page-heading"><div><p>VẬN HÀNH CHÍNH　›　CỔNG CHECK-IN　›　<b>LỊCH SỬ CHECK-IN</b></p><h1>NHẬT KÝ & LỊCH SỬ CHECK-IN HỘI VIÊN</h1><span className="online-badge">● TỔNG LƯU TRỮ: 184.500 LƯỢT</span></div><div className="heading-actions"><button onClick={()=>setSettings(true)}>☷ Thiết lập cảnh báo an ninh</button><button onClick={()=>notify("Đã mở báo cáo chuyên cần mock")}>▤ Báo cáo chuyên cần</button><button className="primary" onClick={exportCsv}>⇩ Xuất file Audit Trail</button></div></header>
- <section className="metrics-grid"><MetricCard label="LƯỢT CHECK-IN THÁNG" value="42.850" note="↗ +8.6% so tháng trước"/><MetricCard label="TẦN SUẤT TRUNG BÌNH" value="3.8 buổi / tuần" note="Diamond VIP: 4.8 · Standard: 3.2" tone="mint"/><MetricCard label="KHUNG GIỜ CAO ĐIỂM" value="17:30 - 20:30" note="Chiếm 46% lưu lượng/ngày"/><MetricCard label="PHƯƠNG THỨC XÁC THỰC" value="FaceID 3D" note="QR động 28% · RFID 4%" tone="cyan"/></section>
- <section className="history-filters"><div className="chips"><span>KHOẢNG THỜI GIAN:</span>{[["today","Hôm nay"],["7d","7 ngày qua"],["month","Tháng hiện tại"],["custom","Custom date"]].map(([k,v])=><button className={range===k?"selected":""} onClick={()=>setRange(k)} key={k}>{v}</button>)}</div><div className="filter-row"><label>⌕<input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Mã HV, Tên, SĐT hoặc Turnstile IP"/></label><select value={branch} onChange={e=>{setBranch(e.target.value);setPage(1)}}><option value="all">Tất cả 4 CLB</option><option>Thảo Điền</option><option>Landmark</option><option>Sala</option><option>District</option></select><select><option>Tất cả cổng Turnstile</option><option>Turnstile 01</option><option>Turnstile 02</option></select><select value={status} onChange={e=>{setStatus(e.target.value);setPage(1)}}><option value="all">Tất cả trạng thái</option><option value="valid">Thành công</option><option value="warning">Cảnh báo / Từ chối</option><option value="out">Check-out</option></select></div></section>
- <section className="audit-card"><header><h2>⌕ DỮ LIỆU KIỂM TOÁN TURNSTILE CHI TIẾT</h2><span>● Thành công　 ● Từ chối/Khóa　 ● Cảnh báo an ninh</span></header><div className="table-scroll"><table className="audit-table"><thead><tr>{["MÃ AUDIT LOG","THỜI GIAN CHI TIẾT","HỘI VIÊN / HẠNG THẺ","CƠ SỞ & CỔNG LÀN","XÁC THỰC & ĐỘ KHỚP","CHU KỲ TẬP LUYỆN","TRẠNG THÁI CỬA","ĐỐI SOÁT"].map(x=><th key={x}>{x}</th>)}</tr></thead><tbody>{shown.map(x=><tr className={x.kind} key={x.id}><td><b>{x.log}</b><small>IP: 192.168.10.{x.id+40}</small></td><td>{x.time}</td><td><b>{x.member}</b><small>{x.tier}</small></td><td><b>{x.branch}</b><small>{x.gate}</small></td><td><b>{x.auth}</b><small>Khớp {x.match}%</small></td><td>{x.cycle}</td><td><span className={`status ${x.kind==="valid"?"ok":x.kind==="warning"?"bad":"neutral"}`}>{x.status}</span></td><td><button title="Camera" onClick={()=>setDetail(x)}>▣</button><button title="Thông tin" onClick={()=>setDetail(x)}>ⓘ</button></td></tr>)}</tbody></table></div></section>
- <div className="history-bottom"><section className="heatmap-month"><header><div><small>BIỂU ĐỒ TẦN SUẤT CHECK-IN THÁNG 10</small><h2>Mật độ Turnstile 31 ngày toàn hệ thống</h2></div><span>Thấp　● ● ● ●　Cao điểm</span></header><div>{heatmap.map((level,i)=><i className={`level-${level}`} key={i}><small>{String(i+1).padStart(2,"0")}</small><b/></i>)}</div><footer>Chỉ thị: Thứ Bảy và Chủ Nhật luôn đạt ngưỡng cao điểm.</footer></section><aside className="hardware-card"><span>TRẠNG THÁI HARDWARE TURNSTILE</span><h2>16 Làn Cổng Tự Động</h2><p>4 cơ sở · Firmware ổn định</p>{["Landmark 81","Thảo Điền","Sala Premier","District 1"].map((x,i)=><div key={x}><b>{x} (4 Cổng)</b><span>● 0.0{i+8}ms</span></div>)}</aside></div>
- <div className="pagination"><span>Hiển thị {(page-1)*8+1} - {Math.min(page*8,rows.length)} trên tổng số <b>42.850</b> bản ghi</span><div><button onClick={()=>setPage(Math.max(1,page-1))}>‹</button>{[1,2,3,4].map(p=><button className={page===p?"current":""} onClick={()=>setPage(p)} key={p}>{p}</button>)}<span>…</span><button onClick={()=>setPage(4)}>4285</button><button onClick={()=>setPage(Math.min(4,page+1))}>›</button></div></div>
- {detail&&<Modal title={`CHI TIẾT ${detail.log}`} onClose={()=>setDetail(null)}><dl className="detail-list"><div><dt>Hội viên</dt><dd>{detail.member}</dd></div><div><dt>Xác thực</dt><dd>{detail.auth} · {detail.match}%</dd></div><div><dt>Cổng</dt><dd>{detail.branch} / {detail.gate}</dd></div><div><dt>Trạng thái</dt><dd>{detail.status}</dd></div></dl><footer className="modal-actions"><button onClick={()=>notify("Đã mô phỏng mở camera")}>Camera</button><button onClick={()=>notify("Đã mô phỏng unlock")}>Unlock</button><button className="primary" onClick={()=>setDetail(null)}>Đóng</button></footer></Modal>}{settings&&<Modal title="THIẾT LẬP CẢNH BÁO AN NINH" onClose={()=>setSettings(false)}><div className="form-grid"><label>Ngưỡng FaceID tối thiểu<input type="number" defaultValue="85"/></label><label>Thời gian Anti-passback<input type="number" defaultValue="15"/></label></div><footer className="modal-actions"><button onClick={()=>setSettings(false)}>Hủy</button><button className="primary" onClick={()=>{setSettings(false);notify("Đã lưu thiết lập mock")}}>Lưu</button></footer></Modal>}{toast&&<div className="toast">✓ {toast}</div>}
- </div>
+export default function CheckInHistoryPage() {
+  const [range, setRange] = useState('month'),
+    [search, setSearch] = useState(''),
+    [branch, setBranch] = useState('all'),
+    [status, setStatus] = useState('all'),
+    [page, setPage] = useState(1),
+    [detail, setDetail] = useState<AuditRow | null>(null),
+    [settings, setSettings] = useState(false),
+    [toast, setToast] = useState('')
+  const rows = useMemo(
+    () =>
+      auditRows.filter(
+        (x) =>
+          (!search ||
+            `${x.log} ${x.member} ${x.gate}`
+              .toLowerCase()
+              .includes(search.toLowerCase())) &&
+          (branch === 'all' || x.branch.includes(branch)) &&
+          (status === 'all' || x.kind === status)
+      ),
+    [search, branch, status]
+  )
+  const shown = rows.slice((page - 1) * 8, page * 8)
+  const notify = (m: string) => {
+    setToast(m)
+    setTimeout(() => setToast(''), 1800)
+  }
+  const exportCsv = () => {
+    const blob = new Blob(
+      [
+        'Audit,Thời gian,Hội viên,Cơ sở,Xác thực,Trạng thái\n' +
+          rows
+            .map((x) =>
+              [x.log, x.time, x.member, x.branch, x.auth, x.status].join(',')
+            )
+            .join('\n'),
+      ],
+      { type: 'text/csv' }
+    )
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = 'audit-trail.csv'
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+  return (
+    <div className="admin-page checkin-page">
+      <header className="page-heading">
+        <div>
+          <p>
+            VẬN HÀNH CHÍNH　›　CỔNG CHECK-IN　›　<b>LỊCH SỬ CHECK-IN</b>
+          </p>
+          <h1>NHẬT KÝ & LỊCH SỬ CHECK-IN HỘI VIÊN</h1>
+          <span className="online-badge">● TỔNG LƯU TRỮ: 184.500 LƯỢT</span>
+        </div>
+        <div className="heading-actions">
+          <button onClick={() => setSettings(true)}>
+            ☷ Thiết lập cảnh báo an ninh
+          </button>
+          <button onClick={() => notify('Đã mở báo cáo chuyên cần mock')}>
+            ▤ Báo cáo chuyên cần
+          </button>
+          <button className="primary" onClick={exportCsv}>
+            ⇩ Xuất file Audit Trail
+          </button>
+        </div>
+      </header>
+      <section className="metrics-grid">
+        <MetricCard
+          label="LƯỢT CHECK-IN THÁNG"
+          value="42.850"
+          note="↗ +8.6% so tháng trước"
+        />
+        <MetricCard
+          label="TẦN SUẤT TRUNG BÌNH"
+          value="3.8 buổi / tuần"
+          note="Diamond VIP: 4.8 · Standard: 3.2"
+          tone="mint"
+        />
+        <MetricCard
+          label="KHUNG GIỜ CAO ĐIỂM"
+          value="17:30 - 20:30"
+          note="Chiếm 46% lưu lượng/ngày"
+        />
+        <MetricCard
+          label="PHƯƠNG THỨC XÁC THỰC"
+          value="FaceID 3D"
+          note="QR động 28% · RFID 4%"
+          tone="cyan"
+        />
+      </section>
+      <section className="history-filters">
+        <div className="chips">
+          <span>KHOẢNG THỜI GIAN:</span>
+          {[
+            ['today', 'Hôm nay'],
+            ['7d', '7 ngày qua'],
+            ['month', 'Tháng hiện tại'],
+            ['custom', 'Custom date'],
+          ].map(([k, v]) => (
+            <button
+              className={range === k ? 'selected' : ''}
+              onClick={() => setRange(k)}
+              key={k}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
+        <div className="filter-row">
+          <label>
+            ⌕
+            <input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
+              placeholder="Mã HV, Tên, SĐT hoặc Turnstile IP"
+            />
+          </label>
+          <select
+            value={branch}
+            onChange={(e) => {
+              setBranch(e.target.value)
+              setPage(1)
+            }}
+          >
+            <option value="all">Tất cả 4 CLB</option>
+            <option>Thảo Điền</option>
+            <option>Landmark</option>
+            <option>Sala</option>
+            <option>District</option>
+          </select>
+          <select>
+            <option>Tất cả cổng Turnstile</option>
+            <option>Turnstile 01</option>
+            <option>Turnstile 02</option>
+          </select>
+          <select
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value)
+              setPage(1)
+            }}
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="valid">Thành công</option>
+            <option value="warning">Cảnh báo / Từ chối</option>
+            <option value="out">Check-out</option>
+          </select>
+        </div>
+      </section>
+      <section className="audit-card">
+        <header>
+          <h2>⌕ DỮ LIỆU KIỂM TOÁN TURNSTILE CHI TIẾT</h2>
+          <span>● Thành công　 ● Từ chối/Khóa　 ● Cảnh báo an ninh</span>
+        </header>
+        <div className="table-scroll">
+          <table className="audit-table">
+            <thead>
+              <tr>
+                {[
+                  'MÃ AUDIT LOG',
+                  'THỜI GIAN CHI TIẾT',
+                  'HỘI VIÊN / HẠNG THẺ',
+                  'CƠ SỞ & CỔNG LÀN',
+                  'XÁC THỰC & ĐỘ KHỚP',
+                  'CHU KỲ TẬP LUYỆN',
+                  'TRẠNG THÁI CỬA',
+                  'ĐỐI SOÁT',
+                ].map((x) => (
+                  <th key={x}>{x}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((x) => (
+                <tr className={x.kind} key={x.id}>
+                  <td>
+                    <b>{x.log}</b>
+                    <small>IP: 192.168.10.{x.id + 40}</small>
+                  </td>
+                  <td>{x.time}</td>
+                  <td>
+                    <b>{x.member}</b>
+                    <small>{x.tier}</small>
+                  </td>
+                  <td>
+                    <b>{x.branch}</b>
+                    <small>{x.gate}</small>
+                  </td>
+                  <td>
+                    <b>{x.auth}</b>
+                    <small>Khớp {x.match}%</small>
+                  </td>
+                  <td>{x.cycle}</td>
+                  <td>
+                    <span
+                      className={`status ${x.kind === 'valid' ? 'ok' : x.kind === 'warning' ? 'bad' : 'neutral'}`}
+                    >
+                      {x.status}
+                    </span>
+                  </td>
+                  <td>
+                    <button title="Camera" onClick={() => setDetail(x)}>
+                      ▣
+                    </button>
+                    <button title="Thông tin" onClick={() => setDetail(x)}>
+                      ⓘ
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div className="history-bottom">
+        <section className="heatmap-month">
+          <header>
+            <div>
+              <small>BIỂU ĐỒ TẦN SUẤT CHECK-IN THÁNG 10</small>
+              <h2>Mật độ Turnstile 31 ngày toàn hệ thống</h2>
+            </div>
+            <span>Thấp　● ● ● ●　Cao điểm</span>
+          </header>
+          <div>
+            {heatmap.map((level, i) => (
+              <i className={`level-${level}`} key={i}>
+                <small>{String(i + 1).padStart(2, '0')}</small>
+                <b />
+              </i>
+            ))}
+          </div>
+          <footer>
+            Chỉ thị: Thứ Bảy và Chủ Nhật luôn đạt ngưỡng cao điểm.
+          </footer>
+        </section>
+        <aside className="hardware-card">
+          <span>TRẠNG THÁI HARDWARE TURNSTILE</span>
+          <h2>16 Làn Cổng Tự Động</h2>
+          <p>4 cơ sở · Firmware ổn định</p>
+          {['Landmark 81', 'Thảo Điền', 'Sala Premier', 'District 1'].map(
+            (x, i) => (
+              <div key={x}>
+                <b>{x} (4 Cổng)</b>
+                <span>● 0.0{i + 8}ms</span>
+              </div>
+            )
+          )}
+        </aside>
+      </div>
+      <div className="pagination">
+        <span>
+          Hiển thị {(page - 1) * 8 + 1} - {Math.min(page * 8, rows.length)} trên
+          tổng số <b>42.850</b> bản ghi
+        </span>
+        <div>
+          <button onClick={() => setPage(Math.max(1, page - 1))}>‹</button>
+          {[1, 2, 3, 4].map((p) => (
+            <button
+              className={page === p ? 'current' : ''}
+              onClick={() => setPage(p)}
+              key={p}
+            >
+              {p}
+            </button>
+          ))}
+          <span>…</span>
+          <button onClick={() => setPage(4)}>4285</button>
+          <button onClick={() => setPage(Math.min(4, page + 1))}>›</button>
+        </div>
+      </div>
+      {detail && (
+        <Modal title={`CHI TIẾT ${detail.log}`} onClose={() => setDetail(null)}>
+          <dl className="detail-list">
+            <div>
+              <dt>Hội viên</dt>
+              <dd>{detail.member}</dd>
+            </div>
+            <div>
+              <dt>Xác thực</dt>
+              <dd>
+                {detail.auth} · {detail.match}%
+              </dd>
+            </div>
+            <div>
+              <dt>Cổng</dt>
+              <dd>
+                {detail.branch} / {detail.gate}
+              </dd>
+            </div>
+            <div>
+              <dt>Trạng thái</dt>
+              <dd>{detail.status}</dd>
+            </div>
+          </dl>
+          <footer className="modal-actions">
+            <button onClick={() => notify('Đã mô phỏng mở camera')}>
+              Camera
+            </button>
+            <button onClick={() => notify('Đã mô phỏng unlock')}>Unlock</button>
+            <button className="primary" onClick={() => setDetail(null)}>
+              Đóng
+            </button>
+          </footer>
+        </Modal>
+      )}
+      {settings && (
+        <Modal
+          title="THIẾT LẬP CẢNH BÁO AN NINH"
+          onClose={() => setSettings(false)}
+        >
+          <div className="form-grid">
+            <label>
+              Ngưỡng FaceID tối thiểu
+              <input type="number" defaultValue="85" />
+            </label>
+            <label>
+              Thời gian Anti-passback
+              <input type="number" defaultValue="15" />
+            </label>
+          </div>
+          <footer className="modal-actions">
+            <button onClick={() => setSettings(false)}>Hủy</button>
+            <button
+              className="primary"
+              onClick={() => {
+                setSettings(false)
+                notify('Đã lưu thiết lập mock')
+              }}
+            >
+              Lưu
+            </button>
+          </footer>
+        </Modal>
+      )}
+      {toast && <div className="toast">✓ {toast}</div>}
+    </div>
+  )
 }

@@ -1,19 +1,400 @@
-import { useMemo, useState, type FormEvent } from "react";
-import { MetricCard, Modal } from "../components/AdminLayout";
-import { trainers } from "../data/trainers.mock";
-import { ptSessions as seed, type PtSession, type SessionStatus } from "../data/pt-sessions.mock";
+import { useMemo, useState, type FormEvent } from 'react'
+import { MetricCard, Modal } from '../components/AdminLayout'
+import { trainers } from '../data/trainers.mock'
+import {
+  ptSessions as seed,
+  type PtSession,
+  type SessionStatus,
+} from '../data/pt-sessions.mock'
 
-const labels:Record<SessionStatus,string>={upcoming:"Chờ diễn ra",live:"Đang tập luyện",completed:"Đã hoàn thành",reschedule:"Yêu cầu đổi lịch",no_show:"Vắng mặt"};
-export default function PtSessionsPage(){
- const [items,setItems]=useState(seed),[tab,setTab]=useState<"all"|SessionStatus>("all"),[date,setDate]=useState("2026-09-18"),[branch,setBranch]=useState("all"),[trainer,setTrainer]=useState("all"),[search,setSearch]=useState(""),[modal,setModal]=useState<"create"|"action"|null>(null),[selected,setSelected]=useState<PtSession|null>(seed[0]),[toast,setToast]=useState("");
- const notify=(s:string)=>{setToast(s);setTimeout(()=>setToast(""),1800)},shown=useMemo(()=>items.filter(x=>(tab==="all"||x.status===tab)&&(!date||x.date===date)&&(branch==="all"||x.branch===branch)&&(trainer==="all"||String(x.trainerId)===trainer)&&`${x.memberName} ${x.memberId}`.toLowerCase().includes(search.toLowerCase())),[items,tab,date,branch,trainer,search]);
- const create=(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();const d=new FormData(e.currentTarget),coach=trainers.find(x=>x.id===Number(d.get("trainer")))!,id=Date.now();setItems([{id,code:`PT-${String(id).slice(-6)}`,date:String(d.get("date")),startTime:String(d.get("time")),endTime:String(d.get("time")),memberId:`HV-${String(id).slice(-5)}`,memberName:String(d.get("member")),memberAvatar:"HV",membershipTier:"Gold",trainerId:coach.id,trainerName:coach.name,trainerAvatar:coach.avatar,trainerLevel:coach.level,packageName:String(d.get("package")),sessionUsed:1,sessionTotal:12,branch:String(d.get("branch")),room:String(d.get("room")),checkInAt:"—",status:"upcoming"},...items]);setModal(null);notify("Đã tạo lịch PT mới")};
- const act=(x:PtSession,message:string,status?:SessionStatus)=>{setSelected(x);if(status)setItems(items.map(i=>i.id===x.id?{...i,status}:i));notify(message)};
- return <div className="admin-page pt-page"><header className="page-heading"><div><p>VẬN HÀNH CHÍNH　›　HLV & LỊCH TẬP PT　›　<b>QUẢN LÝ LỊCH THUÊ PT & ĐẶT LỊCH HỘI VIÊN</b></p><h1>QUẢN LÝ LỊCH THUÊ PT & BUỔI TẬP 1-1</h1></div><div className="heading-actions"><button onClick={()=>notify("Đã xuất nhật ký mock")}>⇩ Xuất nhật ký (PDF/Excel)</button><button className="primary" onClick={()=>setModal("create")}>＋ Đặt lịch mới cho Hội viên</button></div></header>
- <section className="metrics-grid"><MetricCard label="TỔNG CA TẬP HÔM NAY" value="156" note="Xong: 84 · Live: 18 · Chờ: 54"/><MetricCard label="TỶ LỆ CHECK-IN ĐÚNG GIỜ" value="97.8%" note="SLA tối ưu" tone="mint"/><MetricCard label="HỦY & DỜI LỊCH PHÁT SINH" value="03" note="100% tuân thủ báo trước"/><MetricCard label="KHẤU TRỪ HỢP ĐỒNG AUTO" value="84" note="Buổi đã ký và trừ credit"/></section>
- <section className="session-filters"><div className="chips">{(["all","upcoming","live","completed","reschedule","no_show"] as const).map(k=><button className={tab===k?"selected":""} onClick={()=>setTab(k)} key={k}>{k==="all"?"Tất cả ca tập":labels[k]}</button>)}</div><div className="filter-row"><input type="date" value={date} onChange={e=>setDate(e.target.value)}/><select value={branch} onChange={e=>setBranch(e.target.value)}><option value="all">Tất cả cơ sở</option>{[...new Set(items.map(x=>x.branch))].map(x=><option key={x}>{x}</option>)}</select><select value={trainer} onChange={e=>setTrainer(e.target.value)}><option value="all">Tất cả HLV</option>{trainers.map(x=><option value={x.id} key={x.id}>{x.name}</option>)}</select><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Tên / Mã HV / SĐT..."/></div></section>
- <div className="session-layout"><section><h2>BẢNG ĐIỀU PHỐI PHIÊN TẬP THỜI GIAN THỰC</h2><div className="session-list">{shown.map(x=><article className={x.status} onClick={()=>setSelected(x)} key={x.id}><time>{x.startTime}<small>{x.endTime}</small></time><div><b>#{x.code}</b><strong>{labels[x.status]}</strong><small>Check-in: {x.checkInAt}</small></div><div className="person"><i>{x.memberAvatar}</i><span><b>{x.memberName}</b><small>{x.memberId} · {x.membershipTier}</small></span></div><div className="person"><i>{x.trainerAvatar}</i><span><b>{x.trainerName}</b><small>{x.trainerLevel}</small></span></div><div className="row-actions"><button onClick={e=>{e.stopPropagation();act(x,"Biometric mock đã mở")}}>Biometric</button><button onClick={e=>{e.stopPropagation();setSelected(x);setModal("action")}}>Ghi chú</button><button onClick={e=>{e.stopPropagation();act(x,"Đã gửi yêu cầu dời ca", "reschedule")}}>Dời ca</button><button onClick={e=>{e.stopPropagation();act(x,"Đã gửi lại QR")}}>QR</button><button onClick={e=>{e.stopPropagation();act(x,"Đã mở chữ ký")}}>Chữ ký</button></div></article>)}</div><div className="pagination"><span>Hiển thị {shown.length} phiên</span><div><button className="current">1</button><button>2</button><button>3</button></div></div></section>
- <aside className="pt-side">{selected&&<section className="pt-panel live-feed-card"><header><h2>LIVE FEED #{selected.code}</h2><small>CAM-04 Q.1</small></header><div className="camera-mock">CAMERA MOCK<small>1080P · 60FPS</small></div><p>BITRATE: 4.8 Mbps <b>LATENCY: 18ms</b></p><div className="heart"><span>♡ Nhịp tim Hội viên</span><strong>142 <small>BPM</small></strong></div><h3>BÀI TẬP MỤC TIÊU</h3><ol><li>Barbell Incline Bench Press</li><li>Dumbbell Incline Flyes</li></ol><footer><button onClick={()=>notify("Đã mở lịch sử buổi")}>Lịch sử buổi</button><button className="primary" onClick={()=>act(selected,"Đã ký hoàn thành", "completed")}>Ký hoàn thành</button></footer></section>}<section className="pt-panel"><header><h2>CỔNG TURNSTILE & TỦ LOCKER</h2><small>● GATE ONLINE</small></header><div className="status-pair"><span>TURNSTILE VIP<b>CỔNG 02</b><small>Quét QR lúc 15:52:10</small></span><span>SMART LOCKER<b>TỦ #088</b><small>RFID Sync</small></span></div></section></aside></div>
- {modal==="create"&&<Modal title="ĐẶT LỊCH MỚI CHO HỘI VIÊN" onClose={()=>setModal(null)}><form onSubmit={create}><div className="form-grid"><label>Hội viên<input name="member" required/></label><label>HLV<select name="trainer">{trainers.map(x=><option value={x.id} key={x.id}>{x.name}</option>)}</select></label><label>Ngày<input name="date" type="date" required/></label><label>Giờ bắt đầu<input name="time" type="time" required/></label><label>Thời lượng<select name="duration"><option>60 phút</option><option>90 phút</option></select></label><label>Cơ sở<select name="branch"><option>Vincom Q.1</option><option>Thảo Điền Hub</option></select></label><label>Phòng/khu vực<input name="room" required/></label><label>Gói PT<input name="package" required/></label></div><footer className="modal-actions"><button type="button" onClick={()=>setModal(null)}>Hủy</button><button className="primary">Tạo lịch</button></footer></form></Modal>}
- {modal==="action"&&selected&&<Modal title={`GHI CHÚ ${selected.code}`} onClose={()=>setModal(null)}><textarea className="note-area" placeholder="Nội dung buổi tập..."/><footer className="modal-actions"><button onClick={()=>setModal(null)}>Hủy</button><button className="primary" onClick={()=>{setModal(null);notify("Đã lưu ghi chú")}}>Lưu ghi chú</button></footer></Modal>}{toast&&<div className="toast">✓ {toast}</div>}</div>
+const labels: Record<SessionStatus, string> = {
+  upcoming: 'Chờ diễn ra',
+  live: 'Đang tập luyện',
+  completed: 'Đã hoàn thành',
+  reschedule: 'Yêu cầu đổi lịch',
+  no_show: 'Vắng mặt',
+}
+export default function PtSessionsPage() {
+  const [items, setItems] = useState(seed),
+    [tab, setTab] = useState<'all' | SessionStatus>('all'),
+    [date, setDate] = useState('2026-09-18'),
+    [branch, setBranch] = useState('all'),
+    [trainer, setTrainer] = useState('all'),
+    [search, setSearch] = useState(''),
+    [modal, setModal] = useState<'create' | 'action' | null>(null),
+    [selected, setSelected] = useState<PtSession | null>(seed[0]),
+    [toast, setToast] = useState('')
+  const notify = (s: string) => {
+      setToast(s)
+      setTimeout(() => setToast(''), 1800)
+    },
+    shown = useMemo(
+      () =>
+        items.filter(
+          (x) =>
+            (tab === 'all' || x.status === tab) &&
+            (!date || x.date === date) &&
+            (branch === 'all' || x.branch === branch) &&
+            (trainer === 'all' || String(x.trainerId) === trainer) &&
+            `${x.memberName} ${x.memberId}`
+              .toLowerCase()
+              .includes(search.toLowerCase())
+        ),
+      [items, tab, date, branch, trainer, search]
+    )
+  const create = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const d = new FormData(e.currentTarget),
+      coach = trainers.find((x) => x.id === Number(d.get('trainer')))!,
+      id = Date.now()
+    setItems([
+      {
+        id,
+        code: `PT-${String(id).slice(-6)}`,
+        date: String(d.get('date')),
+        startTime: String(d.get('time')),
+        endTime: String(d.get('time')),
+        memberId: `HV-${String(id).slice(-5)}`,
+        memberName: String(d.get('member')),
+        memberAvatar: 'HV',
+        membershipTier: 'Gold',
+        trainerId: coach.id,
+        trainerName: coach.name,
+        trainerAvatar: coach.avatar,
+        trainerLevel: coach.level,
+        packageName: String(d.get('package')),
+        sessionUsed: 1,
+        sessionTotal: 12,
+        branch: String(d.get('branch')),
+        room: String(d.get('room')),
+        checkInAt: '—',
+        status: 'upcoming',
+      },
+      ...items,
+    ])
+    setModal(null)
+    notify('Đã tạo lịch PT mới')
+  }
+  const act = (x: PtSession, message: string, status?: SessionStatus) => {
+    setSelected(x)
+    if (status)
+      setItems(items.map((i) => (i.id === x.id ? { ...i, status } : i)))
+    notify(message)
+  }
+  return (
+    <div className="admin-page pt-page">
+      <header className="page-heading">
+        <div>
+          <p>
+            VẬN HÀNH CHÍNH　›　HLV & LỊCH TẬP PT　›　
+            <b>QUẢN LÝ LỊCH THUÊ PT & ĐẶT LỊCH HỘI VIÊN</b>
+          </p>
+          <h1>QUẢN LÝ LỊCH THUÊ PT & BUỔI TẬP 1-1</h1>
+        </div>
+        <div className="heading-actions">
+          <button onClick={() => notify('Đã xuất nhật ký mock')}>
+            ⇩ Xuất nhật ký (PDF/Excel)
+          </button>
+          <button className="primary" onClick={() => setModal('create')}>
+            ＋ Đặt lịch mới cho Hội viên
+          </button>
+        </div>
+      </header>
+      <section className="metrics-grid">
+        <MetricCard
+          label="TỔNG CA TẬP HÔM NAY"
+          value="156"
+          note="Xong: 84 · Live: 18 · Chờ: 54"
+        />
+        <MetricCard
+          label="TỶ LỆ CHECK-IN ĐÚNG GIỜ"
+          value="97.8%"
+          note="SLA tối ưu"
+          tone="mint"
+        />
+        <MetricCard
+          label="HỦY & DỜI LỊCH PHÁT SINH"
+          value="03"
+          note="100% tuân thủ báo trước"
+        />
+        <MetricCard
+          label="KHẤU TRỪ HỢP ĐỒNG AUTO"
+          value="84"
+          note="Buổi đã ký và trừ credit"
+        />
+      </section>
+      <section className="session-filters">
+        <div className="chips">
+          {(
+            [
+              'all',
+              'upcoming',
+              'live',
+              'completed',
+              'reschedule',
+              'no_show',
+            ] as const
+          ).map((k) => (
+            <button
+              className={tab === k ? 'selected' : ''}
+              onClick={() => setTab(k)}
+              key={k}
+            >
+              {k === 'all' ? 'Tất cả ca tập' : labels[k]}
+            </button>
+          ))}
+        </div>
+        <div className="filter-row">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+          <select value={branch} onChange={(e) => setBranch(e.target.value)}>
+            <option value="all">Tất cả cơ sở</option>
+            {[...new Set(items.map((x) => x.branch))].map((x) => (
+              <option key={x}>{x}</option>
+            ))}
+          </select>
+          <select value={trainer} onChange={(e) => setTrainer(e.target.value)}>
+            <option value="all">Tất cả HLV</option>
+            {trainers.map((x) => (
+              <option value={x.id} key={x.id}>
+                {x.name}
+              </option>
+            ))}
+          </select>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Tên / Mã HV / SĐT..."
+          />
+        </div>
+      </section>
+      <div className="session-layout">
+        <section>
+          <h2>BẢNG ĐIỀU PHỐI PHIÊN TẬP THỜI GIAN THỰC</h2>
+          <div className="session-list">
+            {shown.map((x) => (
+              <article
+                className={x.status}
+                onClick={() => setSelected(x)}
+                key={x.id}
+              >
+                <time>
+                  {x.startTime}
+                  <small>{x.endTime}</small>
+                </time>
+                <div>
+                  <b>#{x.code}</b>
+                  <strong>{labels[x.status]}</strong>
+                  <small>Check-in: {x.checkInAt}</small>
+                </div>
+                <div className="person">
+                  <i>{x.memberAvatar}</i>
+                  <span>
+                    <b>{x.memberName}</b>
+                    <small>
+                      {x.memberId} · {x.membershipTier}
+                    </small>
+                  </span>
+                </div>
+                <div className="person">
+                  <i>{x.trainerAvatar}</i>
+                  <span>
+                    <b>{x.trainerName}</b>
+                    <small>{x.trainerLevel}</small>
+                  </span>
+                </div>
+                <div className="row-actions">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      act(x, 'Biometric mock đã mở')
+                    }}
+                  >
+                    Biometric
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelected(x)
+                      setModal('action')
+                    }}
+                  >
+                    Ghi chú
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      act(x, 'Đã gửi yêu cầu dời ca', 'reschedule')
+                    }}
+                  >
+                    Dời ca
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      act(x, 'Đã gửi lại QR')
+                    }}
+                  >
+                    QR
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      act(x, 'Đã mở chữ ký')
+                    }}
+                  >
+                    Chữ ký
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="pagination">
+            <span>Hiển thị {shown.length} phiên</span>
+            <div>
+              <button className="current">1</button>
+              <button>2</button>
+              <button>3</button>
+            </div>
+          </div>
+        </section>
+        <aside className="pt-side">
+          {selected && (
+            <section className="pt-panel live-feed-card">
+              <header>
+                <h2>LIVE FEED #{selected.code}</h2>
+                <small>CAM-04 Q.1</small>
+              </header>
+              <div className="camera-mock">
+                CAMERA MOCK<small>1080P · 60FPS</small>
+              </div>
+              <p>
+                BITRATE: 4.8 Mbps <b>LATENCY: 18ms</b>
+              </p>
+              <div className="heart">
+                <span>♡ Nhịp tim Hội viên</span>
+                <strong>
+                  142 <small>BPM</small>
+                </strong>
+              </div>
+              <h3>BÀI TẬP MỤC TIÊU</h3>
+              <ol>
+                <li>Barbell Incline Bench Press</li>
+                <li>Dumbbell Incline Flyes</li>
+              </ol>
+              <footer>
+                <button onClick={() => notify('Đã mở lịch sử buổi')}>
+                  Lịch sử buổi
+                </button>
+                <button
+                  className="primary"
+                  onClick={() => act(selected, 'Đã ký hoàn thành', 'completed')}
+                >
+                  Ký hoàn thành
+                </button>
+              </footer>
+            </section>
+          )}
+          <section className="pt-panel">
+            <header>
+              <h2>CỔNG TURNSTILE & TỦ LOCKER</h2>
+              <small>● GATE ONLINE</small>
+            </header>
+            <div className="status-pair">
+              <span>
+                TURNSTILE VIP<b>CỔNG 02</b>
+                <small>Quét QR lúc 15:52:10</small>
+              </span>
+              <span>
+                SMART LOCKER<b>TỦ #088</b>
+                <small>RFID Sync</small>
+              </span>
+            </div>
+          </section>
+        </aside>
+      </div>
+      {modal === 'create' && (
+        <Modal title="ĐẶT LỊCH MỚI CHO HỘI VIÊN" onClose={() => setModal(null)}>
+          <form onSubmit={create}>
+            <div className="form-grid">
+              <label>
+                Hội viên
+                <input name="member" required />
+              </label>
+              <label>
+                HLV
+                <select name="trainer">
+                  {trainers.map((x) => (
+                    <option value={x.id} key={x.id}>
+                      {x.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Ngày
+                <input name="date" type="date" required />
+              </label>
+              <label>
+                Giờ bắt đầu
+                <input name="time" type="time" required />
+              </label>
+              <label>
+                Thời lượng
+                <select name="duration">
+                  <option>60 phút</option>
+                  <option>90 phút</option>
+                </select>
+              </label>
+              <label>
+                Cơ sở
+                <select name="branch">
+                  <option>Vincom Q.1</option>
+                  <option>Thảo Điền Hub</option>
+                </select>
+              </label>
+              <label>
+                Phòng/khu vực
+                <input name="room" required />
+              </label>
+              <label>
+                Gói PT
+                <input name="package" required />
+              </label>
+            </div>
+            <footer className="modal-actions">
+              <button type="button" onClick={() => setModal(null)}>
+                Hủy
+              </button>
+              <button className="primary">Tạo lịch</button>
+            </footer>
+          </form>
+        </Modal>
+      )}
+      {modal === 'action' && selected && (
+        <Modal
+          title={`GHI CHÚ ${selected.code}`}
+          onClose={() => setModal(null)}
+        >
+          <textarea className="note-area" placeholder="Nội dung buổi tập..." />
+          <footer className="modal-actions">
+            <button onClick={() => setModal(null)}>Hủy</button>
+            <button
+              className="primary"
+              onClick={() => {
+                setModal(null)
+                notify('Đã lưu ghi chú')
+              }}
+            >
+              Lưu ghi chú
+            </button>
+          </footer>
+        </Modal>
+      )}
+      {toast && <div className="toast">✓ {toast}</div>}
+    </div>
+  )
 }

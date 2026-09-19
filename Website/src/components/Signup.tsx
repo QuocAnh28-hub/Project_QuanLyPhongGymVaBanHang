@@ -1,37 +1,37 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 
-type SignupProps = { onLogin: () => void; onRegister: () => void };
+type SignupProps = { onLogin: () => void; onRegister: () => void }
 
 const benefits = [
   [
-    "⚡",
-    "01 buổi tập 1-1 miễn phí",
-    "Huấn luyện viên cá nhân định chuẩn giáo án chuyên nghiệp",
+    '⚡',
+    '01 buổi tập 1-1 miễn phí',
+    'Huấn luyện viên cá nhân định chuẩn giáo án chuyên nghiệp',
   ],
   [
-    "▣",
-    "Phân tích InBody 770 chuyên sâu",
-    "Quét chỉ số mỡ nội tạng, cơ xương và nước tế bào chuẩn xác",
+    '▣',
+    'Phân tích InBody 770 chuyên sâu',
+    'Quét chỉ số mỡ nội tạng, cơ xương và nước tế bào chuẩn xác',
   ],
   [
-    "◉",
-    "Tặng 200 QA-Points vào ví hội viên",
-    "Dùng đổi nước tăng lực, whey protein bar và phụ kiện tại Pro-Shop",
+    '◉',
+    'Tặng 200 QA-Points vào ví hội viên',
+    'Dùng đổi nước tăng lực, whey protein bar và phụ kiện tại Pro-Shop',
   ],
   [
-    "♧",
-    "3 ngày trải nghiệm không giới hạn",
-    "Tự do trải nghiệm bể sục Jacuzzi, xông hơi đá muối Himalaya & bể bơi",
+    '♧',
+    '3 ngày trải nghiệm không giới hạn',
+    'Tự do trải nghiệm bể sục Jacuzzi, xông hơi đá muối Himalaya & bể bơi',
   ],
-];
+]
 
 export default function Signup({ onLogin, onRegister }: SignupProps) {
-  const [goal, setGoal] = useState("Giảm mỡ nhanh");
+  const [goal, setGoal] = useState('Giảm mỡ nhanh')
   const submit = (event: FormEvent) => {
-    event.preventDefault();
-    onRegister();
-  };
+    event.preventDefault()
+    onRegister()
+  }
   return (
     <main className="signup-page">
       <header className="signup-top">
@@ -104,7 +104,7 @@ export default function Signup({ onLogin, onRegister }: SignupProps) {
               <label>
                 Chi nhánh mong muốn ●
                 <div>
-                  ⌖{" "}
+                  ⌖{' '}
                   <select defaultValue="">
                     <option value="" disabled>
                       Vincom Đồng Khởi (Quận 1, TP.HCM)
@@ -121,23 +121,23 @@ export default function Signup({ onLogin, onRegister }: SignupProps) {
               </div>
               <section>
                 {[
-                  "♨|Giảm mỡ nhanh",
-                  "⚡|Tăng cơ nạc",
-                  "♟|Cải thiện thể lực",
-                  "❖|Phục hồi chấn thương",
+                  '♨|Giảm mỡ nhanh',
+                  '⚡|Tăng cơ nạc',
+                  '♟|Cải thiện thể lực',
+                  '❖|Phục hồi chấn thương',
                 ].map((option) => {
-                  const [icon, title] = option.split("|");
+                  const [icon, title] = option.split('|')
                   return (
                     <button
                       type="button"
                       onClick={() => setGoal(title)}
-                      className={goal === title ? "selected" : ""}
+                      className={goal === title ? 'selected' : ''}
                       key={title}
                     >
                       <i>{icon}</i>
                       {title}
                     </button>
-                  );
+                  )
                 })}
               </section>
             </div>
@@ -174,7 +174,7 @@ export default function Signup({ onLogin, onRegister }: SignupProps) {
               </button>
             </p>
             <footer className="signup-security">
-              ◉　Mã hóa dữ liệu chuẩn AES-256{" "}
+              ◉　Mã hóa dữ liệu chuẩn AES-256{' '}
               <span>◷　Kích hoạt tài khoản tức thì</span>
               <b>♧　Hỗ trợ 24/7 Hotline 1900–QAGYM</b>
             </footer>
@@ -182,5 +182,5 @@ export default function Signup({ onLogin, onRegister }: SignupProps) {
         </section>
       </section>
     </main>
-  );
+  )
 }

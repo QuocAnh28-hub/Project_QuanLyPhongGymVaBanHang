@@ -1,141 +1,157 @@
-import { useState } from "react";
-import Header from "./components/Header";
-import Login from "./components/Login";
-import Signup from "./components/Signup";
-import ForgotPassword from "./components/ForgotPassword";
-import Navigation from "./components/Navigation";
-import type { PageId } from "./components/Navigation";
-import PackagesPage from "./pages/PackagesPage";
-import RegistrationsPage from "./pages/RegistrationsPage";
-import CheckInLivePage from "./pages/CheckInLivePage";
-import CheckInHistoryPage from "./pages/CheckInHistoryPage";
-import CheckInQrPage from "./pages/CheckInQrPage";
-import TrainerManagementPage from "./pages/TrainerManagementPage";
-import PtSessionsPage from "./pages/PtSessionsPage";
-import TrainerRosterPage from "./pages/TrainerRosterPage";
-import ShopCategoriesPage from "./pages/ShopCategoriesPage";
-import ShopProductsPage from "./pages/ShopProductsPage";
-import ShopOrdersPage from "./pages/ShopOrdersPage";
-import WarehouseInboundPage from "./pages/WarehouseInboundPage";
-import WarehouseInventoryPage from "./pages/WarehouseInventoryPage";
-import WarehouseHistoryPage from "./pages/WarehouseHistoryPage";
-import RevenueInvoicePage from "./pages/RevenueInvoicePage";
-import "./App.css";
+import { useState } from 'react'
+import Header from './components/Header'
+import Login from './components/Login'
+import Signup from './components/Signup'
+import ForgotPassword from './components/ForgotPassword'
+import Navigation from './components/Navigation'
+import type { PageId } from './components/Navigation'
+import PackagesPage from './pages/PackagesPage'
+import RegistrationsPage from './pages/RegistrationsPage'
+import CheckInLivePage from './pages/CheckInLivePage'
+import CheckInHistoryPage from './pages/CheckInHistoryPage'
+import CheckInQrPage from './pages/CheckInQrPage'
+import TrainerManagementPage from './pages/TrainerManagementPage'
+import PtSessionsPage from './pages/PtSessionsPage'
+import TrainerRosterPage from './pages/TrainerRosterPage'
+import ShopCategoriesPage from './pages/ShopCategoriesPage'
+import ShopProductsPage from './pages/ShopProductsPage'
+import ShopOrdersPage from './pages/ShopOrdersPage'
+import WarehouseInboundPage from './pages/WarehouseInboundPage'
+import WarehouseInventoryPage from './pages/WarehouseInventoryPage'
+import WarehouseHistoryPage from './pages/WarehouseHistoryPage'
+import RevenueInvoicePage from './pages/RevenueInvoicePage'
+import './App.css'
 
 const metrics = [
   [
-    "TỔNG QUAN HỘI VIÊN",
-    "▣",
-    "Hội viên Active",
-    "25.840",
-    "↗ +148 mới tuần này (+12.4%)",
-    "Diamond VIP: 3.420|Classic/Silver: 22.420|Hết hạn trong 7 ngày: 4 hội viên",
+    'TỔNG QUAN HỘI VIÊN',
+    '▣',
+    'Hội viên Active',
+    '25.840',
+    '↗ +148 mới tuần này (+12.4%)',
+    'Diamond VIP: 3.420|Classic/Silver: 22.420|Hết hạn trong 7 ngày: 4 hội viên',
   ],
   [
-    "DOANH THU HỆ THỐNG",
-    "▤",
-    "Doanh thu MTD",
-    "1.845.600.000 đ",
-    "◉ +18.2% vượt KPIs tháng",
-    "Tiến độ: 62%|Hội viên: (1.144M)|Huấn luyện: (461M)|QA Pro Shop: (240M)",
+    'DOANH THU HỆ THỐNG',
+    '▤',
+    'Doanh thu MTD',
+    '1.845.600.000 đ',
+    '◉ +18.2% vượt KPIs tháng',
+    'Tiến độ: 62%|Hội viên: (1.144M)|Huấn luyện: (461M)|QA Pro Shop: (240M)',
   ],
   [
-    "LƯỢT CHECK-IN HÔM NAY",
-    "◉",
-    "Turnstile Live",
-    "1.428 lượt",
-    "● Hiện có mặt: 312 khách",
-    "Công suất chuỗi: 68% peak|Turnstile 19/18 Online|IoT: 100%",
+    'LƯỢT CHECK-IN HÔM NAY',
+    '◉',
+    'Turnstile Live',
+    '1.428 lượt',
+    '● Hiện có mặt: 312 khách',
+    'Công suất chuỗi: 68% peak|Turnstile 19/18 Online|IoT: 100%',
   ],
   [
-    "QA PRO SHOP",
-    "▢",
-    "Đơn hàng Nutrition",
-    "38 đơn mới",
-    "● Doanh số ngày: 18.950.000 đ",
-    "• Giao 12 đơn|• Hoàn tất: 24 đơn|• Chờ xác nhận: 2 đơn",
+    'QA PRO SHOP',
+    '▢',
+    'Đơn hàng Nutrition',
+    '38 đơn mới',
+    '● Doanh số ngày: 18.950.000 đ',
+    '• Giao 12 đơn|• Hoàn tất: 24 đơn|• Chờ xác nhận: 2 đơn',
   ],
   [
-    "ĐỘI NGŨ HUẤN LUYỆN VIÊN",
-    "⚡",
-    "Lịch tập PT 1-1",
-    "42 Trainers",
-    "◉ Tỷ lệ kín lịch: 94.6%",
-    "Tổng ca hôm nay: 156 buổi|Đã hoàn tất: 84 buổi|Sắp diễn ra: 72 buổi",
+    'ĐỘI NGŨ HUẤN LUYỆN VIÊN',
+    '⚡',
+    'Lịch tập PT 1-1',
+    '42 Trainers',
+    '◉ Tỷ lệ kín lịch: 94.6%',
+    'Tổng ca hôm nay: 156 buổi|Đã hoàn tất: 84 buổi|Sắp diễn ra: 72 buổi',
   ],
-];
+]
 
 const clubs = [
   [
-    "Vincom Đồng Khởi Q.1",
-    "ĐÔNG ĐÚC",
+    'Vincom Đồng Khởi Q.1',
+    'ĐÔNG ĐÚC',
     82,
     142,
-    "8 ca PT hoạt động",
-    "Cổng 1–4 Active",
+    '8 ca PT hoạt động',
+    'Cổng 1–4 Active',
   ],
   [
-    "Crescent Elite Q.7",
-    "BÌNH THƯỜNG",
+    'Crescent Elite Q.7',
+    'BÌNH THƯỜNG',
     64,
     86,
-    "5 ca PT hoạt động",
-    "Cổng 1–4 Active",
+    '5 ca PT hoạt động',
+    'Cổng 1–4 Active',
   ],
   [
-    "Thảo Điền Performance Hub",
-    "LÝ TƯỞNG",
+    'Thảo Điền Performance Hub',
+    'LÝ TƯỞNG',
     55,
     54,
-    "4 ca PT hoạt động",
-    "Cổng 1–5 Active",
+    '4 ca PT hoạt động',
+    'Cổng 1–5 Active',
   ],
   [
-    "West Lake HM Exclusive",
-    "LÝ TƯỞNG",
+    'West Lake HM Exclusive',
+    'LÝ TƯỞNG',
     48,
     30,
-    "2 ca PT hoạt động",
-    "Cổng 1–5 Active",
+    '2 ca PT hoạt động',
+    'Cổng 1–5 Active',
   ],
-];
+]
 
-const hours = [34, 52, 64, 45, 33, 47, 67, 37, 18, 62, 72, 79, 68, 45, 28, 22];
+const hours = [34, 52, 64, 45, 33, 47, 67, 37, 18, 62, 72, 79, 68, 45, 28, 22]
 
 function App() {
-  const [activePage, setActivePage] = useState<PageId>("dashboard");
+  const [activePage, setActivePage] = useState<PageId>('dashboard')
   const [screen, setScreen] = useState<
-    "login" | "signup" | "forgot" | "dashboard"
-  >("login");
+    'login' | 'signup' | 'forgot' | 'dashboard'
+  >('login')
 
-  if (screen === "login")
+  if (screen === 'login')
     return (
       <Login
-        onLogin={() => setScreen("dashboard")}
-        onSignup={() => setScreen("signup")}
-        onForgot={() => setScreen("forgot")}
+        onLogin={() => setScreen('dashboard')}
+        onSignup={() => setScreen('signup')}
+        onForgot={() => setScreen('forgot')}
       />
-    );
-  if (screen === "signup")
+    )
+  if (screen === 'signup')
     return (
       <Signup
-        onLogin={() => setScreen("login")}
-        onRegister={() => setScreen("dashboard")}
+        onLogin={() => setScreen('login')}
+        onRegister={() => setScreen('dashboard')}
       />
-    );
-  if (screen === "forgot")
-    return <ForgotPassword onBack={() => setScreen("login")} />;
+    )
+  if (screen === 'forgot')
+    return <ForgotPassword onBack={() => setScreen('login')} />
 
   return (
     <main className="app-shell">
       <Navigation
         activePage={activePage}
         onNavigate={setActivePage}
-        onLogout={() => setScreen("login")}
+        onLogout={() => setScreen('login')}
       />
       <section className="workspace">
         <Header />
-        {!['packages-list', 'package-registrations', 'checkin-live', 'checkin-history', 'checkin-qr', 'trainers-list', 'pt-sessions', 'trainer-roster', 'shop-categories', 'shop-products', 'shop-orders', 'warehouse-inbound', 'warehouse-stock', 'warehouse-history', 'revenue-vat'].includes(activePage) ? (
+        {![
+          'packages-list',
+          'package-registrations',
+          'checkin-live',
+          'checkin-history',
+          'checkin-qr',
+          'trainers-list',
+          'pt-sessions',
+          'trainer-roster',
+          'shop-categories',
+          'shop-products',
+          'shop-orders',
+          'warehouse-inbound',
+          'warehouse-stock',
+          'warehouse-history',
+          'revenue-vat',
+        ].includes(activePage) ? (
           <div className="dashboard">
             <section className="dashboard-hero">
               <div className="hero-copy">
@@ -151,9 +167,11 @@ function App() {
                   SÁT TOÀN DIỆN
                 </h1>
                 <p>
-                  Dữ liệu vận hành thời thực từ 4 chi nhánh CLB, 18 cổng Turnstile
+                  Dữ liệu vận hành thời thực từ 4 chi nhánh CLB, 18 cổng
+                  Turnstile
                   <br />
-                  kiểm soát sinh trắc học và hệ sinh thái QA Pro Shop trực tuyến.
+                  kiểm soát sinh trắc học và hệ sinh thái QA Pro Shop trực
+                  tuyến.
                 </p>
               </div>
               <div className="hero-actions">
@@ -168,7 +186,7 @@ function App() {
                   ◷　20:10:21　<small>REALTIME SYNC</small>
                 </span>
                 <label>
-                  PHẠM VI CƠ SỞ{" "}
+                  PHẠM VI CƠ SỞ{' '}
                   <select>
                     <option>Toàn hệ thống (4 Cơ sở)</option>
                   </select>
@@ -187,7 +205,7 @@ function App() {
                   <strong>{value}</strong>
                   <em>{trend}</em>
                   <div className="metric-details">
-                    {details.split("|").map((detail) => (
+                    {details.split('|').map((detail) => (
                       <div key={detail}>{detail}</div>
                     ))}
                   </div>
@@ -221,7 +239,11 @@ function App() {
                       <defs>
                         <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
                           <stop stopColor="#aafa00" stopOpacity=".32" />
-                          <stop offset="1" stopColor="#aafa00" stopOpacity="0" />
+                          <stop
+                            offset="1"
+                            stopColor="#aafa00"
+                            stopOpacity="0"
+                          />
                         </linearGradient>
                       </defs>
                       <path className="target-line" d="M0 145 L600 45" />
@@ -238,7 +260,7 @@ function App() {
                     </svg>
                   </div>
                   <footer>
-                    ⚡　Ngày hội Flash-Sale Black Friday tập trung vào 28–29/10{" "}
+                    ⚡　Ngày hội Flash-Sale Black Friday tập trung vào 28–29/10{' '}
                     <b>Dự phòng hoàn thành 108% kế hoạch</b>
                   </footer>
                 </article>
@@ -259,13 +281,13 @@ function App() {
                           style={{ height: `${height}%` }}
                           className={
                             index > 9 && index < 13
-                              ? "hot"
+                              ? 'hot'
                               : index === 10 || index === 11
-                                ? "warm"
-                                : ""
+                                ? 'warm'
+                                : ''
                           }
                         />
-                        <span>{String(index + 6).padStart(2, "0")}h</span>
+                        <span>{String(index + 6).padStart(2, '0')}h</span>
                       </div>
                     ))}
                   </div>
@@ -285,29 +307,31 @@ function App() {
                       Sync
                     </b>
                   </div>
-                  {clubs.map(([name, state, percent, people, shifts, gates]) => (
-                    <div className="club-row" key={name}>
-                      <div>
-                        <strong>{name}</strong>
-                        <em>{state}</em>
-                        <b>{percent}%</b>
+                  {clubs.map(
+                    ([name, state, percent, people, shifts, gates]) => (
+                      <div className="club-row" key={name}>
+                        <div>
+                          <strong>{name}</strong>
+                          <em>{state}</em>
+                          <b>{percent}%</b>
+                        </div>
+                        <i>
+                          <span style={{ width: `${percent}%` }} />
+                        </i>
+                        <footer>
+                          <span>
+                            Đang có mặt: <b>{people} khách</b>
+                          </span>
+                          <span>{shifts}</span>
+                          <span>{gates}</span>
+                        </footer>
                       </div>
-                      <i>
-                        <span style={{ width: `${percent}%` }} />
-                      </i>
-                      <footer>
-                        <span>
-                          Đang có mặt: <b>{people} khách</b>
-                        </span>
-                        <span>{shifts}</span>
-                        <span>{gates}</span>
-                      </footer>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </article>
                 <div className="club-summary">
                   <span>
-                    ⟳　TỶ LỆ GIA HẠN HĐ{" "}
+                    ⟳　TỶ LỆ GIA HẠN HĐ{' '}
                     <b>
                       78.5% <small>(+4.2%)</small>
                     </b>
@@ -324,9 +348,9 @@ function App() {
                 <h2>Nhật ký Check-in Cổng Turnstile (Real-time Stream)</h2>
                 <p>Xác thực khuôn mặt FaceID 3D & QR động</p>
                 {[
-                  "Trần Minh Hoàng　 DIAMOND VIP　15:41:22　Vincom Q.1 - Turnstile 02",
-                  "Nguyễn Thị Mai　 CLASSIC　15:39:05　Crescent Elite Q.7 - Gate 01",
-                  "Lê Khắc Minh　 MASTER COACH　15:35:48　Thảo Điền Hub - Gate Staff",
+                  'Trần Minh Hoàng　 DIAMOND VIP　15:41:22　Vincom Q.1 - Turnstile 02',
+                  'Nguyễn Thị Mai　 CLASSIC　15:39:05　Crescent Elite Q.7 - Gate 01',
+                  'Lê Khắc Minh　 MASTER COACH　15:35:48　Thảo Điền Hub - Gate Staff',
                 ].map((item) => (
                   <div className="activity" key={item}>
                     ◉　{item}
@@ -338,11 +362,11 @@ function App() {
                 <article className="dash-card schedule-card">
                   <h2>⚡　Lịch PT 1-1 Sắp Diễn Ra</h2>
                   <div>
-                    CA <b>16:00</b>　 HLV Trần Hoàng Nam · HV Đặng Quang Huy{" "}
+                    CA <b>16:00</b>　 HLV Trần Hoàng Nam · HV Đặng Quang Huy{' '}
                     <em>Chuẩn bị</em>
                   </div>
                   <div>
-                    CA <b>16:30</b>　 HLV Nguyễn Minh Thư · HV Minh Anh{" "}
+                    CA <b>16:30</b>　 HLV Nguyễn Minh Thư · HV Minh Anh{' '}
                     <em>Đã check-in</em>
                   </div>
                 </article>
@@ -365,18 +389,67 @@ function App() {
           </div>
         ) : (
           <div className="module-content">
-            {activePage === "warehouse-inbound" ? <WarehouseInboundPage /> : activePage === "warehouse-stock" ? <WarehouseInventoryPage /> : activePage === "warehouse-history" ? <WarehouseHistoryPage /> : activePage === "revenue-vat" ? <RevenueInvoicePage /> : activePage === "shop-categories" ? <ShopCategoriesPage /> : activePage === "shop-products" ? <ShopProductsPage /> : activePage === "shop-orders" ? <ShopOrdersPage /> : activePage === "trainers-list" ? <TrainerManagementPage onOpenRoster={() => setActivePage("trainer-roster")} /> : activePage === "pt-sessions" ? <PtSessionsPage /> : activePage === "trainer-roster" ? <TrainerRosterPage /> : activePage === "checkin-live" ? <CheckInLivePage /> : activePage === "checkin-history" ? <CheckInHistoryPage /> : activePage === "checkin-qr" ? <CheckInQrPage /> : <>
-              <nav className="module-tabs" aria-label="Điều hướng quản lý gói tập">
-                <button className={activePage === "packages-list" ? "active" : ""} onClick={() => setActivePage("packages-list")}>DANH SÁCH GÓI TẬP</button>
-                <button className={activePage === "package-registrations" ? "active" : ""} onClick={() => setActivePage("package-registrations")}>QUẢN LÝ ĐĂNG KÝ</button>
-              </nav>
-              {activePage === "package-registrations" ? <RegistrationsPage /> : <PackagesPage />}
-            </>}
+            {activePage === 'warehouse-inbound' ? (
+              <WarehouseInboundPage />
+            ) : activePage === 'warehouse-stock' ? (
+              <WarehouseInventoryPage />
+            ) : activePage === 'warehouse-history' ? (
+              <WarehouseHistoryPage />
+            ) : activePage === 'revenue-vat' ? (
+              <RevenueInvoicePage />
+            ) : activePage === 'shop-categories' ? (
+              <ShopCategoriesPage />
+            ) : activePage === 'shop-products' ? (
+              <ShopProductsPage />
+            ) : activePage === 'shop-orders' ? (
+              <ShopOrdersPage />
+            ) : activePage === 'trainers-list' ? (
+              <TrainerManagementPage
+                onOpenRoster={() => setActivePage('trainer-roster')}
+              />
+            ) : activePage === 'pt-sessions' ? (
+              <PtSessionsPage />
+            ) : activePage === 'trainer-roster' ? (
+              <TrainerRosterPage />
+            ) : activePage === 'checkin-live' ? (
+              <CheckInLivePage />
+            ) : activePage === 'checkin-history' ? (
+              <CheckInHistoryPage />
+            ) : activePage === 'checkin-qr' ? (
+              <CheckInQrPage />
+            ) : (
+              <>
+                <nav
+                  className="module-tabs"
+                  aria-label="Điều hướng quản lý gói tập"
+                >
+                  <button
+                    className={activePage === 'packages-list' ? 'active' : ''}
+                    onClick={() => setActivePage('packages-list')}
+                  >
+                    DANH SÁCH GÓI TẬP
+                  </button>
+                  <button
+                    className={
+                      activePage === 'package-registrations' ? 'active' : ''
+                    }
+                    onClick={() => setActivePage('package-registrations')}
+                  >
+                    QUẢN LÝ ĐĂNG KÝ
+                  </button>
+                </nav>
+                {activePage === 'package-registrations' ? (
+                  <RegistrationsPage />
+                ) : (
+                  <PackagesPage />
+                )}
+              </>
+            )}
           </div>
         )}
       </section>
     </main>
-  );
+  )
 }
 
-export default App;
+export default App
