@@ -177,7 +177,7 @@ const s = StyleSheet.create({
   },
   heroBadgeText: {
     color: C.text,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
@@ -222,12 +222,12 @@ const s = StyleSheet.create({
     justifyContent: "center",
   },
   checked: { backgroundColor: C.lime },
-  muted: { color: C.muted, fontSize: 13, lineHeight: 19 },
-  link: { color: C.lime, fontSize: 12, fontWeight: "700" },
-  error: { color: C.error, marginTop: 10, fontSize: 12 },
+  muted: { color: C.muted, fontSize: 14, lineHeight: 19 },
+  link: { color: C.lime, fontSize: 13, fontWeight: "700" },
+  error: { color: C.error, marginTop: 10, fontSize: 13 },
   bio: { marginTop: 26, flexDirection: "row", alignItems: "center", gap: 12 },
   bioCopy: { flex: 1 },
-  bioTitle: { color: C.text, fontSize: 13, fontWeight: "700" },
+  bioTitle: { color: C.text, fontSize: 14, fontWeight: "700" },
   scan: {
     backgroundColor: C.surfaceHigh,
     borderRadius: 9,
@@ -237,7 +237,7 @@ const s = StyleSheet.create({
   },
   scanText: {
     color: C.text,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
     textAlign: "center",
   },
@@ -251,6 +251,6 @@ const s = StyleSheet.create({
     gap: 8,
   },
   mintDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.mint },
-  statusText: { color: C.muted, fontSize: 11, flex: 1 },
-  hours: { color: C.mint, fontSize: 10, fontWeight: "700" },
+  statusText: { color: C.muted, fontSize: 12, flex: 1 },
+  hours: { color: C.mint, fontSize: 11, fontWeight: "700" },
 });

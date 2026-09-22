@@ -77,12 +77,12 @@ const styles = StyleSheet.create({
   brandBlock: { flexShrink: 1, paddingRight: 76 },
   brand: {
     color: "#f3f5ec",
-    fontSize: 21,
+    fontSize: 22,
     fontWeight: "900",
     letterSpacing: 1.2,
   },
   brandDot: { color: "#d9ff00" },
-  location: { color: "#899083", fontSize: 10, marginTop: 5 },
+  location: { color: "#899083", fontSize: 11, marginTop: 5 },
   headerActions: {
     position: "absolute",
     top: 20.5,
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#c3f400",
     color: "#161e00",
     textAlign: "center",
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "900",
   },
 });

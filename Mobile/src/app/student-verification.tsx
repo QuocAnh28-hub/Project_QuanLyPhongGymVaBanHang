@@ -86,8 +86,8 @@ export default function StudentVerificationScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#0c0f10" },
   content: { padding: 20, gap: 14 },
-  title: { color: "#e5e9e3", fontSize: 24, fontWeight: "900" },
-  note: { color: "#aeb59e", fontSize: 12, lineHeight: 18 },
+  title: { color: "#e5e9e3", fontSize: 25, fontWeight: "900" },
+  note: { color: "#aeb59e", fontSize: 13, lineHeight: 18 },
   input: {
     backgroundColor: "#202427",
     color: "#e5e9e3",

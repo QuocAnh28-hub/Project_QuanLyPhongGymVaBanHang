@@ -157,7 +157,7 @@ const s = StyleSheet.create({
   },
   topText: {
     color: C.muted,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "700",
     letterSpacing: 1,
   },
@@ -173,7 +173,7 @@ const s = StyleSheet.create({
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.lime },
   badgeText: {
     color: C.muted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "700",
     letterSpacing: 0.5,
   },
@@ -230,15 +230,15 @@ const s = StyleSheet.create({
   methodCopy: { flex: 1 },
   methodTitle: {
     color: C.text,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "700",
     flexShrink: 1,
   },
-  methodDetail: { color: C.muted, fontSize: 12, marginTop: 6 },
+  methodDetail: { color: C.muted, fontSize: 13, marginTop: 6 },
   recommended: {
     color: C.lime,
     backgroundColor: "#343d1b",
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "700",
     padding: 5,
     borderRadius: 15,
@@ -262,7 +262,7 @@ const s = StyleSheet.create({
     padding: 15,
     marginTop: 2,
   },
-  noticeText: { color: C.text, fontSize: 13, lineHeight: 20, flex: 1 },
+  noticeText: { color: C.text, fontSize: 14, lineHeight: 20, flex: 1 },
   support: {
     alignSelf: "center",
     flexDirection: "row",
@@ -274,7 +274,7 @@ const s = StyleSheet.create({
     paddingVertical: 11,
     marginTop: 35,
   },
-  supportText: { color: C.muted, fontSize: 12 },
+  supportText: { color: C.muted, fontSize: 13 },
   footer: {
     flexDirection: "row",
     alignItems: "center",
@@ -283,7 +283,7 @@ const s = StyleSheet.create({
   },
   footerText: {
     color: C.muted,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "800",
     letterSpacing: 1,
   },

@@ -47,7 +47,7 @@ export default function VerifyOtp() {
 const s = StyleSheet.create({
   copy: {
     color: C.muted,
-    fontSize: 14,
+    fontSize: 15,
     lineHeight: 22,
     marginTop: 12,
     marginBottom: 28,

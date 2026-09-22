@@ -61,5 +61,5 @@ export default function ResetPassword() {
   );
 }
 const s = StyleSheet.create({
-  copy: { color: C.muted, fontSize: 14, marginTop: 12, marginBottom: 28 },
+  copy: { color: C.muted, fontSize: 15, marginTop: 12, marginBottom: 28 },
 });

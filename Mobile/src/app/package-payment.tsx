@@ -164,7 +164,7 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: C.surfaceLow,
   },
-  headerTitle: { flex: 1, color: C.text, fontSize: 13, fontWeight: "800" },
+  headerTitle: { flex: 1, color: C.text, fontSize: 14, fontWeight: "800" },
   content: {
     width: "100%",
     maxWidth: 540,
@@ -188,8 +188,8 @@ const s = StyleSheet.create({
     justifyContent: "center",
     zIndex: 2,
   },
-  stepNumber: { color: C.surfaceLowest, fontSize: 9, fontWeight: "900" },
-  stepLabel: { color: C.lime, fontSize: 8, fontWeight: "800", marginTop: 5 },
+  stepNumber: { color: C.surfaceLowest, fontSize: 10, fontWeight: "900" },
+  stepLabel: { color: C.lime, fontSize: 9, fontWeight: "800", marginTop: 5 },
   track: {
     position: "absolute",
     top: 12,
@@ -210,13 +210,13 @@ const s = StyleSheet.create({
   },
   status: {
     color: C.lime,
-    fontSize: 24,
+    fontSize: 25,
     fontWeight: "900",
     textAlign: "center",
   },
-  intro: { color: C.muted, fontSize: 12, lineHeight: 18, textAlign: "center" },
+  intro: { color: C.muted, fontSize: 13, lineHeight: 18, textAlign: "center" },
   card: { backgroundColor: C.surface, borderRadius: 13, padding: 14, gap: 12 },
-  title: { color: C.text, fontSize: 16, fontWeight: "800" },
+  title: { color: C.text, fontSize: 17, fontWeight: "800" },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -225,15 +225,15 @@ const s = StyleSheet.create({
     borderBottomColor: C.surfaceHigh,
     paddingBottom: 10,
   },
-  muted: { color: C.muted, fontSize: 11, lineHeight: 17, flex: 1 },
+  muted: { color: C.muted, fontSize: 12, lineHeight: 17, flex: 1 },
   value: {
     color: C.text,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "700",
     textAlign: "right",
     flex: 1.5,
   },
-  accent: { color: C.lime, fontSize: 16, fontWeight: "900" },
+  accent: { color: C.lime, fontSize: 17, fontWeight: "900" },
   notice: {
     flexDirection: "row",
     gap: 10,
@@ -243,7 +243,7 @@ const s = StyleSheet.create({
   },
   noticeTitle: {
     color: C.text,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "800",
     marginBottom: 5,
   },
@@ -256,5 +256,5 @@ const s = StyleSheet.create({
     backgroundColor: C.lime,
     borderRadius: 11,
   },
-  primaryText: { color: C.surfaceLowest, fontSize: 11, fontWeight: "900" },
+  primaryText: { color: C.surfaceLowest, fontSize: 12, fontWeight: "900" },
 });
