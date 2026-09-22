@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { readLocal, writeLocal } from '@/lib/local-store';
+import { getAccount, getAccounts, isActiveCustomer, type ApiAccount } from '@/lib/account-api';
 
 type Account = { name: string; email: string; phone: string; password: string; role: 'member'; avatar: string | null; height: number | null; weight: number | null; birthDate: string | null; fitnessGoal: string | null };
 type Registration = Pick<Account, 'name' | 'email' | 'phone' | 'password'>;
@@ -18,10 +19,14 @@ const SEED: Account = { name: 'Admin QA-Gym', email: 'admin', phone: '0123456789
 const ACCOUNTS = 'qa-gym-dev-accounts-v2';
 const SESSION = 'qa-gym-dev-session-v2';
 const REMEMBERED = 'qa-gym-dev-credential-v2';
+const API_SESSION = 'qa-gym-api-session-v1';
 const AuthContext = createContext<AuthValue | null>(null);
 
 // ponytail: local development accounts only; replace this store with server auth before production.
 function identity(account: Account) { const { password: _password, ...user } = account; return user; }
+function apiIdentity(account: ApiAccount): Omit<Account, 'password'> {
+  return { name: account.Email.split('@')[0], email: account.Email, phone: '', role: 'member', avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
+}
 function asMember(account: Registration & Partial<Account>): Account {
   const profile = account.email.toLowerCase() === SEED.email ? SEED : { avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
   return { ...profile, ...account, role: 'member' };
@@ -36,26 +41,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const [savedAccounts, session, remembered] = await Promise.all([readLocal(ACCOUNTS), readLocal(SESSION), readLocal(REMEMBERED)]);
+        const [savedAccounts, remembered, apiSession] = await Promise.all([readLocal(ACCOUNTS), readLocal(REMEMBERED), readLocal(API_SESSION)]);
         const list: Account[] = savedAccounts ? JSON.parse(savedAccounts) : [];
         const all = list.length ? list.map(asMember) : [SEED];
         if (list.length) await writeLocal(ACCOUNTS, JSON.stringify(all));
         setAccounts(all);
-        const active = all.find(a => a.email === session);
-        setUser(active ? identity(active) : null);
+        if (apiSession) {
+          const account = await getAccount(Number(apiSession));
+          if (account && isActiveCustomer(account)) setUser(apiIdentity(account));
+          else await writeLocal(API_SESSION, null);
+        }
         setSavedCredential(remembered ?? '');
       } catch { setUser(null); }
       finally { setReady(true); }
     })();
   }, []);
   async function login(credential: string, password: string, remember: boolean) {
-    const normalized = credential.trim().toLowerCase().replace(/\s/g, '');
-    const account = accounts.find(a => (a.email.toLowerCase() === normalized || a.phone.replace(/\s/g, '') === normalized) && a.password === password);
-    if (!account) return false;
-    await writeLocal(SESSION, account.email);
-    await writeLocal(REMEMBERED, remember ? credential.trim() : null);
+    const normalized = credential.trim().toLowerCase();
+    const account = (await getAccounts()).find(a => a.Email?.toLowerCase() === normalized && a.MatKhau === password);
+    if (!account || !isActiveCustomer(account)) return false;
+    try {
+      await writeLocal(API_SESSION, String(account.TaiKhoanID));
+      await writeLocal(REMEMBERED, remember ? credential.trim() : null);
+    } catch (error) {
+      throw new Error(`Không lưu được phiên đăng nhập: ${error instanceof Error ? error.message : String(error)}`);
+    }
     setSavedCredential(remember ? credential.trim() : '');
-    setUser(identity(account));
+    setUser(apiIdentity(account));
     return true;
   }
   async function register(account: Registration) {
@@ -67,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(identity(next[next.length - 1]));
     return null;
   }
-  async function logout() { await writeLocal(SESSION, null); setUser(null); setRecovery(null); }
+  async function logout() { await Promise.all([writeLocal(SESSION, null), writeLocal(API_SESSION, null)]); setUser(null); setRecovery(null); }
   function beginRecovery(credential: string, method: 'sms' | 'email') {
     const normalized = credential.trim().toLowerCase().replace(/\s/g, '');
     const account = accounts.find(a => method === 'sms' ? a.phone === normalized : a.email === normalized);

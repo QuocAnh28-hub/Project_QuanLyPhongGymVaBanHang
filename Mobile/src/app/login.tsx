@@ -28,13 +28,14 @@ export default function Login() {
       setError("Vui lòng nhập tài khoản và mật khẩu.");
       return;
     }
+    setError("");
     setSubmitting(true);
     try {
       if (await login(credential, password, remember))
         router.replace("/(tabs)");
-      else setError("Tài khoản hoặc mật khẩu không đúng.");
-    } catch {
-      setError("Không thể lưu phiên đăng nhập. Vui lòng thử lại.");
+      else setError("Email, mật khẩu không đúng hoặc tài khoản không được phép đăng nhập.");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Đăng nhập thất bại. Vui lòng thử lại.");
     } finally {
       setSubmitting(false);
     }
@@ -69,9 +70,9 @@ export default function Login() {
         Đăng nhập để tiếp tục hành trình bứt phá giới hạn cùng QA-Gym.
       </Text>
       <AuthField
-        label="SỐ ĐIỆN THOẠI HOẶC EMAIL"
+        label="EMAIL"
         icon="id-card-outline"
-        placeholder="vd: 0988xxxxxx hoặc email@gym.vn"
+        placeholder="email@gym.vn"
         value={credential}
         onChangeText={setCredential}
         autoCapitalize="none"
