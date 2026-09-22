@@ -2089,10 +2089,16 @@ select {
   width: 17px;
   height: 17px;
   margin: 0;
+  border: 1px solid #9baa7c;
   border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+}
+.remember input:checked {
+  border-color: #b9ff00;
   background: #b9ff00;
 }
-.remember input::after {
+.remember input:checked::after {
   content: '✓';
   display: block;
   color: #172000;
