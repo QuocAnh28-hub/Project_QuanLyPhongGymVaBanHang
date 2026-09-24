@@ -37,6 +37,26 @@ export type RegistrationDetail = {
   SoTienGiam: string | number;
 };
 
+export type CurrentMembership = {
+  DangKyID: number;
+  HoiVienID: number;
+  GoiTapID: number;
+  GoiTapThoiHanID: number;
+  TenGoi: string;
+  SoThang: number;
+  ThangTang: number;
+  NgayDangKy: string;
+  NgayBatDau: string;
+  NgayKetThuc: string;
+  GiaThanhToan: string | number;
+  TrangThaiDangKy: "ACTIVE";
+  ThanhToanID: number;
+  SoTien: string | number;
+  PhuongThucThanhToan: "TIEN_MAT" | "CHUYEN_KHOAN" | "THE";
+  TrangThaiThanhToan: "SUCCESS";
+  TinhTrangSuDung: "ACTIVE" | "UPCOMING";
+};
+
 export class RegistrationApiError extends Error {
   constructor(
     message: string,
@@ -114,6 +134,17 @@ export async function getRegistrationDetail(
   }
 
   return (await response.json()) as RegistrationDetail;
+}
+
+export async function getCurrentMembership(
+  accountId: number,
+): Promise<CurrentMembership | null> {
+  const response = await fetch(
+    `${baseUrl}/dangkygoitap/current/account/${accountId}`,
+  );
+
+  if (!response.ok) throw new Error(await readError(response));
+  return (await response.json()) as CurrentMembership | null;
 }
 
 export const paymentMethodNames: Record<PaymentMethod, string> = {

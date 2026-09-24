@@ -95,6 +95,58 @@ Dangkygoitap.getDetailById = (DangKyID, callback) => {
   });
 };
 
+Dangkygoitap.getCurrentMembershipByAccount = (TaiKhoanID, callback) => {
+  const sqlString = `
+    SELECT
+      dk.DangKyID,
+      dk.HoiVienID,
+      dk.GoiTapID,
+      dk.GoiTapThoiHanID,
+      g.TenGoi,
+      th.SoThang,
+      th.ThangTang,
+      DATE_FORMAT(dk.NgayDangKy, '%Y-%m-%d') AS NgayDangKy,
+      DATE_FORMAT(dk.NgayBatDau, '%Y-%m-%d') AS NgayBatDau,
+      DATE_FORMAT(dk.NgayKetThuc, '%Y-%m-%d') AS NgayKetThuc,
+      dk.GiaThanhToan,
+      dk.TrangThai AS TrangThaiDangKy,
+      tt.ThanhToanID,
+      tt.SoTien,
+      tt.PhuongThucThanhToan,
+      tt.TrangThai AS TrangThaiThanhToan,
+      CASE
+        WHEN dk.NgayBatDau > CURDATE() THEN 'UPCOMING'
+        ELSE 'ACTIVE'
+      END AS TinhTrangSuDung
+    FROM hoivien hv
+    INNER JOIN dangkygoitap dk ON dk.HoiVienID = hv.HoiVienID
+    INNER JOIN goitap g ON g.GoiTapID = dk.GoiTapID
+    INNER JOIN GoiTapThoiHan th
+      ON th.GoiTapThoiHanID = dk.GoiTapThoiHanID
+    INNER JOIN thanhtoan tt
+      ON tt.DangKyID = dk.DangKyID
+      AND tt.TrangThai = 'SUCCESS'
+    WHERE hv.TaiKhoanID = ?
+      AND dk.TrangThai = 'ACTIVE'
+      AND dk.NgayKetThuc >= CURDATE()
+    ORDER BY
+      CASE
+        WHEN dk.NgayBatDau <= CURDATE()
+         AND dk.NgayKetThuc >= CURDATE() THEN 0
+        ELSE 1
+      END,
+      dk.NgayBatDau DESC,
+      dk.DangKyID DESC,
+      tt.ThanhToanID DESC
+    LIMIT 1
+  `;
+
+  db.query(sqlString, [TaiKhoanID], (err, result) => {
+    if (err) return callback(err);
+    callback(null, result?.[0] ?? null);
+  });
+};
+
 Dangkygoitap.getAll = (callback) => {
   db.query("SELECT * FROM `dangkygoitap`", (err, result) => {
     if (err) return callback(err);

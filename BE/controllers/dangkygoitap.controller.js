@@ -40,6 +40,23 @@ function dateDistanceInDays(from, to) {
 
 const DangkygoitapController = {
 
+  getCurrentByAccount: (req, res) => {
+    const accountId = positiveInteger(req.params.TaiKhoanID);
+
+    if (!accountId) {
+      return res.status(400).json({ message: 'TaiKhoanID không hợp lệ' });
+    }
+
+    Dangkygoitap.getCurrentMembershipByAccount(accountId, (err, result) => {
+      if (err) {
+        console.error('Lỗi khi lấy gói hiện tại của tài khoản:', err);
+        return res.status(500).json({ message: 'Lỗi khi lấy dữ liệu' });
+      }
+
+      res.json(result);
+    });
+  },
+
   getAll: (req, res) => {
     Dangkygoitap.getAll((err, result) => {
       if (err) {

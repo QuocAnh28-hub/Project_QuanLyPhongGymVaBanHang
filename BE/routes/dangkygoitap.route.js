@@ -4,6 +4,7 @@ const router = express.Router();
 const DangkygoitapController = require('../controllers/dangkygoitap.controller');
 
 router.get('/', DangkygoitapController.getAll);
+router.get('/current/account/:TaiKhoanID', DangkygoitapController.getCurrentByAccount);
 router.get('/detail/:DangKyID', DangkygoitapController.getDetailById);
 router.get('/:DangKyID', DangkygoitapController.getById);
 router.post('/register', DangkygoitapController.register);

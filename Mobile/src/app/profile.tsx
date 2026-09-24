@@ -13,10 +13,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import Header from "@/app/Common/header";
-import { getPackageById } from "@/lib/packages";
 import { useAuth } from "@/context/AuthContext";
 import { getCheckInHistory } from "@/lib/check-in";
-import { getEnrollments, type MembershipEnrollment } from "@/lib/membership";
+import { getCurrentMembership, type CurrentMembership } from "@/lib/membership-api";
+import { getActivePackageDetail, packageFromApiDetail } from "@/lib/package-api";
+import type { GymPackage } from "@/lib/packages";
 
 const menuItems = [
   ["history", "Đổi mật khẩu tài khoản"],
@@ -36,22 +37,32 @@ function Field({ label, value }: { label: string; value: string }) {
 export default function ProfileScreen() {
   const { logout, user } = useAuth();
   const [today] = useState(() => new Date());
-  const [enrollments, setEnrollments] = useState<MembershipEnrollment[]>([]);
+  const [activeMembership, setActiveMembership] = useState<CurrentMembership | null>(null);
+  const [activePackage, setActivePackage] = useState<GymPackage | null>(null);
   const [checkInCount, setCheckInCount] = useState(0);
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      if (user)
-        Promise.all([getEnrollments(user.email), getCheckInHistory(user.email)])
-          .then(([rows, history]) => {
+      if (user?.accountId)
+        Promise.all([
+          getCurrentMembership(user.accountId),
+          getCheckInHistory(user.email).catch(() => []),
+        ]).then(async ([membership, history]) => {
+            const gymPackage = membership
+              ? await getActivePackageDetail(membership.GoiTapID)
+                  .then(packageFromApiDetail)
+                  .catch(() => null)
+              : null;
             if (active) {
-              setEnrollments(rows);
+              setActiveMembership(membership);
+              setActivePackage(gymPackage);
               setCheckInCount(history.length);
             }
           })
           .catch(() => {
             if (active) {
-              setEnrollments([]);
+              setActiveMembership(null);
+              setActivePackage(null);
               setCheckInCount(0);
             }
           });
@@ -60,20 +71,21 @@ export default function ProfileScreen() {
       };
     }, [user]),
   );
-  const activeMembership = enrollments.find(
-    (row) =>
-      (row.membershipStatus ?? row.status) === "active" &&
-      row.paymentStatus === "paid" &&
-      row.expiryDate >= new Date().toISOString().slice(0, 10),
-  );
-  const activePackage = activeMembership
-    ? getPackageById(activeMembership.packageId)
-    : null;
   const remainingDays = activeMembership
     ? Math.max(
         0,
         Math.ceil(
-          (new Date(`${activeMembership.expiryDate}T00:00:00`).getTime() -
+          (new Date(`${activeMembership.NgayKetThuc}T00:00:00`).getTime() -
+            today.getTime()) /
+            86400000,
+        ),
+      )
+    : 0;
+  const startsInDays = activeMembership
+    ? Math.max(
+        0,
+        Math.ceil(
+          (new Date(`${activeMembership.NgayBatDau}T00:00:00`).getTime() -
             today.getTime()) /
             86400000,
         ),
@@ -130,16 +142,28 @@ export default function ProfileScreen() {
                 </View>
                 <View>
                   <Text style={styles.statNumber}>
-                    {activeMembership ? remainingDays : 0}
+                    {activeMembership?.TinhTrangSuDung === "UPCOMING"
+                      ? startsInDays
+                      : activeMembership
+                        ? remainingDays
+                        : 0}
                   </Text>
-                  <Text style={styles.statLabel}>NGÀY CÒN LẠI</Text>
+                  <Text style={styles.statLabel}>
+                    {activeMembership?.TinhTrangSuDung === "UPCOMING"
+                      ? "NGÀY ĐẾN KHI BẮT ĐẦU"
+                      : "NGÀY CÒN LẠI"}
+                  </Text>
                 </View>
               </View>
             </View>
             <View style={styles.sectionHeading}>
               <Text style={styles.sectionTitle}>THẺ THÀNH VIÊN HIỆN HÀNH</Text>
               <Text style={styles.sectionAction}>
-                {activeMembership ? "ĐANG KÍCH HOẠT" : "CHƯA CÓ THẺ"}
+                {activeMembership?.TinhTrangSuDung === "ACTIVE"
+                  ? "ĐANG HOẠT ĐỘNG"
+                  : activeMembership
+                    ? "CHỜ KÍCH HOẠT"
+                    : "CHƯA CÓ THẺ"}
               </Text>
             </View>
             <View style={styles.passCard}>
@@ -147,7 +171,7 @@ export default function ProfileScreen() {
                 {activePackage?.tier ?? "QA-GYM MEMBERSHIP"}
               </Text>
               <Text style={styles.passName}>
-                {activeMembership?.packageName.toUpperCase() ??
+                {activeMembership?.TenGoi.toUpperCase() ??
                   "CHƯA CÓ GÓI TẬP HOẠT ĐỘNG"}
               </Text>
               {activeMembership ? (
@@ -155,15 +179,21 @@ export default function ProfileScreen() {
                   <View style={styles.passInfo}>
                     <Text style={styles.passLabel}>
                       MÃ THẺ{`\n`}
-                      {activeMembership.id.replace("QA-MEM-", "QA-")}
+                      QA-{activeMembership.DangKyID}
                     </Text>
                     <Text style={styles.passLabel}>
-                      HẠN HIỆU LỰC{`\n`}
-                      {new Date(
-                        `${activeMembership.expiryDate}T00:00:00`,
-                      ).toLocaleDateString("vi-VN")}{" "}
+                      {activeMembership.TinhTrangSuDung === "UPCOMING"
+                        ? "BẮT ĐẦU NGÀY"
+                        : "THỜI HẠN"}{`\n`}
+                      {new Date(`${activeMembership.NgayBatDau}T00:00:00`).toLocaleDateString("vi-VN")}
+                      {activeMembership.TinhTrangSuDung === "ACTIVE" ? " → " : ""}
+                      {activeMembership.TinhTrangSuDung === "ACTIVE"
+                        ? new Date(`${activeMembership.NgayKetThuc}T00:00:00`).toLocaleDateString("vi-VN")
+                        : ""}{" "}
                       <Text style={styles.passGreen}>
-                        (Còn {remainingDays} ngày)
+                        {activeMembership.TinhTrangSuDung === "ACTIVE"
+                          ? `(Còn ${remainingDays} ngày)`
+                          : ""}
                       </Text>
                     </Text>
                   </View>
@@ -193,7 +223,7 @@ export default function ProfileScreen() {
                   onPress={() => router.push("/membership-detail")}
                 >
                   <Text style={styles.primaryButtonSmallText}>
-                    CHI TIẾT THẺ
+                    GÓI TẬP CỦA TÔI
                   </Text>
                 </Pressable>
               </View>
