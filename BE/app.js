@@ -90,6 +90,7 @@ const routes = [
   ['/sanpham', './routes/sanpham.route'],
   ['/taikhoan', './routes/taikhoan.route'],
   ['/thanhtoan', './routes/thanhtoan.route'],
+  ['/thongbao', './routes/thongbao.route'],
   ['/thuept', './routes/thuept.route']
 ];
 

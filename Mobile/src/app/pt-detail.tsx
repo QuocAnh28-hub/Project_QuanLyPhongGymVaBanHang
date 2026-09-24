@@ -1,403 +1,90 @@
-import { FontAwesome } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const trainerDetails = [
-  {
-    name: "TRẦN HOÀNG NAM",
-    role: "HYPERTROPHY • FAT LOSS • BIOMECHANICS",
-    image:
-      "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=900&q=85",
-    badge: "MASTER TRAINER • ĐA NĂNG KINH",
-    rating: "4.95",
-    sessions: "450+",
-    students: "98%",
-    bio: "Tôi nói không với việc cắt calo tiêu cực hay bắt học viên giáo án rập khuôn. Mỗi người là một cơ thể và hành trình riêng.",
-    certifications: [
-      "Hạng Nhất Chuyên Vàng Men’s Physique Quốc...",
-      "NASM-CPT & CSCS Certified",
-    ],
-    specialty:
-      "Tối ưu hóa hình thể, tăng cơ siết mỡ và xây dựng nền tảng sức mạnh bền vững.",
-  },
-  {
-    name: "NGUYỄN THÙY LINH",
-    role: "BODY RECOMPOSITION • NUTRITION",
-    image:
-      "https://images.unsplash.com/photo-1594381898411-846e7d193883?w=900&q=85",
-    badge: "MASTER TRAINER • DINH DƯỠNG",
-    rating: "4.90",
-    sessions: "380+",
-    students: "96%",
-    bio: "Lộ trình khoa học, thực tế và phù hợp với nhịp sống riêng của mỗi học viên.",
-    certifications: ["ISSA Nutritionist", "Strength & Conditioning Certified"],
-    specialty: "Tăng cơ, siết eo và xây dựng chế độ dinh dưỡng bền vững.",
-  },
-  {
-    name: "LÊ QUỐC HUY",
-    role: "BOXING • KICKFITNESS PRO",
-    image:
-      "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=900&q=85",
-    badge: "MASTER TRAINER • BOXING",
-    rating: "4.90",
-    sessions: "520+",
-    students: "97%",
-    bio: "Tập luyện cường độ cao để cải thiện sức mạnh, phản xạ và sự tự tin mỗi ngày.",
-    certifications: ["Cựu VĐV Quốc Gia", "Kickboxing Coach Certified"],
-    specialty: "Boxing, đốt mỡ và phát triển tốc độ toàn diện.",
-  },
-  {
-    name: "ĐẬU PHẠM",
-    role: "REHAB • MOBILITY • FLEXIBILITY",
-    image:
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=85",
-    badge: "REHAB SPECIALIST",
-    rating: "5.00",
-    sessions: "290+",
-    students: "99%",
-    bio: "Khôi phục chuyển động tự nhiên, giúp học viên tập đúng và sống khỏe hơn.",
-    certifications: [
-      "Cử nhân Y Sinh Thể Thao",
-      "Corrective Exercise Certified",
-    ],
-    specialty: "Phục hồi chức năng, mobility và cân chỉnh tư thế.",
-  },
-] as const;
+import { getPTDetail, type ApiPT } from "@/lib/pt-api";
+
+const fallback = require("../../assets/images/icon.png");
+const money = (value: string | number) => `${Number(value).toLocaleString("vi-VN")}đ`;
 
 export default function PTDetailScreen() {
   const { trainerId } = useLocalSearchParams<{ trainerId?: string }>();
-  const index = Number(trainerId);
-  const trainer =
-    trainerDetails[
-      Number.isInteger(index) && index >= 0 && index < trainerDetails.length
-        ? index
-        : 0
-    ];
-  return (
-    <View style={styles.container}>
-      <SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}
-        >
-          <View style={styles.header}>
-            <Pressable
-              style={styles.iconButton}
-              onPress={() => router.back()}
-              accessibilityLabel="Quay lại danh sách PT"
-            >
-              <FontAwesome name="angle-left" size={21} color="#edf2e8" />
-            </Pressable>
-            <Text style={styles.headerTitle}>PT DETAILS</Text>
-            <View style={styles.account}>
-              <FontAwesome name="user" size={11} color="#516000" />
-            </View>
-          </View>
-          <View style={styles.hero}>
-            <Image
-              source={{ uri: trainer.image }}
-              style={styles.heroImage}
-              contentFit="cover"
-            />
-            <View style={styles.heroShade} />
-            <View style={styles.heroMeta}>
-              <Text style={styles.badge}>{trainer.badge}</Text>
-              <View style={styles.heroActions}>
-                <Pressable style={styles.roundButton}>
-                  <FontAwesome name="heart-o" size={13} color="#e9f0e5" />
-                </Pressable>
-                <Pressable style={styles.roundButton}>
-                  <FontAwesome name="share-alt" size={13} color="#e9f0e5" />
-                </Pressable>
-              </View>
-            </View>
-            <View style={styles.heroCaption}>
-              <Text style={styles.role}>{trainer.role}</Text>
-              <Text style={styles.name}>{trainer.name}</Text>
-            </View>
-          </View>
-          <View style={styles.stats}>
-            <Stat
-              value={trainer.rating}
-              label="ĐÁNH GIÁ"
-              detail="284+ Đánh giá"
-            />
-            <Stat
-              value={trainer.sessions}
-              label="BUỔI HUẤN LUYỆN"
-              detail="Kinh nghiệm thực tế"
-            />
-            <Stat
-              value={trainer.students}
-              label="HỌC VIÊN HÀI LÒNG"
-              detail="Đạt hiệu quả"
-            />
-          </View>
-          <Title title="CHỨNG CHỈ & THÀNH TÍCH" action="XÁC THỰC BỞI QA-GYM" />
-          <View style={styles.certificates}>
-            {trainer.certifications.map((certificate) => (
-              <View style={styles.certificate} key={certificate}>
-                <FontAwesome name="certificate" size={13} color="#d9ff00" />
-                <Text style={styles.certificateText}>{certificate}</Text>
-              </View>
-            ))}
-          </View>
-          <Title title="TRIẾT LÝ HUẤN LUYỆN" />
-          <View style={styles.bio}>
-            <Text style={styles.bioText}>“{trainer.bio}”</Text>
-            <Text style={styles.specialty}>● {trainer.specialty}</Text>
-          </View>
-          <Title title="CÁC GÓI HUẤN LUYỆN" action="Chọn để xem chi tiết" />
-          <Package
-            name="GÓI 12 BUỔI"
-            price="5.400.000đ"
-            detail="Khởi động định hình thể lực & kích hoạt nhóm cơ mới"
-          />
-          <Package
-            name="GÓI 24 BUỔI"
-            price="9.800.000đ"
-            detail="Tái cấu trúc thể trạng, siết nét mỗi vùng & tăng cơ tối đa"
-            active
-          />
-          <Package
-            name="GÓI 36 BUỔI"
-            price="12.600.000đ"
-            detail="Phác đồ toàn diện, hỗ trợ đạt hình thể mơ ước"
-          />
-          <Title title="LỊCH & ĐỊA ĐIỂM TẬP LUYỆN" />
-          <View style={styles.schedule}>
-            <Text style={styles.scheduleRow}>
-              ● QA-Gym Crescent Mall • Thứ 2-4-6 • 06:30 - 09:30
-            </Text>
-            <Text style={styles.scheduleRow}>
-              ● QA-Gym Landmark 81 • Thứ 3-5-7 • 16:30 - 20:30
-            </Text>
-          </View>
-        </ScrollView>
-        <View style={styles.bottomBar}>
-          <View>
-            <Text style={styles.bottomLabel}>GÓI 24 BUỔI</Text>
-            <Text style={styles.bottomPrice}>
-              400.000đ<Text style={styles.per}> /buổi</Text>
-            </Text>
-          </View>
-          <Pressable
-            style={styles.bookButton}
-            onPress={() =>
-              router.push({
-                pathname: "/pt-booking",
-                params: { trainerId: String(index) },
-              })
-            }
-            accessibilityLabel="Đặt lịch thuê PT"
-          >
-            <FontAwesome name="calendar" size={12} color="#182000" />
-            <Text style={styles.bookText}>ĐẶT LỊCH THUÊ PT NGAY</Text>
-            <FontAwesome name="arrow-right" size={11} color="#182000" />
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    </View>
-  );
-}
+  const ptId = Number(trainerId);
+  const validId = Number.isInteger(ptId) && ptId > 0;
+  const [trainer, setTrainer] = useState<ApiPT | null>();
+  const [error, setError] = useState("");
 
-function Stat({
-  value,
-  label,
-  detail,
-}: {
-  value: string;
-  label: string;
-  detail: string;
-}) {
+  useEffect(() => {
+    let active = true;
+    if (!validId) {
+      return;
+    }
+    getPTDetail(ptId)
+      .then((row) => { if (active) { setTrainer(row); setError(""); } })
+      .catch((loadError) => { if (active) { setTrainer(null); setError(loadError instanceof Error ? loadError.message : "Không tải được PT."); } });
+    return () => { active = false; };
+  }, [ptId, validId]);
+  const displayError = validId ? error : "PTID không hợp lệ.";
+
+  const back = () => router.canGoBack() ? router.back() : router.replace("/pt");
   return (
-    <View style={styles.stat}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={styles.statDetail}>{detail}</Text>
-    </View>
-  );
-}
-function Title({ title, action }: { title: string; action?: string }) {
-  return (
-    <View style={styles.titleRow}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {action && <Text style={styles.action}>{action}</Text>}
-    </View>
-  );
-}
-function Package({
-  name,
-  price,
-  detail,
-  active = false,
-}: {
-  name: string;
-  price: string;
-  detail: string;
-  active?: boolean;
-}) {
-  return (
-    <View style={[styles.package, active && styles.packageActive]}>
-      <View style={styles.packageTop}>
-        <Text style={styles.packageName}>{name}</Text>
-        <Text style={styles.packagePrice}>{price}</Text>
+    <SafeAreaView style={s.safe} edges={["top"]}>
+      <View style={s.header}>
+        <Pressable style={s.icon} onPress={back}><Ionicons name="arrow-back" color="#eef4e8" size={21} /></Pressable>
+        <Text style={s.headerTitle}>CHI TIẾT HUẤN LUYỆN VIÊN</Text>
+        <View style={s.icon} />
       </View>
-      <Text style={styles.packageDetail}>{detail}</Text>
-      <Text style={styles.packageMeta}>400.000đ / buổi • Hạn dùng 45 ngày</Text>
-    </View>
+      <ScrollView contentContainerStyle={s.content}>
+        {trainer === undefined ? <Text style={s.center}>Đang tải thông tin PT...</Text> : null}
+        {!trainer && displayError ? <Text style={s.error}>{displayError}</Text> : null}
+        {trainer ? (
+          <>
+            <Image source={trainer.AnhDaiDien ? { uri: trainer.AnhDaiDien } : fallback} style={s.hero} contentFit="cover" />
+            <View style={s.card}>
+              <Text style={s.name}>{trainer.HoTen}</Text>
+              <Text style={s.specialty}>{trainer.ChuyenMon || "Chưa cập nhật chuyên môn"}</Text>
+              <Info label="KINH NGHIỆM" value={trainer.KinhNghiem || "Chưa cập nhật"} />
+              <Info label="GIÁ THUÊ" value={`${money(trainer.GiaThue)} / buổi`} accent />
+              <Info label="EMAIL" value={trainer.Email || "Chưa cập nhật"} />
+              <Info label="SỐ ĐIỆN THOẠI" value={trainer.SoDienThoai || "Chưa cập nhật"} />
+              <Pressable
+                style={s.primary}
+                onPress={() => router.push({ pathname: "/pt-booking", params: { trainerId: String(trainer.PTID) } })}
+              >
+                <Text style={s.primaryText}>ĐẶT LỊCH THUÊ PT</Text>
+                <Ionicons name="calendar-outline" color="#182000" size={18} />
+              </Pressable>
+            </View>
+          </>
+        ) : null}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#101210" },
-  safeArea: { flex: 1, width: "100%", maxWidth: 540, alignSelf: "center" },
-  content: { paddingHorizontal: 10, paddingBottom: 20 },
-  header: {
-    height: 43,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  iconButton: {
-    width: 31,
-    height: 31,
-    borderRadius: 9,
-    backgroundColor: "#242829",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { color: "#e9f0e5", fontSize: 10, fontWeight: "900" },
-  account: {
-    width: 25,
-    height: 25,
-    borderRadius: 13,
-    backgroundColor: "#edf5dc",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  hero: {
-    height: 275,
-    borderRadius: 8,
-    overflow: "hidden",
-    position: "relative",
-    backgroundColor: "#252b27",
-  },
-  heroImage: { width: "100%", height: "100%" },
-  heroShade: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(5,10,7,.32)",
-  },
-  heroMeta: {
-    position: "absolute",
-    top: 9,
-    left: 9,
-    right: 9,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  badge: {
-    color: "#d9ff00",
-    backgroundColor: "rgba(15,35,10,.8)",
-    fontSize: 7,
-    fontWeight: "900",
-    padding: 5,
-    borderRadius: 3,
-  },
-  heroActions: { flexDirection: "row", gap: 6 },
-  roundButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#26302a",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  heroCaption: { position: "absolute", left: 11, bottom: 11 },
-  role: { color: "#d9ff00", fontSize: 8, fontWeight: "900" },
-  name: { color: "#f2f7ec", fontSize: 20, fontWeight: "900", marginTop: 3 },
-  stats: { flexDirection: "row", gap: 6, marginTop: 8 },
-  stat: {
-    flex: 1,
-    backgroundColor: "#1b2022",
-    borderRadius: 6,
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  statValue: { color: "#d9ff00", fontSize: 15, fontWeight: "900" },
-  statLabel: {
-    color: "#e4ece1",
-    fontSize: 7,
-    textAlign: "center",
-    fontWeight: "900",
-    marginTop: 3,
-  },
-  statDetail: { color: "#8d998e", fontSize: 7, marginTop: 3 },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 15,
-    marginBottom: 7,
-  },
-  sectionTitle: { color: "#e7eee3", fontSize: 9, fontWeight: "900" },
-  action: { color: "#d9ff00", fontSize: 7, fontWeight: "900" },
-  certificates: { flexDirection: "row", gap: 6 },
-  certificate: {
-    flex: 1,
-    minHeight: 65,
-    backgroundColor: "#1b2022",
-    borderRadius: 6,
-    padding: 8,
-  },
-  certificateText: {
-    color: "#dfe8db",
-    fontSize: 8,
-    lineHeight: 10,
-    marginTop: 8,
-  },
-  bio: { backgroundColor: "#1b2022", borderRadius: 7, padding: 10 },
-  bioText: { color: "#b5c0b3", fontSize: 9, lineHeight: 13 },
-  specialty: { color: "#d9ff00", fontSize: 8, lineHeight: 11, marginTop: 8 },
-  package: {
-    backgroundColor: "#1b2022",
-    borderRadius: 7,
-    padding: 10,
-    marginBottom: 6,
-  },
-  packageActive: { borderWidth: 1, borderColor: "#d9ff00" },
-  packageTop: { flexDirection: "row", justifyContent: "space-between" },
-  packageName: { color: "#edf2e8", fontSize: 10, fontWeight: "900" },
-  packagePrice: { color: "#d9ff00", fontSize: 12, fontWeight: "900" },
-  packageDetail: { color: "#9da89d", fontSize: 8, marginTop: 5 },
-  packageMeta: { color: "#c8d500", fontSize: 7, marginTop: 6 },
-  schedule: { backgroundColor: "#1b2022", borderRadius: 7, padding: 10 },
-  scheduleRow: { color: "#aeb9ad", fontSize: 8, lineHeight: 20 },
-  bottomBar: {
-    backgroundColor: "#181c1d",
-    borderTopWidth: 1,
-    borderTopColor: "#2b3031",
-    paddingHorizontal: 10,
-    paddingTop: 7,
-    paddingBottom: 5,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  bottomLabel: { color: "#96a095", fontSize: 7, fontWeight: "900" },
-  bottomPrice: { color: "#d9ff00", fontSize: 18, fontWeight: "900" },
-  per: { color: "#aeb9ad", fontSize: 8 },
-  bookButton: {
-    height: 39,
-    borderRadius: 7,
-    backgroundColor: "#caff00",
-    paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  bookText: { color: "#182000", fontSize: 8, fontWeight: "900" },
+function Info({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return <View style={s.info}><Text style={s.label}>{label}</Text><Text style={[s.value, accent && s.accent]}>{value}</Text></View>;
+}
+
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: "#0d1011" },
+  header: { height: 54, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  icon: { width: 40, height: 40, borderRadius: 10, backgroundColor: "#242829", alignItems: "center", justifyContent: "center" },
+  headerTitle: { color: "#eef4e8", fontSize: 12, fontWeight: "900" },
+  content: { width: "100%", maxWidth: 540, alignSelf: "center", padding: 15, gap: 12, paddingBottom: 35 },
+  center: { color: "#aeb9ad", textAlign: "center", padding: 35 },
+  error: { color: "#ff8d82", textAlign: "center", padding: 35 },
+  hero: { width: "100%", height: 320, borderRadius: 16, backgroundColor: "#242829" },
+  card: { backgroundColor: "#1b2022", borderRadius: 15, padding: 16, gap: 13 },
+  name: { color: "#f0f5eb", fontSize: 25, fontWeight: "900" },
+  specialty: { color: "#d9ff00", fontSize: 12, fontWeight: "900" },
+  info: { borderTopWidth: 1, borderTopColor: "#303638", paddingTop: 11, gap: 5 },
+  label: { color: "#8e998d", fontSize: 9, fontWeight: "900" },
+  value: { color: "#e8efe4", fontSize: 13, lineHeight: 19 },
+  accent: { color: "#49d79e", fontSize: 17, fontWeight: "900" },
+  primary: { minHeight: 50, backgroundColor: "#caff00", borderRadius: 10, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  primaryText: { color: "#182000", fontSize: 12, fontWeight: "900" },
 });

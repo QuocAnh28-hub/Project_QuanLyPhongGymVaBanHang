@@ -1,4 +1,5 @@
 const Thanhtoan = require('../models/thanhtoan.model');
+const Thongbao = require('../models/thongbao.model');
 
 function positiveInteger(value) {
   const parsed = Number(value);
@@ -18,6 +19,14 @@ function sendError(res, error, fallback) {
 }
 
 const ThanhtoanController = {
+
+  getHistoryByAccount: (req, res) => {
+    const id = positiveInteger(req.params.TaiKhoanID);
+    if (!id) return res.status(400).json({ message: 'TaiKhoanID không hợp lệ' });
+    Thanhtoan.getHistoryByAccount(id, (error, rows) => error
+      ? sendError(res, error, 'Không thể tải lịch sử giao dịch')
+      : res.json(rows));
+  },
 
   createPackagePayment: (req, res) => {
     const DangKyID = positiveInteger(req.body?.DangKyID);
@@ -65,6 +74,17 @@ const ThanhtoanController = {
     const id = positiveInteger(req.params.ThanhToanID);
     if (!id) return res.status(400).json({ message: 'ThanhToanID không hợp lệ' });
     Thanhtoan.confirmPackagePayment(id, (error, result) => {
+      if (!error && !result.alreadyConfirmed) {
+        Thanhtoan.getPackagePaymentDetail(id, (detailError, detail) => {
+          if (detailError || !detail) return console.error('Không tải được gói để tạo thông báo', detailError);
+          Thongbao.notifyMember(result.HoiVienID, {
+            Loai: 'PACKAGE_PAYMENT', DanhMuc: 'TRANSACTION',
+            TieuDe: 'Thanh toán gói tập thành công',
+            NoiDung: `Gói ${detail.TenGoi} đã được kích hoạt.`,
+            ActionType: 'MEMBERSHIP', ActionPayload: { ThanhToanID: id },
+          });
+        });
+      }
       if (error) return sendError(res, error, 'Không thể xác nhận thanh toán');
       res.json({
         message: result.alreadyConfirmed

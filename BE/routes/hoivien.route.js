@@ -4,6 +4,8 @@ const router = express.Router();
 const HoivienController = require('../controllers/hoivien.controller');
 
 router.get('/', HoivienController.getAll);
+router.get('/account/:TaiKhoanID', HoivienController.getByAccount);
+router.put('/account/:TaiKhoanID', HoivienController.updateByAccount);
 router.get('/:HoiVienID', HoivienController.getById);
 router.post('/', HoivienController.create);
 router.put('/:HoiVienID', HoivienController.update);

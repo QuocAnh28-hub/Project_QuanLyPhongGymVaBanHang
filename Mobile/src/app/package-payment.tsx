@@ -266,6 +266,15 @@ export default function PackagePaymentScreen() {
               <Text style={s.secondaryText}>TẢI LẠI TRẠNG THÁI</Text>
               <Ionicons name="refresh" color={C.text} />
             </Pressable>
+            {success ? (
+              <Pressable
+                style={s.primary}
+                onPress={() => router.replace("/membership-detail")}
+              >
+                <Text style={s.primaryText}>XEM GÓI TẬP CỦA TÔI</Text>
+                <Ionicons name="card-outline" color={C.surfaceLowest} />
+              </Pressable>
+            ) : null}
             <Pressable
               style={s.primary}
               onPress={() => router.replace("/packages")}

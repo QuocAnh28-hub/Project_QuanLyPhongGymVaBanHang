@@ -34,6 +34,27 @@ Hoivien.getAll = (callback) => {
   });
 };
 
+Hoivien.getProfileByAccount = (accountId, callback) => {
+  db.query(
+    `SELECT tk.TaiKhoanID, hv.HoiVienID, tk.Email AS EmailDangNhap,
+       hv.HoTen, DATE_FORMAT(hv.NgaySinh, '%Y-%m-%d') AS NgaySinh,
+       hv.GioiTinh, hv.SoDienThoai, hv.Email, hv.DiaChi, hv.AnhDaiDien,
+       hv.ChieuCao, hv.CanNang, hv.MucTieuTheHinh, hv.TrangThai
+     FROM taikhoan tk INNER JOIN hoivien hv ON hv.TaiKhoanID = tk.TaiKhoanID
+     WHERE tk.TaiKhoanID = ? LIMIT 1`,
+    [accountId],
+    (err, rows) => callback(err, rows?.[0] ?? null),
+  );
+};
+
+Hoivien.updateProfileByAccount = (accountId, fields, callback) => {
+  db.query("UPDATE hoivien SET ? WHERE TaiKhoanID = ?", [fields, accountId], (err, result) => {
+    if (err) return callback(err);
+    if (!result.affectedRows) return callback(null, null);
+    Hoivien.getProfileByAccount(accountId, callback);
+  });
+};
+
 Hoivien.insert = (hoivien, callback) => {
   const sqlString = "INSERT INTO `hoivien` SET ?";
   db.query(sqlString, hoivien, (err, res) => {

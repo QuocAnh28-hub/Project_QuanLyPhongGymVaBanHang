@@ -1,6 +1,28 @@
 const Pt = require('../models/pt.model');
 
+function positiveInteger(value) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 const PtController = {
+
+  getActive: (req, res) => {
+    Pt.getActive((err, result) => {
+      if (err) return res.status(500).json({ message: 'Lỗi khi lấy danh sách PT' });
+      res.json(result);
+    });
+  },
+
+  getActiveById: (req, res) => {
+    const id = positiveInteger(req.params.PTID);
+    if (!id) return res.status(400).json({ message: 'PTID không hợp lệ' });
+    Pt.getActiveById(id, (err, result) => {
+      if (err) return res.status(500).json({ message: 'Lỗi khi lấy chi tiết PT' });
+      if (!result) return res.status(404).json({ message: 'Không tìm thấy PT đang hoạt động' });
+      res.json(result);
+    });
+  },
 
   getAll: (req, res) => {
     Pt.getAll((err, result) => {

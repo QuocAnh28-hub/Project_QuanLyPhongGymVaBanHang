@@ -2,6 +2,7 @@ import { requestRecoveryCode, verifyRecoveryCode, changeRecoveredPassword } from
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { readLocal, writeLocal } from '@/lib/local-store';
 import { getAccount, getAccounts, isActiveCustomer, registerAccount, type ApiAccount } from '@/lib/account-api';
+import { getMemberProfile } from '@/lib/profile-api';
 
 type Account = { accountId: number | null; name: string; email: string; phone: string; password: string; role: 'member'; avatar: string | null; height: number | null; weight: number | null; birthDate: string | null; fitnessGoal: string | null };
 type Registration = Pick<Account, 'name' | 'email' | 'phone' | 'password'>;
@@ -15,6 +16,7 @@ type AuthValue = {
   verifyOtp: (code: string) => Promise<boolean>;
   resetPassword: (password: string) => Promise<boolean>;
   recovery: Recovery | null;
+  refreshUser: () => Promise<void>;
 };
 
 const SEED: Account = { accountId: null, name: 'Admin QA-Gym', email: 'admin', phone: '0123456789', password: '12345678', role: 'member', avatar: null, height: 178, weight: 74, birthDate: '1998-09-12', fitnessGoal: 'Tăng cơ siết mỡ (Lean Muscle)' };
@@ -25,8 +27,14 @@ const REMEMBERED = 'qa-gym-dev-credential-v2';
 const API_SESSION = 'qa-gym-api-session-v1';
 const AuthContext = createContext<AuthValue | null>(null);
 
-function apiIdentity(account: ApiAccount): Omit<Account, 'password'> {
-  return { accountId: account.TaiKhoanID, name: account.Email.split('@')[0], email: account.Email, phone: '', role: 'member', avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
+async function profileIdentity(account: ApiAccount): Promise<Omit<Account, 'password'>> {
+  const profile = await getMemberProfile(account.TaiKhoanID);
+  return {
+    accountId: account.TaiKhoanID, name: profile.HoTen, email: account.Email,
+    phone: profile.SoDienThoai || '', role: 'member', avatar: profile.AnhDaiDien,
+    height: profile.ChieuCao, weight: profile.CanNang,
+    birthDate: profile.NgaySinh, fitnessGoal: profile.MucTieuTheHinh,
+  };
 }
 
 function asMember(account: Registration & Partial<Account>): Account {
@@ -45,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const [remembered, apiSession] = await Promise.all([readLocal(REMEMBERED), readLocal(API_SESSION)]);
         if (apiSession) {
           const account = await getAccount(Number(apiSession));
-          if (account && isActiveCustomer(account)) setUser(apiIdentity(account));
+          if (account && isActiveCustomer(account)) setUser(await profileIdentity(account));
           else await writeLocal(API_SESSION, null);
         }
         setSavedCredential(remembered ?? '');
@@ -64,8 +72,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(`Không lưu được phiên đăng nhập: ${error instanceof Error ? error.message : String(error)}`);
     }
     setSavedCredential(remember ? credential.trim() : '');
-    setUser(apiIdentity(account));
+    setUser(await profileIdentity(account));
     return true;
+  }
+  async function refreshUser() {
+    if (!user?.accountId) return;
+    const account = await getAccount(user.accountId);
+    if (account && isActiveCustomer(account)) setUser(await profileIdentity(account));
   }
   async function register(account: Registration) {
     await registerAccount({
@@ -95,6 +108,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRecovery(null);
     return true;
   }
-  return <AuthContext.Provider value={{ ready, user, savedCredential, login, register, logout, beginRecovery, verifyOtp, resetPassword, recovery }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ ready, user, savedCredential, login, register, logout, refreshUser, beginRecovery, verifyOtp, resetPassword, recovery }}>{children}</AuthContext.Provider>;
 }
 export function useAuth() { const context = useContext(AuthContext); if (!context) throw new Error('AuthProvider is missing'); return context; }

@@ -29,6 +29,13 @@ Taikhoan.getAll = (callback) => {
   });
 };
 
+Taikhoan.changePassword = (id, currentPassword, newPassword, callback) => {
+  db.query("UPDATE taikhoan SET MatKhau = ? WHERE TaiKhoanID = ? AND TrangThai = 'ACTIVE' AND MatKhau = ?", [newPassword, id, currentPassword], (error, result) => {
+    if (error) return callback(error);
+    callback(null, result.affectedRows === 1);
+  });
+};
+
 Taikhoan.insert = (taikhoan, callback) => {
   const sqlString = "INSERT INTO `taikhoan` SET ?";
   db.query(sqlString, taikhoan, (err, res) => {

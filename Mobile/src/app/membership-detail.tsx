@@ -4,14 +4,19 @@ import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { getPackageById } from "@/lib/packages";
 import { useAuth } from "@/context/AuthContext";
 import { getCheckInHistory, type CheckInRecord } from "@/lib/check-in";
 import {
-  getActiveMembership,
-  type MembershipEnrollment,
-} from "@/lib/membership";
-import { parseLocalDate } from "@/lib/package-logic";
+  getCurrentMembership,
+  type CurrentMembership,
+} from "@/lib/membership-api";
+import {
+  getActivePackageDetail,
+  packageFromApiDetail,
+} from "@/lib/package-api";
+import type { GymPackage } from "@/lib/packages";
+import { formatVND, parseLocalDate } from "@/lib/package-logic";
+import { backendPaymentMethodNames } from "@/lib/payment-api";
 
 const C = {
   bg: "#111316",
@@ -28,21 +33,32 @@ const daysBetween = (from: Date, to: Date) =>
 
 export default function MembershipDetailScreen() {
   const { user } = useAuth();
-  const [membership, setMembership] = useState<MembershipEnrollment | null>();
+  const [membership, setMembership] = useState<CurrentMembership | null>();
+  const [gymPackage, setGymPackage] = useState<GymPackage | null>(null);
   const [records, setRecords] = useState<CheckInRecord[]>([]);
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
-      if (user)
+      if (user?.accountId)
         Promise.all([
-          getActiveMembership(user.email),
-          getCheckInHistory(user.email),
-        ]).then(([active, history]) => {
+          getCurrentMembership(user.accountId),
+          getCheckInHistory(user.email).catch(() => []),
+        ]).then(async ([current, history]) => {
+          const packageDetail = current
+            ? await getActivePackageDetail(current.GoiTapID)
+                .then(packageFromApiDetail)
+                .catch(() => null)
+            : null;
           if (mounted) {
-            setMembership(active);
-            setRecords(
-              history.filter((row) => row.membershipId === active?.id),
-            );
+            setMembership(current);
+            setGymPackage(packageDetail);
+            setRecords(history);
+          }
+        }).catch(() => {
+          if (mounted) {
+            setMembership(null);
+            setGymPackage(null);
+            setRecords([]);
           }
         });
       return () => {
@@ -52,17 +68,17 @@ export default function MembershipDetailScreen() {
   );
   const data = useMemo(() => {
     if (!membership) return null;
-    const start = parseLocalDate(membership.activationDate);
-    const end = parseLocalDate(membership.expiryDate);
+    const start = parseLocalDate(membership.NgayBatDau);
+    const end = parseLocalDate(membership.NgayKetThuc);
     const today = new Date();
     const total = start && end ? Math.max(1, daysBetween(start, end)) : 1;
     const elapsed = start ? Math.max(0, daysBetween(start, today)) : 0;
     return {
       remaining: end ? daysBetween(today, end) : 0,
       progress: Math.min(100, Math.round((elapsed / total) * 100)),
-      package: getPackageById(membership.packageId),
+      package: gymPackage,
     };
-  }, [membership]);
+  }, [gymPackage, membership]);
   const back = () =>
     router.canGoBack() ? router.back() : router.replace("/profile");
   return (
@@ -88,7 +104,7 @@ export default function MembershipDetailScreen() {
           </Pressable>
           <View style={s.headingCopy}>
             <Text style={s.kicker}>QA-GYM ELITE ACCESS</Text>
-            <Text style={s.title}>GÓI TẬP ĐANG DÙNG</Text>
+            <Text style={s.title}>GÓI TẬP CỦA TÔI</Text>
           </View>
         </View>
         {membership === undefined ? (
@@ -116,35 +132,51 @@ export default function MembershipDetailScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.packageName}>
-                    {membership.packageName.toUpperCase()}
+                    {membership.TenGoi.toUpperCase()}
                   </Text>
                   <Text style={s.label}>
                     {data.package?.tier ?? "QA-GYM MEMBERSHIP"}
                   </Text>
                 </View>
-                <Text style={s.active}>● ĐANG HOẠT ĐỘNG</Text>
+                <Text style={s.active}>
+                  ● {membership.TinhTrangSuDung === "ACTIVE"
+                    ? "ĐANG HOẠT ĐỘNG"
+                    : "CHỜ KÍCH HOẠT"}
+                </Text>
               </View>
               <Text style={s.label}>HỘI VIÊN SỞ HỮU</Text>
               <View style={s.owner}>
                 <Text style={s.ownerName}>{user?.name.toUpperCase()}</Text>
                 <Text style={s.cardCode}>
                   MÃ THẺ{`\n`}
-                  {membership.id.replace("QA-MEM-", "QA-")}
+                  QA-{membership.DangKyID}
                 </Text>
               </View>
               <View style={s.remaining}>
                 <Text style={s.remainingText}>
-                  ◉ Còn lại {data.remaining} ngày
+                  ◉ {membership.TinhTrangSuDung === "ACTIVE"
+                    ? `Còn lại ${data.remaining} ngày`
+                    : `Bắt đầu sau ${daysBetween(new Date(), parseLocalDate(membership.NgayBatDau) ?? new Date())} ngày`}
                 </Text>
                 <Text style={s.muted}>
                   Hết hạn:{" "}
                   {new Date(
-                    `${membership.expiryDate}T00:00:00`,
+                    `${membership.NgayKetThuc}T00:00:00`,
                   ).toLocaleDateString("vi-VN")}
                 </Text>
               </View>
               <View style={s.track}>
                 <View style={[s.progress, { width: `${data.progress}%` }]} />
+              </View>
+              <View style={s.details}>
+                <DetailRow label="Mã đăng ký" value={String(membership.DangKyID)} />
+                <DetailRow label="Mã thanh toán" value={String(membership.ThanhToanID)} />
+                <DetailRow label="Thời hạn" value={`${membership.SoThang} tháng`} />
+                <DetailRow label="Tháng tặng" value={`${membership.ThangTang} tháng`} />
+                <DetailRow label="Ngày bắt đầu" value={new Date(`${membership.NgayBatDau}T00:00:00`).toLocaleDateString("vi-VN")} />
+                <DetailRow label="Ngày hết hạn" value={new Date(`${membership.NgayKetThuc}T00:00:00`).toLocaleDateString("vi-VN")} />
+                <DetailRow label="Đã thanh toán" value={formatVND(Number(membership.SoTien))} />
+                <DetailRow label="Phương thức" value={backendPaymentMethodNames[membership.PhuongThucThanhToan]} />
               </View>
               <View style={s.actions}>
                 <Pressable
@@ -160,8 +192,8 @@ export default function MembershipDetailScreen() {
                     router.push({
                       pathname: "/package-detail",
                       params: {
-                        id: membership.packageId,
-                        renewal: membership.id,
+                        id: String(membership.GoiTapID),
+                        renewal: String(membership.DangKyID),
                       },
                     })
                   }
@@ -201,7 +233,7 @@ export default function MembershipDetailScreen() {
               </Text>
             </View>
             <View style={s.privileges}>
-              {data.package?.privileges.map((item) => (
+              {data.package?.privileges.length ? data.package.privileges.map((item) => (
                 <View style={s.privilege} key={item.id}>
                   <View style={s.check}>
                     <Ionicons name="checkmark" color={C.lime} size={15} />
@@ -211,7 +243,7 @@ export default function MembershipDetailScreen() {
                     <Text style={s.muted}>{item.description}</Text>
                   </View>
                 </View>
-              )) ?? (
+              )) : (
                 <Text style={s.muted}>
                   Chưa có dữ liệu quyền lợi cho gói này.
                 </Text>
@@ -260,6 +292,15 @@ function Stat({
       <Text style={s.label}>{label}</Text>
       <Text style={s.statValue}>{value}</Text>
       <Text style={s.muted}>{detail}</Text>
+    </View>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={s.detailRow}>
+      <Text style={s.muted}>{label}</Text>
+      <Text style={s.detailValue}>{value}</Text>
     </View>
   );
 }
@@ -365,6 +406,9 @@ const s = StyleSheet.create({
     overflow: "hidden",
   },
   progress: { height: 5, backgroundColor: C.lime },
+  details: { gap: 7, marginTop: 4 },
+  detailRow: { flexDirection: "row", justifyContent: "space-between", gap: 10 },
+  detailValue: { color: C.text, fontSize: 11, fontWeight: "700", textAlign: "right" },
   actions: { flexDirection: "row", gap: 8, marginTop: 8 },
   qrButton: {
     flex: 1,

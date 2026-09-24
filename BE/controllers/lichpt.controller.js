@@ -1,6 +1,29 @@
 const Lichpt = require('../models/lichpt.model');
 
+function positiveInteger(value) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function validDate(value) {
+  return !value || /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
 const LichptController = {
+
+  getAvailableByPT: (req, res) => {
+    const ptId = positiveInteger(req.params.PTID);
+    const from = req.query.from ? String(req.query.from) : null;
+    const to = req.query.to ? String(req.query.to) : null;
+    if (!ptId) return res.status(400).json({ message: 'PTID không hợp lệ' });
+    if (!validDate(from) || !validDate(to) || (from && to && from > to)) {
+      return res.status(400).json({ message: 'Khoảng ngày không hợp lệ' });
+    }
+    Lichpt.getAvailableByPT(ptId, from, to, (err, result) => {
+      if (err) return res.status(500).json({ message: 'Lỗi khi lấy lịch PT' });
+      res.json(result);
+    });
+  },
 
   getAll: (req, res) => {
     Lichpt.getAll((err, result) => {
