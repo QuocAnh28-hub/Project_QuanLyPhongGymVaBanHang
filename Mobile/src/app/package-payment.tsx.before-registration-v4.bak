@@ -4,61 +4,35 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthColors as C } from "@/constants/theme";
+import { useAuth } from "@/context/AuthContext";
 import { formatVND } from "@/lib/package-logic";
 import {
-  getRegistrationDetail,
-  paymentMethodNames,
-  type RegistrationDetail,
-} from "@/lib/membership-api";
-import type { PaymentMethod } from "@/lib/membership";
+  getEnrollment,
+  type MembershipEnrollment,
+  type PaymentMethod,
+} from "@/lib/membership";
+
+const paymentNames: Record<PaymentMethod, string> = {
+  vietqr: "VietQR / Chuyển khoản 24/7",
+  card: "Thẻ tín dụng / Ghi nợ quốc tế",
+  wallet: "Ví điện tử",
+  pos: "Thanh toán trực tiếp tại quầy",
+};
 
 export default function PackagePaymentScreen() {
-  const { registrationId, paymentMethod } = useLocalSearchParams<{
-    registrationId?: string;
-    paymentMethod?: string;
-  }>();
-  const [order, setOrder] = useState<RegistrationDetail | null>();
-  const [error, setError] = useState("");
-
+  const { orderId } = useLocalSearchParams<{ orderId?: string }>();
+  const { user } = useAuth();
+  const [order, setOrder] = useState<MembershipEnrollment | null>();
   useEffect(() => {
     let active = true;
-    const id = Number(registrationId);
-
-    if (!Number.isInteger(id) || id <= 0) {
-      setOrder(null);
-      setError("Mã đăng ký không hợp lệ.");
-      return;
-    }
-
-    getRegistrationDetail(id)
-      .then((row) => {
-        if (active) {
-          setOrder(row);
-          setError("");
-        }
-      })
-      .catch((loadError) => {
-        if (active) {
-          setOrder(null);
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Không tải được đăng ký gói tập.",
-          );
-        }
+    if (user && typeof orderId === "string")
+      getEnrollment(user.email, orderId).then((row) => {
+        if (active) setOrder(row);
       });
-
     return () => {
       active = false;
     };
-  }, [registrationId]);
-
-  const selectedPaymentMethod =
-    paymentMethod &&
-    ["vietqr", "card", "wallet", "pos"].includes(paymentMethod)
-      ? (paymentMethod as PaymentMethod)
-      : "vietqr";
-
+  }, [orderId, user]);
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
@@ -70,16 +44,13 @@ export default function PackagePaymentScreen() {
           <Ionicons name="person-circle-outline" color={C.text} size={25} />
         </Pressable>
       </View>
-
       <ScrollView contentContainerStyle={s.content}>
         <Stepper />
-
         {order === undefined ? (
-          <Text style={s.muted}>Đang tải đăng ký từ hệ thống...</Text>
+          <Text style={s.muted}>Đang tải đơn...</Text>
         ) : !order ? (
           <View style={s.card}>
-            <Text style={s.title}>Không tìm thấy đăng ký gói tập.</Text>
-            {error ? <Text style={s.error}>{error}</Text> : null}
+            <Text style={s.title}>Không tìm thấy đơn đăng ký.</Text>
           </View>
         ) : (
           <>
@@ -88,46 +59,33 @@ export default function PackagePaymentScreen() {
             </View>
             <Text style={s.status}>CHỜ THANH TOÁN</Text>
             <Text style={s.intro}>
-              Đăng ký #{order.DangKyID} đã được lưu trong MySQL. Gói tập chưa
-              được kích hoạt.
+              Đơn đăng ký đã được lưu. Gói tập chưa được kích hoạt.
             </Text>
-
             <View style={s.card}>
-              <Row label="Mã đăng ký" value={String(order.DangKyID)} />
+              <Row label="Mã đơn" value={order.id} />
               <Row
                 label="Gói tập"
-                value={`${order.TenGoi} · ${order.SoThang} tháng${
-                  order.ThangTang ? ` + ${order.ThangTang} tháng tặng` : ""
-                }`}
+                value={`${order.packageName} · ${order.durationMonths} tháng`}
               />
               <Row
-                label="Giá gói"
-                value={formatVND(Number(order.GiaBan))}
-              />
-              {Number(order.SoTienGiam) > 0 ? (
-                <Row
-                  label="Khuyến mãi"
-                  value={`-${formatVND(Number(order.SoTienGiam))}`}
-                />
-              ) : null}
-              <Row
-                label="Số tiền chờ thanh toán"
-                value={formatVND(Number(order.GiaThanhToan))}
+                label="Số tiền"
+                value={formatVND(order.finalAmount ?? order.totalPrice)}
                 accent
               />
               <Row
-                label="Phương thức dự kiến"
-                value={paymentMethodNames[selectedPaymentMethod]}
+                label="Phương thức"
+                value={paymentNames[order.paymentMethod] ?? order.paymentMethod}
               />
-              <Row label="Ngày kích hoạt" value={order.NgayBatDau} />
-              <Row label="Ngày hết hạn" value={order.NgayKetThuc} />
-              <Row label="Trạng thái" value={order.TrangThai} />
+              <Row
+                label="Ngày kích hoạt"
+                value={order.activationDate ?? order.startDate}
+              />
+              <Row label="Ngày hết hạn" value={order.expiryDate} />
             </View>
-
             <View style={s.notice}>
               <Ionicons
                 name={
-                  selectedPaymentMethod === "pos"
+                  order.paymentMethod === "pos"
                     ? "storefront-outline"
                     : "information-circle-outline"
                 }
@@ -136,23 +94,22 @@ export default function PackagePaymentScreen() {
               />
               <View style={{ flex: 1 }}>
                 <Text style={s.noticeTitle}>
-                  {selectedPaymentMethod === "pos"
+                  {order.paymentMethod === "pos"
                     ? "Thanh toán tại lễ tân QA-Gym"
-                    : "Chưa xác nhận thanh toán"}
+                    : "Cổng thanh toán chưa được kết nối"}
                 </Text>
                 <Text style={s.muted}>
-                  {selectedPaymentMethod === "pos"
-                    ? "Cung cấp mã đăng ký tại quầy. Gói chỉ được ACTIVE sau khi thanh toán được xác nhận."
-                    : "Bước hiện tại chỉ tạo đăng ký PENDING. Hệ thống chưa giả lập giao dịch thành công."}
+                  {order.paymentMethod === "pos"
+                    ? "Vui lòng cung cấp mã đơn tại quầy. Hội viên chỉ được kích hoạt sau khi lễ tân xác nhận thanh toán."
+                    : "Phương thức này chưa được kết nối trong bản hiện tại. Đơn vẫn ở trạng thái chờ thanh toán; không có giao dịch nào được xác nhận."}
                 </Text>
               </View>
             </View>
-
             <Pressable
               style={s.primary}
-              onPress={() => router.replace("/packages")}
+              onPress={() => router.replace("/profile")}
             >
-              <Text style={s.primaryText}>VỀ DANH SÁCH GÓI</Text>
+              <Text style={s.primaryText}>XEM ĐƠN TRONG HỒ SƠ</Text>
               <Ionicons name="arrow-forward" color={C.surfaceLowest} />
             </Pressable>
           </>
@@ -161,7 +118,6 @@ export default function PackagePaymentScreen() {
     </SafeAreaView>
   );
 }
-
 function Stepper() {
   return (
     <View style={s.stepper}>
@@ -181,7 +137,6 @@ function Stepper() {
     </View>
   );
 }
-
 function Row({
   label,
   value,
@@ -198,7 +153,6 @@ function Row({
     </View>
   );
 }
-
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.background },
   header: {
@@ -260,20 +214,9 @@ const s = StyleSheet.create({
     fontWeight: "900",
     textAlign: "center",
   },
-  intro: {
-    color: C.muted,
-    fontSize: 13,
-    lineHeight: 18,
-    textAlign: "center",
-  },
-  card: {
-    backgroundColor: C.surface,
-    borderRadius: 13,
-    padding: 14,
-    gap: 12,
-  },
+  intro: { color: C.muted, fontSize: 13, lineHeight: 18, textAlign: "center" },
+  card: { backgroundColor: C.surface, borderRadius: 13, padding: 14, gap: 12 },
   title: { color: C.text, fontSize: 17, fontWeight: "800" },
-  error: { color: C.error, fontSize: 12, lineHeight: 17 },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -313,9 +256,5 @@ const s = StyleSheet.create({
     backgroundColor: C.lime,
     borderRadius: 11,
   },
-  primaryText: {
-    color: C.surfaceLowest,
-    fontSize: 12,
-    fontWeight: "900",
-  },
+  primaryText: { color: C.surfaceLowest, fontSize: 12, fontWeight: "900" },
 });

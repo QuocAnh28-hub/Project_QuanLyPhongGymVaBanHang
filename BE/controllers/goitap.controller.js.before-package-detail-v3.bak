@@ -53,19 +53,19 @@ const GoitapController = {
       return res.status(400).json({ message: 'GoiTapID không hợp lệ' });
     }
 
-    Goitap.getActiveDetailById(id, (err, result) => {
+    Goitap.getActiveById(id, (err, result) => {
       if (err) {
-        console.error('Lỗi khi lấy chi tiết gói tập đang hoạt động:', err);
+        console.error('Lỗi khi lấy gói tập đang hoạt động:', err);
         return res.status(500).json({ message: 'Lỗi khi lấy dữ liệu' });
       }
 
-      if (!result) {
+      if (!result || result.length === 0) {
         return res.status(404).json({
           message: 'Không tìm thấy gói tập đang hoạt động'
         });
       }
 
-      res.json(result);
+      res.json(result[0]);
     });
   },
 

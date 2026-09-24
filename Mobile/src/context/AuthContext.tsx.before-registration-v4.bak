@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { readLocal, writeLocal } from '@/lib/local-store';
 import { getAccount, getAccounts, isActiveCustomer, type ApiAccount } from '@/lib/account-api';
 
-type Account = { accountId: number | null; name: string; email: string; phone: string; password: string; role: 'member'; avatar: string | null; height: number | null; weight: number | null; birthDate: string | null; fitnessGoal: string | null };
+type Account = { name: string; email: string; phone: string; password: string; role: 'member'; avatar: string | null; height: number | null; weight: number | null; birthDate: string | null; fitnessGoal: string | null };
 type Registration = Pick<Account, 'name' | 'email' | 'phone' | 'password'>;
 type Recovery = { email: string; verified: boolean };
 type AuthValue = {
@@ -15,7 +15,7 @@ type AuthValue = {
   resetPassword: (password: string) => Promise<boolean>;
   recovery: Recovery | null;
 };
-const SEED: Account = { accountId: null, name: 'Admin QA-Gym', email: 'admin', phone: '0123456789', password: '12345678', role: 'member', avatar: null, height: 178, weight: 74, birthDate: '1998-09-12', fitnessGoal: 'Tăng cơ siết mỡ (Lean Muscle)' };
+const SEED: Account = { name: 'Admin QA-Gym', email: 'admin', phone: '0123456789', password: '12345678', role: 'member', avatar: null, height: 178, weight: 74, birthDate: '1998-09-12', fitnessGoal: 'Tăng cơ siết mỡ (Lean Muscle)' };
 const ACCOUNTS = 'qa-gym-dev-accounts-v2';
 const SESSION = 'qa-gym-dev-session-v2';
 const REMEMBERED = 'qa-gym-dev-credential-v2';
@@ -25,10 +25,10 @@ const AuthContext = createContext<AuthValue | null>(null);
 // ponytail: local development accounts only; replace this store with server auth before production.
 function identity(account: Account) { const { password: _password, ...user } = account; return user; }
 function apiIdentity(account: ApiAccount): Omit<Account, 'password'> {
-  return { accountId: account.TaiKhoanID, name: account.Email.split('@')[0], email: account.Email, phone: '', role: 'member', avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
+  return { name: account.Email.split('@')[0], email: account.Email, phone: '', role: 'member', avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
 }
 function asMember(account: Registration & Partial<Account>): Account {
-  const profile = account.email.toLowerCase() === SEED.email ? SEED : { accountId: null, avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
+  const profile = account.email.toLowerCase() === SEED.email ? SEED : { avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
   return { ...profile, ...account, role: 'member' };
 }
 
