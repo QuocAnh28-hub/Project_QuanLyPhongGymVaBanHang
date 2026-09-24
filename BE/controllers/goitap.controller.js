@@ -35,6 +35,40 @@ const GoitapController = {
     });
   },
 
+  getActive: (req, res) => {
+    Goitap.getActive((err, result) => {
+      if (err) {
+        console.error('Lỗi khi lấy danh sách gói tập đang hoạt động:', err);
+        return res.status(500).json({ message: 'Lỗi khi lấy dữ liệu' });
+      }
+
+      res.json(result);
+    });
+  },
+
+  getActiveById: (req, res) => {
+    const id = Number(req.params.GoiTapID);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: 'GoiTapID không hợp lệ' });
+    }
+
+    Goitap.getActiveById(id, (err, result) => {
+      if (err) {
+        console.error('Lỗi khi lấy gói tập đang hoạt động:', err);
+        return res.status(500).json({ message: 'Lỗi khi lấy dữ liệu' });
+      }
+
+      if (!result || result.length === 0) {
+        return res.status(404).json({
+          message: 'Không tìm thấy gói tập đang hoạt động'
+        });
+      }
+
+      res.json(result[0]);
+    });
+  },
+
   create: (req, res) => {
     const data = req.body;
 

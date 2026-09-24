@@ -30,6 +30,22 @@ Goitap.getAll = (callback) => {
   });
 };
 
+Goitap.getActive = (callback) => {
+  const sqlString = `SELECT GoiTapID, TenGoi, MoTa, ThoiHan, Gia, TrangThai, NgayTao
+    FROM \`goitap\`
+    WHERE TrangThai = 'ACTIVE'
+    ORDER BY Gia ASC, GoiTapID ASC`;
+  db.query(sqlString, callback);
+};
+
+Goitap.getActiveById = (GoiTapID, callback) => {
+  const sqlString = `SELECT GoiTapID, TenGoi, MoTa, ThoiHan, Gia, TrangThai, NgayTao
+    FROM \`goitap\`
+    WHERE GoiTapID = ? AND TrangThai = 'ACTIVE'
+    LIMIT 1`;
+  db.query(sqlString, [GoiTapID], callback);
+};
+
 Goitap.insert = (goitap, callback) => {
   const sqlString = "INSERT INTO `goitap` SET ?";
   db.query(sqlString, goitap, (err, res) => {
