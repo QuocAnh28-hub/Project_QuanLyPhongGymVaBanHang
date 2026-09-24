@@ -3,31 +3,27 @@ import { router, useFocusEffect } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useCallback, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { getUnreadCount, subscribeNotifications } from "@/lib/notifications";
+import { getNotifications } from "@/lib/notification-api";
 
 export default function Header() {
   const { user } = useAuth();
   const [unread, setUnread] = useState(0);
   useFocusEffect(
     useCallback(() => {
-      if (!user) return;
+      if (!user?.accountId) return;
       let live = true;
       const refresh = () => {
-        getUnreadCount(user.email)
-          .then((count) => {
-            if (live) setUnread(count);
+        getNotifications(user.accountId!)
+          .then((rows) => {
+            if (live) setUnread(rows.filter(row => !row.NgayDoc).length);
           })
           .catch(() => {
             if (live) setUnread(0);
           });
       };
       refresh();
-      const unsubscribe = subscribeNotifications((id) => {
-        if (id === user.email) refresh();
-      });
       return () => {
         live = false;
-        unsubscribe();
       };
     }, [user]),
   );

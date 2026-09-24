@@ -203,7 +203,7 @@ Thuept.confirmBooking = (ThuePTID, callback) => {
           [ThuePTID],
         );
         await query.commit();
-        return callback(null, current[0]);
+        return callback(null, { ...current[0], alreadyConfirmed: true });
       }
       if (booking.TrangThai !== "PENDING") {
         throw appError(409, "INVALID_BOOKING_STATUS", "Trạng thái lịch thuê PT không thể xác nhận");

@@ -132,6 +132,26 @@ Thanhtoan.getByRegistration = (DangKyID, callback) => {
   );
 };
 
+Thanhtoan.getHistoryByAccount = (accountId, callback) => {
+  db.query(`
+    SELECT CONCAT('PACKAGE-', tt.ThanhToanID) AS id, 'PACKAGE' AS type,
+      tt.ThanhToanID AS referenceId, g.TenGoi AS title, tt.SoTien AS amount,
+      tt.NgayThanhToan AS date, tt.TrangThai AS status,
+      tt.PhuongThucThanhToan AS paymentMethod
+    FROM thanhtoan tt
+    INNER JOIN dangkygoitap dk ON dk.DangKyID = tt.DangKyID
+    INNER JOIN goitap g ON g.GoiTapID = dk.GoiTapID
+    INNER JOIN hoivien hv ON hv.HoiVienID = tt.HoiVienID
+    WHERE hv.TaiKhoanID = ?
+    UNION ALL
+    SELECT CONCAT('ORDER-', dh.DonHangID), 'PRODUCT_ORDER', dh.DonHangID,
+      CONCAT('Đơn hàng #', dh.DonHangID), dh.TongTien, dh.NgayDat, dh.TrangThai, NULL
+    FROM donhang dh
+    INNER JOIN hoivien hv ON hv.HoiVienID = dh.HoiVienID
+    WHERE hv.TaiKhoanID = ?
+    ORDER BY date DESC, id DESC`, [accountId, accountId], callback);
+};
+
 Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
   db.getConnection(async (connectionError, connection) => {
     if (connectionError) return callback(connectionError);

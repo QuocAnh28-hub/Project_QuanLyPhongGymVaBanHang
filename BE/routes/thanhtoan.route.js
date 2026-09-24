@@ -4,6 +4,7 @@ const router = express.Router();
 const ThanhtoanController = require('../controllers/thanhtoan.controller');
 
 router.get('/', ThanhtoanController.getAll);
+router.get('/history/account/:TaiKhoanID', ThanhtoanController.getHistoryByAccount);
 router.get('/package/:ThanhToanID', ThanhtoanController.getPackagePaymentDetail);
 router.get('/registration/:DangKyID', ThanhtoanController.getByRegistration);
 router.post('/package', ThanhtoanController.createPackagePayment);

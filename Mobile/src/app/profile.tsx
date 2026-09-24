@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,24 +19,55 @@ import { getCheckInHistory } from "@/lib/check-in-api";
 import { getCurrentMembership, type CurrentMembership } from "@/lib/membership-api";
 import { getActivePackageDetail, packageFromApiDetail } from "@/lib/package-api";
 import type { GymPackage } from "@/lib/packages";
+import { getMemberProfile, updateMemberProfile, type MemberProfile } from "@/lib/profile-api";
 
 const menuItems = [
+  ["user", "Hồ sơ cá nhân"],
+  ["bell-o", "Thông báo"],
+  ["credit-card", "Lịch sử giao dịch"],
   ["history", "Đổi mật khẩu tài khoản"],
   ["info-circle", "Chính sách bảo lưu thẻ tập"],
   ["bell-o", "Cài đặt thông báo & Nhắc lịch tập"],
 ];
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value, onChangeText, editable = true }: { label: string; value: string; onChangeText?: (value: string) => void; editable?: boolean }) {
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <TextInput value={value} editable={false} style={styles.fieldInput} />
+      <TextInput value={value} onChangeText={onChangeText} editable={editable} style={styles.fieldInput} />
     </View>
   );
 }
 
 export default function ProfileScreen() {
-  const { logout, user } = useAuth();
+  const { logout, user, refreshUser } = useAuth();
+  const [profile, setProfile] = useState<MemberProfile | null>(null);
+  const [form, setForm] = useState({ HoTen: '', SoDienThoai: '', NgaySinh: '', GioiTinh: '', DiaChi: '', ChieuCao: '', CanNang: '', MucTieuTheHinh: '' });
+  const [saving, setSaving] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const setField = (key: keyof typeof form) => (value: string) => setForm(current => ({ ...current, [key]: value }));
+  const loadProfile = useCallback(async () => {
+    if (!user?.accountId) return;
+    try {
+      const row = await getMemberProfile(user.accountId);
+      setProfile(row);
+      setForm({ HoTen: row.HoTen || '', SoDienThoai: row.SoDienThoai || '', NgaySinh: row.NgaySinh || '', GioiTinh: row.GioiTinh || '', DiaChi: row.DiaChi || '', ChieuCao: row.ChieuCao == null ? '' : String(row.ChieuCao), CanNang: row.CanNang == null ? '' : String(row.CanNang), MucTieuTheHinh: row.MucTieuTheHinh || '' });
+      setProfileError('');
+    } catch (error) { setProfileError(error instanceof Error ? error.message : 'Không tải được hồ sơ'); }
+  }, [user?.accountId]);
+  useFocusEffect(useCallback(() => { void loadProfile(); }, [loadProfile]));
+  async function saveProfile() {
+    if (!user?.accountId || saving) return;
+    if (!form.HoTen.trim() || (form.SoDienThoai && !/^0\d{9,10}$/.test(form.SoDienThoai)) || (form.NgaySinh && !/^\d{4}-\d{2}-\d{2}$/.test(form.NgaySinh)) || (form.GioiTinh && !['NAM', 'NU', 'KHAC'].includes(form.GioiTinh)) || [form.ChieuCao, form.CanNang].some(v => v && (!Number.isFinite(Number(v)) || Number(v) <= 0 || Number(v) > 999))) {
+      Alert.alert('Thông tin không hợp lệ', 'Kiểm tra họ tên, số điện thoại, ngày sinh (YYYY-MM-DD), giới tính (NAM/NU/KHAC), chiều cao và cân nặng.'); return;
+    }
+    setSaving(true);
+    try {
+      await updateMemberProfile(user.accountId, { HoTen: form.HoTen.trim(), SoDienThoai: form.SoDienThoai || null, NgaySinh: form.NgaySinh || null, GioiTinh: form.GioiTinh || null, DiaChi: form.DiaChi || null, ChieuCao: form.ChieuCao ? Number(form.ChieuCao) : null, CanNang: form.CanNang ? Number(form.CanNang) : null, MucTieuTheHinh: form.MucTieuTheHinh || null });
+      await loadProfile(); await refreshUser(); Alert.alert('Thành công', 'Thông tin cá nhân đã được cập nhật.');
+    } catch (error) { Alert.alert('Không thể lưu', error instanceof Error ? error.message : 'Vui lòng thử lại'); }
+    finally { setSaving(false); }
+  }
   const [today] = useState(() => new Date());
   const [activeMembership, setActiveMembership] = useState<CurrentMembership | null>(null);
   const [activePackage, setActivePackage] = useState<GymPackage | null>(null);
@@ -274,33 +306,27 @@ export default function ProfileScreen() {
             <Text style={styles.kicker}>♧ CÀI ĐẶT THÔNG TIN CÁ NHÂN</Text>
           </View>
           <View style={styles.formCard}>
-            <Field label="HỌ VÀ TÊN" value={user?.name ?? ""} />
-            <Field label="ĐỊA CHỈ EMAIL" value={user?.email ?? ""} />
-            <Field label="SỐ ĐIỆN THOẠI" value={user?.phone ?? ""} />
+            {profileError ? <Text style={styles.fieldLabel}>{profileError}</Text> : null}
+            <Field label="HỌ VÀ TÊN" value={form.HoTen} onChangeText={setField('HoTen')} />
+            <Field label="EMAIL ĐĂNG NHẬP" value={profile?.EmailDangNhap || user?.email || ''} editable={false} />
+            <Field label="SỐ ĐIỆN THOẠI" value={form.SoDienThoai} onChangeText={setField('SoDienThoai')} />
+            <Field label="GIỚI TÍNH (NAM/NU/KHAC)" value={form.GioiTinh} onChangeText={setField('GioiTinh')} />
+            <Field label="ĐỊA CHỈ" value={form.DiaChi} onChangeText={setField('DiaChi')} />
             <View style={styles.tripleRow}>
               <Field
-                label="CHIỀU CAO"
-                value={user?.height ? `${user.height} cm` : "Chưa cập nhật"}
+                label="CHIỀU CAO (CM)" value={form.ChieuCao} onChangeText={setField('ChieuCao')}
               />
               <Field
-                label="CÂN NẶNG"
-                value={user?.weight ? `${user.weight} kg` : "Chưa cập nhật"}
+                label="CÂN NẶNG (KG)" value={form.CanNang} onChangeText={setField('CanNang')}
               />
               <Field
-                label="NGÀY SINH"
-                value={user?.birthDate ?? "Chưa cập nhật"}
+                label="NGÀY SINH" value={form.NgaySinh} onChangeText={setField('NgaySinh')}
               />
             </View>
-            <Text style={styles.fieldLabel}>MỤC TIÊU THỂ HÌNH</Text>
-            <View style={styles.selectBox}>
-              <Text style={styles.selectText}>
-                {user?.fitnessGoal ?? "Chưa cập nhật"}
-              </Text>
-              <Text style={styles.chevron}>⌄</Text>
-            </View>
-            <Pressable style={styles.primaryButton}>
+            <Field label="MỤC TIÊU THỂ HÌNH" value={form.MucTieuTheHinh} onChangeText={setField('MucTieuTheHinh')} />
+            <Pressable style={styles.primaryButton} onPress={saveProfile} disabled={saving || !profile}>
               <FontAwesome name="save" size={12} color="#192000" />
-              <Text style={styles.primaryText}>CẬP NHẬT THÔNG TIN</Text>
+              <Text style={styles.primaryText}>{saving ? 'ĐANG LƯU...' : 'CẬP NHẬT THÔNG TIN'}</Text>
             </Pressable>
           </View>
           <View style={styles.menuCard}>
@@ -309,7 +335,13 @@ export default function ProfileScreen() {
                 style={styles.menuRow}
                 key={label}
                 onPress={
-                  label === "Đổi mật khẩu tài khoản"
+                  label === "Hồ sơ cá nhân"
+                    ? () => loadProfile()
+                    : label === "Thông báo"
+                    ? () => router.push('/notifications')
+                    : label === "Lịch sử giao dịch"
+                    ? () => router.push('/transaction-history')
+                    : label === "Đổi mật khẩu tài khoản"
                     ? () => router.push("/password-change")
                     : label === "Cài đặt thông báo & Nhắc lịch tập"
                       ? () => router.push("/notifications" as never)

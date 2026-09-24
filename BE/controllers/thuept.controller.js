@@ -1,4 +1,13 @@
 const Thuept = require('../models/thuept.model');
+const Thongbao = require('../models/thongbao.model');
+
+function notifyBooking(booking, title) {
+  Thongbao.notifyMember(booking.HoiVienID, {
+    Loai: 'PT_BOOKING', DanhMuc: 'SCHEDULE', TieuDe: title,
+    NoiDung: `Lịch PT #${booking.ThuePTID} với ${booking.HoTenPT} ngày ${booking.NgayLam}.`,
+    ActionType: 'PT', ActionPayload: { ThuePTID: booking.ThuePTID },
+  });
+}
 
 function positiveInteger(value) {
   const parsed = Number(value);
@@ -24,6 +33,7 @@ const ThueptController = {
     }
     Thuept.book({ TaiKhoanID, LichPTID, GhiChu }, (err, result) => {
       if (err) return respondError(res, err);
+      notifyBooking(result, 'Đã gửi yêu cầu thuê PT');
       res.status(201).json({ message: 'Đăng ký lịch PT thành công', data: result });
     });
   },
@@ -52,6 +62,7 @@ const ThueptController = {
     if (!id) return res.status(400).json({ message: 'ThuePTID không hợp lệ' });
     Thuept.confirmBooking(id, (err, result) => {
       if (err) return respondError(res, err);
+      if (!result.alreadyConfirmed) notifyBooking(result, 'Lịch PT đã được xác nhận');
       res.json({ message: 'Xác nhận lịch PT thành công', data: result });
     });
   },
@@ -64,6 +75,7 @@ const ThueptController = {
     }
     Thuept.cancel({ ThuePTID, TaiKhoanID }, (err, result) => {
       if (err) return respondError(res, err);
+      notifyBooking(result, 'Lịch PT đã bị hủy');
       res.json({ message: 'Hủy lịch PT thành công', data: result });
     });
   },
