@@ -1,6 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   AuthButton,
@@ -13,10 +13,13 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function ForgotPassword() {
   const { beginRecovery } = useAuth();
-  const [method, setMethod] = useState<"sms" | "email">("sms");
+  const [method, setMethod] = useState<"sms" | "email">("email");
   const [credential, setCredential] = useState("");
   const [error, setError] = useState("");
-  function handleSendRecoveryCode() {
+  const [busy, setBusy] = useState(false);
+  const lock = useRef(false);
+  async function handleSendRecoveryCode() {
+    if (lock.current) return;
     if (!credential.trim()) {
       setError("Vui lòng nhập số điện thoại hoặc email.");
       return;
@@ -29,9 +32,12 @@ export default function ForgotPassword() {
       setError("Số điện thoại không hợp lệ.");
       return;
     }
-    const result = beginRecovery(credential, method);
-    if (result) setError(result);
-    else router.push("/verify-otp");
+    lock.current = true; setBusy(true); setError('');
+    try {
+      await beginRecovery(credential);
+      router.push('/verify-otp');
+    } catch (error) { setError(error instanceof Error ? error.message : 'Không thể gửi mã xác nhận.'); }
+    finally { lock.current = false; setBusy(false); }
   }
   return (
     <AuthScreen>
@@ -45,7 +51,7 @@ export default function ForgotPassword() {
       </View>
       <Text style={[authStyles.title, s.title]}>Khôi phục mật khẩu</Text>
       <Text style={[authStyles.description, s.description]}>
-        Đừng lo lắng! Hãy nhập số điện thoại hoặc email đã đăng ký tài khoản
+        Đừng lo lắng! Hãy nhập email đã đăng ký tài khoản
         QA-Gym, chúng tôi sẽ gửi mã OTP xác thực tức thì.
       </Text>
       <View style={s.methods}>
@@ -55,18 +61,19 @@ export default function ForgotPassword() {
               key: "sms",
               icon: "chatbox-ellipses-outline",
               title: "Gửi mã OTP qua SMS",
-              detail: "SĐT liên kết: *** *** 678",
+              detail: "Chưa hỗ trợ",
             },
             {
               key: "email",
               icon: "mail-open-outline",
-              title: "Gửi liên kết qua Email",
-              detail: "Hộp thư: tu***@gmail.com",
+              title: "Gửi mã OTP qua Email",
+              detail: "Sử dụng email đã đăng ký tài khoản",
             },
           ] as const
         ).map((item) => (
           <Pressable
             key={item.key}
+            disabled={busy || item.key === 'sms'}
             style={s.method}
             onPress={() => {
               setMethod(item.key);
@@ -86,7 +93,7 @@ export default function ForgotPassword() {
             <View style={s.methodCopy}>
               <View style={authStyles.row}>
                 <Text style={s.methodTitle}>{item.title}</Text>
-                {item.key === "sms" && (
+                {item.key === "email" && (
                   <Text style={s.recommended}>KHUYÊN DÙNG</Text>
                 )}
               </View>
@@ -99,7 +106,8 @@ export default function ForgotPassword() {
         ))}
       </View>
       <AuthField
-        label="NHẬP SỐ ĐIỆN THOẠI HOẶC EMAIL"
+        label="EMAIL ĐÃ ĐĂNG KÝ"
+        editable={!busy}
         icon={method === "sms" ? "phone-portrait-outline" : "mail-outline"}
         placeholder={method === "sms" ? "09xx xxx 678" : "email@example.com"}
         keyboardType={method === "sms" ? "phone-pad" : "email-address"}
@@ -130,7 +138,7 @@ export default function ForgotPassword() {
           phòng gym.
         </Text>
       </View>
-      <AuthButton title="GỬI MÃ XÁC THỰC" onPress={handleSendRecoveryCode} />
+      <AuthButton title={busy ? 'ĐANG GỬI MÃ...' : 'GỬI MÃ XÁC THỰC'} disabled={busy} onPress={handleSendRecoveryCode} />
       <Pressable
         style={s.support}
         onPress={() => Linking.openURL("tel:19008899")}
