@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -97,6 +98,10 @@ function WorkoutCard({
   );
 }
 
+const packages = () => {
+  router.replace("/packages");
+}
+
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
@@ -132,13 +137,13 @@ export default function HomeScreen() {
               <Text style={styles.heroDetail}>
                 Trải nghiệm toàn bộ tiện ích cao cấp
               </Text>
-              <TouchableOpacity style={styles.heroButton}>
+              <TouchableOpacity onPress={packages} style={styles.heroButton}>
                 <Text style={styles.heroButtonText}>Xem gói hội viên →</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          <SectionTitle title="Khám phá tiện ích" action="XEM TẤT CẢ" />
+          <SectionTitle title="Khám phá tiện ích" />
           <View style={styles.statsGrid}>
             {workouts.map((item) => (
               <StatCard key={item.label} {...item} />
@@ -171,7 +176,7 @@ export default function HomeScreen() {
             />
           </ScrollView>
 
-          <SectionTitle title="Lớp Group-X hôm nay" action="XEM LỊCH" />
+          <SectionTitle title="Lớp Group-X hôm nay" />
           <View style={styles.schedule}>
             {[
               ["17:30", "Les Mills BodyPump™", "Phòng tập GX1", "Còn 12 chỗ"],
@@ -191,29 +196,17 @@ export default function HomeScreen() {
             ))}
           </View>
 
-          <View style={styles.reviewCard}>
-            <Text style={styles.stars}>
-              ★★★★★ <Text style={styles.rating}>4.9 / 5.0</Text>
-            </Text>
-            <Text style={styles.reviewQuote}>
-              “Không gian tuyệt vời, thiết bị hiện đại và đội ngũ rất nhiệt
-              tình!”
-            </Text>
-            <Text style={styles.reviewAuthor}>
-              — Nguyễn Minh Anh, hội viên 2 năm
-            </Text>
-          </View>
           <View style={styles.ctaCard}>
             <Text style={styles.ctaIcon}>♨</Text>
             <Text style={styles.ctaKicker}>TRẢI NGHIỆM KHÁC BIỆT MỖI NGÀY</Text>
             <Text style={styles.ctaTitle}>
-              Đăng ký trải nghiệm{`\n`}Tập thử 7 ngày 0đ
+              Đăng ký trải nghiệm
             </Text>
             <Text style={styles.ctaCopy}>
               Tận hưởng đầy đủ tiện ích cao cấp và cảm nhận sự thay đổi.
             </Text>
-            <TouchableOpacity style={styles.ctaButton}>
-              <Text style={styles.ctaButtonText}>ĐĂNG KÝ TẬP THỬ NGAY →</Text>
+            <TouchableOpacity onPress={packages} style={styles.ctaButton}>
+              <Text style={styles.ctaButtonText}>ĐĂNG KÝ TẬP NGAY →</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.footerNote}>
