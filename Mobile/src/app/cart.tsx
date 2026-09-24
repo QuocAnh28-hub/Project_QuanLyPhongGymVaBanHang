@@ -1,283 +1,88 @@
-import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { router } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { DEFAULT_PRODUCT_IMAGE } from "@/constants/shop-image";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useRef, useState } from "react";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-import { products } from "@/constants/products";
-
-const cartItems = [
-  {
-    product: products[0],
-    quantity: 1,
-    detail: "Vị: Chocolate Fudge • 5 Lbs / 2.27kg",
-  },
-  {
-    product: products[1],
-    quantity: 1,
-    detail: "Vị: Ice Blue Razz • 60 Servings",
-  },
-  {
-    product: products[4],
-    quantity: 1,
-    detail: "Size: M • Màu: Matte Black Leather",
-  },
-] as const;
-
-function parsePrice(price: string) {
-  return Number(price.replace(/\D/g, ""));
-}
-
-function formatPrice(value: number) {
-  return `${value.toLocaleString("vi-VN")}đ`;
-}
+import { useAuth } from "@/context/AuthContext";
+import { getCart, updateCart, formatPrice, type CartItem } from "@/lib/shop-api";
 
 export default function CartScreen() {
-  const [quantities, setQuantities] = useState<number[]>(
-    cartItems.map((item) => item.quantity),
-  );
-  const subtotal = cartItems.reduce(
-    (total, item, index) =>
-      total + parsePrice(item.product[2]) * quantities[index],
-    0,
-  );
-  const discount = 325000;
-  const shipping = 0;
-  const total = subtotal - discount + shipping;
-
-  const changeQuantity = (index: number, amount: number) => {
-    setQuantities((current) =>
-      current.map((quantity, itemIndex) =>
-        itemIndex === index ? Math.max(1, quantity + amount) : quantity,
-      ),
-    );
-  };
-
-  return (
-    <View style={styles.container}>
-      <SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}
-        >
-          <View style={styles.topBar}>
-            <Pressable
-              style={styles.backButton}
-              onPress={() => router.back()}
-              accessibilityLabel="Quay lại"
-            >
-              <FontAwesome name="angle-left" size={22} color="#d9ff00" />
-            </Pressable>
-            <Text style={styles.topBarTitle}>CART</Text>
-            <Pressable
-              style={styles.accountButton}
-              accessibilityLabel="Tài khoản"
-            >
-              <FontAwesome name="user" size={13} color="#516000" />
-            </Pressable>
-          </View>
-
-          <View style={styles.headingRow}>
-            <Text style={styles.heading}>
-              GIỎ HÀNG <Text style={styles.itemCount}>(3 Món)</Text>
-            </Text>
-            <Text style={styles.clearText}>Xóa tất cả</Text>
-          </View>
-          <View style={styles.shippingCard}>
-            <View style={styles.shippingTop}>
-              <View style={styles.shippingIcon}>
-                <FontAwesome name="truck" size={13} color="#d9ff00" />
-              </View>
-              <Text style={styles.shippingTitle}>Freeship Toàn Quốc</Text>
-              <Text style={styles.shippingPercent}>85%</Text>
-            </View>
-            <Text style={styles.shippingCopy}>
-              Mua thêm <Text style={styles.highlight}>150.000đ</Text> để mở khóa
-              miễn phí vận chuyển!
-            </Text>
-            <View style={styles.progressTrack}>
-              <View style={styles.progressFill} />
-            </View>
-          </View>
-
-          {cartItems.map((item, index) => (
-            <View style={styles.itemCard} key={item.product[0]}>
-              <View style={styles.itemTop}>
-                <Pressable
-                  style={styles.checkbox}
-                  accessibilityLabel={`Chọn ${item.product[0]}`}
-                >
-                  <FontAwesome name="check" size={10} color="#192100" />
-                </Pressable>
-                <Image
-                  source={{ uri: item.product[7] }}
-                  style={styles.itemImage}
-                  contentFit="cover"
-                />
-                <View style={styles.itemCopy}>
-                  <Text style={styles.itemName} numberOfLines={1}>
-                    {item.product[0]}
-                  </Text>
-                  <Text style={styles.itemDetail} numberOfLines={1}>
-                    {item.detail}
-                  </Text>
-                  <View style={styles.itemPriceRow}>
-                    <Text style={styles.itemPrice}>{item.product[2]}</Text>
-                    <Text style={styles.itemOldPrice}>{item.product[3]}</Text>
-                  </View>
-                </View>
-                <Pressable accessibilityLabel={`Xóa ${item.product[0]}`}>
-                  <Text style={styles.remove}>×</Text>
-                </Pressable>
-              </View>
-              <View style={styles.itemBottom}>
-                <Text style={styles.stock}>
-                  <FontAwesome name="check-circle" size={10} color="#35d69d" />{" "}
-                  CÒN HÀNG
-                </Text>
-                <View style={styles.quantity}>
-                  <Pressable
-                    onPress={() => changeQuantity(index, -1)}
-                    accessibilityLabel="Giảm số lượng"
-                  >
-                    <Text style={styles.quantityAction}>−</Text>
-                  </Pressable>
-                  <Text style={styles.quantityValue}>{quantities[index]}</Text>
-                  <Pressable
-                    onPress={() => changeQuantity(index, 1)}
-                    accessibilityLabel="Tăng số lượng"
-                  >
-                    <Text style={styles.quantityAction}>+</Text>
-                  </Pressable>
-                </View>
-              </View>
-            </View>
-          ))}
-
-          <View style={styles.giftCard}>
-            <View style={styles.giftTop}>
-              <FontAwesome name="gift" size={13} color="#d9ff00" />
-              <Text style={styles.giftTitle}>QUÀ TẶNG KÈM ĐẠT MỐC</Text>
-              <Text style={styles.giftBadge}>MỞ KHÓA</Text>
-            </View>
-            <View style={styles.giftContent}>
-              <Image
-                source={{ uri: products[3][7] }}
-                style={styles.giftImage}
-                contentFit="cover"
-              />
-              <View style={styles.giftCopy}>
-                <Text style={styles.giftName}>
-                  Bình Lắc Shaker QA-Gym 700ml
-                </Text>
-                <Text style={styles.giftDetail}>
-                  Chất liệu nhựa Tritan BPA-Free cao cấp
-                </Text>
-                <Text style={styles.giftPrice}>
-                  MIỄN PHÍ <Text style={styles.giftOldPrice}>đ 150.000đ</Text>
-                </Text>
-              </View>
-              <MaterialCommunityIcons
-                name="cog-outline"
-                size={17}
-                color="#35d69d"
-              />
-            </View>
-          </View>
-
-          <View style={styles.couponCard}>
-            <View style={styles.couponTitleRow}>
-              <FontAwesome name="tag" size={12} color="#cbd5c5" />
-              <Text style={styles.couponTitle}> ƯU ĐÃI / COUPON</Text>
-            </View>
-            <View style={styles.couponForm}>
-              <Text style={styles.couponCode}>GYMERVIP10</Text>
-              <Pressable style={styles.applyButton}>
-                <Text style={styles.applyText}>ÁP DỤNG</Text>
-              </Pressable>
-            </View>
-            <View style={styles.appliedCoupon}>
-              <FontAwesome name="certificate" size={11} color="#d9ff00" />
-              <Text style={styles.appliedText}>
-                {" "}
-                GYMERVIP10{" "}
-                <Text style={styles.appliedDetail}>(-10% tổng đơn)</Text>
-              </Text>
-              <FontAwesome name="times-circle-o" size={12} color="#b9c39e" />
-            </View>
-          </View>
-
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>TÓM TẮT ĐƠN HÀNG</Text>
-            <SummaryRow
-              label="Tạm tính (3 món)"
-              value={formatPrice(subtotal)}
-            />
-            <SummaryRow
-              label="Giảm giá hội viên (GYMERVIP10)"
-              value={`-${formatPrice(discount)}`}
-              accent
-            />
-            <SummaryRow
-              label="Phí vận chuyển"
-              value="Miễn phí (Đơn > 500k)"
-              accent
-            />
-            <SummaryRow
-              label="Điểm tích lũy QA-Points"
-              value="+290 điểm"
-              accent
-            />
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>TỔNG THANH TOÁN</Text>
-              <Text style={styles.totalValue}>{formatPrice(total)}</Text>
-            </View>
-            <Text style={styles.tax}>Đã bao gồm VAT & Quà tặng</Text>
-          </View>
-        </ScrollView>
-        <View style={styles.bottomBar}>
-          <View>
-            <Text style={styles.bottomLabel}>Tổng cộng:</Text>
-            <Text style={styles.bottomTotal}>{formatPrice(total)}</Text>
-            <Text style={styles.saved}>Tiết kiệm {formatPrice(discount)}</Text>
-          </View>
-          <Pressable
-            style={styles.checkoutButton}
-            onPress={() => router.push("./checkout")}
-            accessibilityLabel="Mua hàng"
-          >
-            <Text style={styles.checkoutText}>MUA HÀNG (3)</Text>
-            <FontAwesome name="arrow-right" size={13} color="#1b2400" />
-          </Pressable>
-        </View>
-      </SafeAreaView>
+  const { user } = useAuth();
+  const accountId = user?.accountId;
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [saving, setSaving] = useState(false);
+  const busy = useRef(false);
+  const generation = useRef(0);
+  const [reload, setReload] = useState(0);
+  useFocusEffect(useCallback(() => {
+    const version = ++generation.current;
+    setItems([]); setError(''); setNotice(''); setLoading(!!accountId);
+    if (accountId) getCart(accountId).then(data => { if (version === generation.current) setItems(data); })
+      .catch(e => { if (version === generation.current) setError(e.message); })
+      .finally(() => { if (version === generation.current) setLoading(false); });
+    return () => { generation.current++; };
+  // reload intentionally invalidates the focus callback for pull-to-refresh/retry.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountId, reload]));
+  async function change(item: CartItem, quantity: number) {
+    if (!accountId || busy.current) return;
+    const version = generation.current;
+    busy.current = true; setSaving(true); setNotice('');
+    try { const data = await updateCart(accountId, item.SanPhamID, quantity, 'PUT'); if (version === generation.current) setItems(data); }
+    catch (e) { if (version === generation.current) setNotice(e instanceof Error ? e.message : 'Không cập nhật được giỏ hàng.'); }
+    finally { busy.current = false; setSaving(false); }
+  }
+  const total = items.reduce((sum, item) => sum + item.GiaBan * item.SoLuong, 0);
+  const count = items.reduce((sum, item) => sum + item.SoLuong, 0);
+  const canCheckout = !!accountId && !loading && !saving && !error && items.length > 0
+    && items.every(item => item.TrangThai === 'ACTIVE' && item.DanhMucTrangThai === 'ACTIVE');
+  return <View style={styles.container}><SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
+    <ScrollView style={styles.scrollArea} contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => { if (!saving) setReload(n => n + 1); }} tintColor="#d9ff00" />}>
+      <View style={styles.topBar}><Pressable style={styles.backButton} onPress={() => router.canGoBack() ? router.back() : router.replace('/product')} accessibilityLabel="Quay lại"><FontAwesome name="angle-left" size={22} color="#d9ff00" /></Pressable><Text style={styles.topBarTitle}>GIỎ HÀNG ({count})</Text></View>
+      {!accountId ? <Pressable onPress={() => router.push('/login')}><Text style={styles.itemName}>Đăng nhập để xem giỏ hàng</Text></Pressable> : loading ? <ActivityIndicator color="#d9ff00" /> : error ? <View><Text style={styles.itemName}>{error}</Text><Pressable onPress={() => setReload(n => n + 1)}><Text style={styles.stock}>Thử lại</Text></Pressable></View> : <>
+        {!items.length && <Text style={styles.itemName}>Giỏ hàng của bạn đang trống.</Text>}
+        {!!notice && <Text accessibilityLiveRegion="polite" style={styles.itemName}>{notice}</Text>}
+        {items.map(item => <View key={item.SanPhamID} style={styles.itemCard}>
+          <View style={styles.itemTop}><Pressable onPress={() => router.push({ pathname: '/product-detail', params: { productId: item.SanPhamID } })} accessibilityLabel={`Xem ${item.TenSanPham}`}>
+            <Image source={DEFAULT_PRODUCT_IMAGE} style={styles.itemImage} contentFit="contain" />
+          </Pressable><View style={styles.itemCopy}><Text style={styles.itemName}>{item.TenSanPham}</Text><Text style={styles.itemDetail}>{item.DonViTinh}</Text><Text style={styles.itemPrice}>{formatPrice(item.GiaBan)}</Text></View><Pressable disabled={saving} onPress={() => void change(item, 0)} accessibilityLabel={`Xóa ${item.TenSanPham}`}><Text style={styles.remove}>×</Text></Pressable></View>
+          <View style={styles.itemBottom}><Text style={styles.stock}>{item.TrangThai === 'ACTIVE' && item.DanhMucTrangThai === 'ACTIVE' ? formatPrice(item.GiaBan * item.SoLuong) : 'Sản phẩm không còn bán'}</Text><View style={styles.quantity}>
+            <Pressable disabled={saving || item.SoLuong <= 1} onPress={() => void change(item, item.SoLuong - 1)} accessibilityLabel="Giảm số lượng"><Text style={styles.quantityAction}>−</Text></Pressable><Text style={styles.quantityValue}>{item.SoLuong}</Text><Pressable disabled={saving || item.SoLuong >= 99 || item.TrangThai !== 'ACTIVE' || item.DanhMucTrangThai !== 'ACTIVE'} onPress={() => void change(item, item.SoLuong + 1)} accessibilityLabel="Tăng số lượng"><Text style={styles.quantityAction}>+</Text></Pressable>
+          </View></View>
+        </View>)}
+        {!!items.length && <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>TỔNG TIỀN ĐƠN HÀNG ({count} sản phẩm)</Text>
+          <Text style={styles.totalValue}>{formatPrice(total)}</Text>
+          <Text style={styles.tax}>Phí vận chuyển được tính tại trang thanh toán.</Text>
+          {!canCheckout && !saving && <Text style={styles.tax}>Vui lòng xóa sản phẩm hết hàng hoặc ngừng bán trước khi thanh toán.</Text>}
+        </View>}
+      </>}
+      <Pressable style={styles.continueShopping} onPress={() => router.push('/product')}>
+        <Text style={styles.continueShoppingText}>TIẾP TỤC MUA SẮM</Text>
+      </Pressable>
+    </ScrollView>
+    <View style={styles.bottomBar}>
+      <View style={styles.bottomSummary}>
+        <Text style={styles.bottomLabel}>Tổng tiền đơn hàng</Text>
+        <Text style={styles.bottomTotal} accessibilityLiveRegion="polite">{loading || error ? '—' : formatPrice(total)}</Text>
+        <Text style={styles.bottomNote}>Chưa gồm phí vận chuyển</Text>
+      </View>
+      <Pressable accessibilityRole="button" accessibilityLabel="Thanh toán ngay" disabled={!canCheckout} style={[styles.checkoutButton, !canCheckout && styles.checkoutDisabled]} onPress={() => router.push('/checkout')}>
+        <Text style={styles.checkoutText}>THANH TOÁN NGAY</Text><FontAwesome name="arrow-right" size={13} color="#1b2400" />
+      </Pressable>
     </View>
-  );
-}
-
-function SummaryRow({
-  label,
-  value,
-  accent = false,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-}) {
-  return (
-    <View style={styles.summaryRow}>
-      <Text style={styles.summaryLabel}>{label}</Text>
-      <Text style={[styles.summaryValue, accent && styles.summaryAccent]}>
-        {value}
-      </Text>
-    </View>
-  );
+  </SafeAreaView></View>;
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f1213" },
-  safeArea: { flex: 1, width: "100%", maxWidth: 540, alignSelf: "center" },
+  container: { flex: 1, minHeight: 0, backgroundColor: "#0f1213" },
+  safeArea: { flex: 1, minHeight: 0, width: "100%", maxWidth: 540, alignSelf: "center" },
+  scrollArea: { flex: 1, minHeight: 0 },
   content: { paddingHorizontal: 13, paddingBottom: 18 },
   topBar: {
     height: 45,
@@ -498,7 +303,8 @@ const styles = StyleSheet.create({
   totalValue: { color: "#d9ff00", fontSize: 17, fontWeight: "900" },
   tax: { color: "#9ba59a", fontSize: 8, textAlign: "right", marginTop: 2 },
   bottomBar: {
-    minHeight: 62,
+    flexShrink: 0,
+    minHeight: 84,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -506,14 +312,19 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#2b3031",
     paddingHorizontal: 13,
-    paddingTop: 7,
+    paddingVertical: 12,
+    gap: 10,
   },
-  bottomLabel: { color: "#89938a", fontSize: 8 },
-  bottomTotal: { color: "#d9ff00", fontSize: 17, fontWeight: "900" },
+  bottomSummary: { flex: 1, gap: 3 },
+  bottomLabel: { color: "#b6c0b7", fontSize: 12 },
+  bottomTotal: { color: "#d9ff00", fontSize: 20, fontWeight: "900" },
+  bottomNote: { color: "#89938a", fontSize: 10 },
+  continueShopping: { alignItems: "center", paddingVertical: 16 },
+  continueShoppingText: { color: "#d9ff00", fontSize: 12, fontWeight: "800" },
   saved: { color: "#8c978c", fontSize: 7 },
   checkoutButton: {
-    height: 39,
-    minWidth: 137,
+    minHeight: 48,
+    paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -521,5 +332,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#d9ff00",
     borderRadius: 8,
   },
-  checkoutText: { color: "#1b2400", fontSize: 9, fontWeight: "900" },
+  checkoutText: { color: "#1b2400", fontSize: 12, fontWeight: "900" },
+  checkoutDisabled: { backgroundColor: "#929c62" },
 });

@@ -1,344 +1,62 @@
-import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { DEFAULT_PRODUCT_IMAGE } from "@/constants/shop-image";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useRef, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-import { products } from "@/constants/products";
-
-const productFacts = [
-  ["PROTEIN ISOLATE", "25g", "100% WPI & Hydrolyzed"],
-  ["BCAA TỰ NHIÊN", "6g", "Tái tạo cơ siêu tốc"],
-  ["ĐƯỜNG & CHẤT BÉO", "0g", "Zero Fat & Zero Sugar"],
-  ["NĂNG LƯỢNG SẠCH", "110 kcal", "Không lo dị ứng"],
-] as const;
-
-const nutritionRows = [
-  ["Khẩu phần 1 muỗng (30g)", "76 lần dùng"],
-  ["Năng lượng (Calories)", "110 kcal"],
-  ["Carbohydrate toàn phần (Total Fat)", "0g (0%)"],
-  ["Cholesterol", "5 mg (2%)"],
-  ["Natri (Sodium)", "50 mg (2%)"],
-  ["Carbohydrate đường (Sugars)", "1g (1%)"],
-  ["Protein tinh khiết", "25 g (50%)"],
-] as const;
-
-const reviews = [
-  [
-    "Tuấn Trí - PT QA-GYM",
-    "Mùi Vanilla thơm, dễ uống và không bị ngấy. Chất lượng đúng như cam kết, dùng rất hợp với lịch tập của mình.",
-  ],
-  [
-    "Minh Anh",
-    "Giao hàng siêu nhanh, đóng gói chắc chắn. Team tư vấn rất nhiệt tình và hướng dẫn dùng rõ ràng.",
-  ],
-] as const;
+import { useAuth } from "@/context/AuthContext";
+import { formatPrice, getShopProduct, updateCart } from "@/lib/shop-api";
 
 export default function ProductDetailScreen() {
   const { productId } = useLocalSearchParams<{ productId?: string }>();
-  const parsedProductIndex = Number(productId);
-  const productIndex =
-    Number.isInteger(parsedProductIndex) &&
-    parsedProductIndex >= 0 &&
-    parsedProductIndex < products.length
-      ? parsedProductIndex
-      : 0;
-  const product = products[productIndex];
+  const { user } = useAuth();
+  const [product, setProduct] = useState<Awaited<ReturnType<typeof getShopProduct>> | null>(null);
   const [quantity, setQuantity] = useState(1);
-
-  return (
-    <View style={styles.container}>
-      <SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}
-        >
-          <View style={styles.topBar}>
-            <Pressable
-              style={styles.iconButton}
-              onPress={() => router.back()}
-              accessibilityLabel="Quay lại danh sách sản phẩm"
-            >
-              <FontAwesome name="arrow-left" size={17} color="#edf2e8" />
-            </Pressable>
-            <Text style={styles.topBarTitle}>CHI TIẾT SẢN PHẨM</Text>
-            <View style={styles.topBarActions}>
-              <Pressable
-                style={styles.iconButton}
-                accessibilityLabel="Chia sẻ sản phẩm"
-              >
-                <FontAwesome name="share-alt" size={15} color="#eef4e7" />
-              </Pressable>
-              <Pressable
-                style={styles.iconButton}
-                accessibilityLabel="Yêu thích sản phẩm"
-              >
-                <FontAwesome name="heart-o" size={15} color="#eef4e7" />
-              </Pressable>
-            </View>
-          </View>
-
-          <View style={styles.hero}>
-            <Image
-              source={{ uri: product[7] }}
-              style={styles.heroImage}
-              contentFit="cover"
-            />
-            <View style={styles.heroShade} />
-            {product[6] !== "" && (
-              <Text style={styles.badge}>{product[6]}</Text>
-            )}
-            <View style={styles.heroCopy}>
-              <Text style={styles.heroKicker}>QA-GYM PRO SHOP</Text>
-              <Text style={styles.heroTitle}>Nạp đúng. Tập chất.</Text>
-            </View>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.thumbnailList}
-          >
-            {[
-              productIndex,
-              ...products
-                .map((_, index) => index)
-                .filter((index) => index !== productIndex)
-                .slice(0, 3),
-            ].map((index, thumbnailIndex) => (
-              <View
-                key={`${index}-${thumbnailIndex}`}
-                style={[
-                  styles.thumbnail,
-                  thumbnailIndex === 0 && styles.thumbnailActive,
-                ]}
-              >
-                <Image
-                  source={{ uri: products[index][7] }}
-                  style={styles.thumbnailImage}
-                  contentFit="cover"
-                />
-              </View>
-            ))}
-          </ScrollView>
-
-          <View style={styles.productHeader}>
-            <View style={styles.ratingRow}>
-              <Text style={styles.rating}>
-                ★ {product[4]}{" "}
-                <Text style={styles.reviewCount}>({product[5]} đánh giá)</Text>
-              </Text>
-              <Text style={styles.stock}>
-                <FontAwesome name="check-circle" size={10} color="#d9ff00" />{" "}
-                CÒN HÀNG
-              </Text>
-            </View>
-            <Text style={styles.productName}>{product[0]}</Text>
-            <Text style={styles.productDetail}>
-              {product[1]} • Chính hãng 100%
-            </Text>
-            <View style={styles.priceLine}>
-              <Text style={styles.price}>{product[2]}</Text>
-              {product[3] !== "" && (
-                <Text style={styles.oldPrice}>{product[3]}</Text>
-              )}
-              <Text style={styles.discount}>-12%</Text>
-            </View>
-          </View>
-
-          <View style={styles.factGrid}>
-            {productFacts.map(([label, value, detail]) => (
-              <View key={label} style={styles.factCard}>
-                <Text style={styles.factLabel}>{label}</Text>
-                <View style={styles.factValueRow}>
-                  <Text style={styles.factValue}>{value}</Text>
-                  <MaterialCommunityIcons
-                    name="lightning-bolt"
-                    size={14}
-                    color="#d9ff00"
-                  />
-                </View>
-                <Text style={styles.factDetail}>{detail}</Text>
-              </View>
-            ))}
-          </View>
-
-          <SectionTitle title="HƯỞNG LỢI ĐẶC QUYỀN" kicker="Hội viên QA-Gym" />
-          <View style={styles.memberCard}>
-            <Benefit
-              icon="truck"
-              title="Miễn phí vận chuyển toàn quốc"
-              detail="Áp dụng đơn hàng nhập khẩu từ 500.000đ."
-            />
-            <Benefit
-              icon="gift"
-              title="Ưu đãi hội viên Diamond (-15%)"
-              detail="Tự động giảm khi tài khoản thành viên đủ hạng."
-            />
-            <Benefit
-              icon="certificate"
-              title="Tặng kèm Shaker QA-Gym 700ml"
-              detail="Bình lắc cao cấp cho đơn hàng dinh dưỡng từ 1.500.000đ."
-            />
-            <Benefit
-              icon="shield"
-              title="Cam kết chính hãng & đổi trả 7 ngày"
-              detail="Đền 200% nếu phát hiện hàng giả, đổi trả khi lỗi sản xuất."
-            />
-          </View>
-          <SectionTitle
-            title="THÔNG TIN DINH DƯỠNG CHUẨN FDA"
-            kicker="76 lần dùng"
-          />
-          <View style={styles.nutritionCard}>
-            {nutritionRows.map(([label, value], index) => (
-              <View
-                key={label}
-                style={[
-                  styles.nutritionRow,
-                  index === nutritionRows.length - 1 && styles.nutritionLastRow,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.nutritionLabel,
-                    index === nutritionRows.length - 1 && styles.proteinLabel,
-                  ]}
-                >
-                  {label}
-                </Text>
-                <Text
-                  style={[
-                    styles.nutritionValue,
-                    index === nutritionRows.length - 1 && styles.proteinValue,
-                  ]}
-                >
-                  {value}
-                </Text>
-              </View>
-            ))}
-          </View>
-          <View style={styles.featurePills}>
-            <Text style={styles.featurePill}>
-              <FontAwesome name="check" size={9} color="#d9ff00" /> Không Amino
-              Spiking
-            </Text>
-            <Text style={styles.featurePill}>
-              <FontAwesome name="check" size={9} color="#d9ff00" /> Không Gluten
-              &amp; Đường
-            </Text>
-            <Text style={styles.featurePill}>
-              <FontAwesome name="check" size={9} color="#d9ff00" /> Chuẩn GMP
-              Hoa Kỳ
-            </Text>
-          </View>
-          <SectionTitle
-            title="ĐÁNH GIÁ TỪ GYMERS"
-            kicker={`Xem tất cả (${product[5]})`}
-          />
-          <View style={styles.reviewSummary}>
-            <Text style={styles.reviewScore}>4.9 / 5</Text>
-            <Text style={styles.reviewStars}>★★★★★</Text>
-            <Text style={styles.reviewCaption}>98% khách hàng hài lòng</Text>
-          </View>
-          {reviews.map(([name, review]) => (
-            <View style={styles.reviewCard} key={name}>
-              <View style={styles.reviewTop}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{name.charAt(0)}</Text>
-                </View>
-                <View style={styles.reviewIdentity}>
-                  <Text style={styles.reviewer}>
-                    {name}{" "}
-                    <FontAwesome
-                      name="check-circle"
-                      size={10}
-                      color="#52c98c"
-                    />
-                  </Text>
-                  <Text style={styles.reviewDate}>
-                    Đã mua hàng • 4 ngày trước
-                  </Text>
-                </View>
-                <Text style={styles.reviewStars}>★★★★★</Text>
-              </View>
-              <Text style={styles.reviewText}>{review}</Text>
-            </View>
-          ))}
-          <Text style={styles.footerNote}>
-            QA-GYM PRO SHOP • Hàng chuẩn, tập chuẩn
-          </Text>
-        </ScrollView>
-
-        <View style={styles.bottomBar}>
-          <Pressable
-            style={styles.cartButton}
-            accessibilityLabel="Thêm vào giỏ hàng"
-          >
-            <FontAwesome name="shopping-cart" size={17} color="#d9ff00" />
-          </Pressable>
-          <View style={styles.quantityControl}>
-            <Pressable
-              onPress={() => setQuantity((current) => Math.max(1, current - 1))}
-              accessibilityLabel="Giảm số lượng"
-            >
-              <Text style={styles.quantityAction}>−</Text>
-            </Pressable>
-            <Text style={styles.quantity}>{quantity}</Text>
-            <Pressable
-              onPress={() => setQuantity((current) => current + 1)}
-              accessibilityLabel="Tăng số lượng"
-            >
-              <Text style={styles.quantityAction}>+</Text>
-            </Pressable>
-          </View>
-          <Pressable
-            style={styles.buyButton}
-            accessibilityLabel={`Mua ${product[0]} ngay`}
-          >
-            <MaterialCommunityIcons
-              name="lightning-bolt"
-              size={17}
-              color="#182000"
-            />
-            <Text style={styles.buyButtonText}>MUA NGAY ({product[2]})</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    </View>
-  );
-}
-
-function SectionTitle({ title, kicker }: { title: string; kicker: string }) {
-  return (
-    <View style={styles.sectionHeading}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <Text style={styles.sectionKicker}>{kicker}</Text>
-    </View>
-  );
-}
-
-function Benefit({
-  icon,
-  title,
-  detail,
-}: {
-  icon: keyof typeof FontAwesome.glyphMap;
-  title: string;
-  detail: string;
-}) {
-  return (
-    <View style={styles.benefitRow}>
-      <View style={styles.benefitIcon}>
-        <FontAwesome name={icon} size={13} color="#d9ff00" />
-      </View>
-      <View style={styles.benefitCopy}>
-        <Text style={styles.benefitTitle}>{title}</Text>
-        <Text style={styles.benefitDetail}>{detail}</Text>
-      </View>
-      <FontAwesome name="angle-right" size={14} color="#6f796e" />
-    </View>
-  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [adding, setAdding] = useState(false);
+  const busy = useRef(false);
+  const [reload, setReload] = useState(0);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    setLoading(true); setError(''); setProduct(null); setQuantity(1); setNotice('');
+    getShopProduct(Number(productId)).then(p => { if (active) setProduct(p); })
+      .catch(e => { if (active) setError(e.message); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  // reload intentionally invalidates the focus callback when retrying.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId, reload]));
+  async function add(openCart: boolean) {
+    if (!user?.accountId) { router.push('/login'); return; }
+    if (!product || busy.current) return;
+    busy.current = true; setAdding(true); setNotice('');
+    try {
+      await updateCart(user.accountId, product.SanPhamID, quantity);
+      setNotice(`Đã thêm ${quantity} sản phẩm vào giỏ hàng.`);
+      if (openCart) router.push('/cart');
+    } catch (e) { setNotice(e instanceof Error ? e.message : 'Không thêm được sản phẩm.'); }
+    finally { busy.current = false; setAdding(false); }
+  }
+  const canBuy = product?.TrangThai === 'ACTIVE' && !adding;
+  return <View style={styles.container}><SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
+    <ScrollView contentContainerStyle={styles.content}>
+      <View style={styles.topBar}><Pressable style={styles.iconButton} onPress={() => router.canGoBack() ? router.back() : router.replace('/product')} accessibilityLabel="Quay lại"><FontAwesome name="arrow-left" size={17} color="#edf2e8" /></Pressable><Text style={styles.topBarTitle}>CHI TIẾT SẢN PHẨM</Text><Pressable style={styles.iconButton} onPress={() => router.push('/cart')} accessibilityLabel="Mở giỏ hàng"><FontAwesome name="shopping-cart" size={17} color="#d9ff00" /></Pressable></View>
+      {loading ? <ActivityIndicator color="#d9ff00" /> : error ? <View><Text style={styles.productDetail}>{error}</Text><Pressable onPress={() => setReload(n => n + 1)}><Text style={styles.stock}>Thử lại</Text></Pressable></View> : product && <>
+        <View style={styles.hero}><Image source={DEFAULT_PRODUCT_IMAGE} style={styles.heroImage} contentFit="contain" /></View>
+        <View style={styles.productHeader}><View style={styles.ratingRow}><Text style={styles.productDetail}>{product.TenDanhMuc}</Text><Text style={styles.stock}>{product.TrangThai === 'ACTIVE' ? 'CÒN HÀNG' : 'HẾT HÀNG'}</Text></View><Text style={styles.productName}>{product.TenSanPham}</Text><Text style={styles.productDetail}>Đơn vị: {product.DonViTinh}</Text><View style={styles.priceLine}><Text style={styles.price}>{formatPrice(product.GiaBan)}</Text></View></View>
+        <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>MÔ TẢ SẢN PHẨM</Text></View><View style={styles.reviewCard}><Text style={[styles.reviewText, { fontSize: 14, lineHeight: 22 }]}>{product.MoTa || 'Thông tin sản phẩm đang được cập nhật.'}</Text></View>
+        <Text style={styles.productDetail}>Thành tiền ({quantity} {product.DonViTinh}): {formatPrice(product.GiaBan * quantity)}</Text>
+        {!!notice && <Text accessibilityLiveRegion="polite" style={[styles.productDetail, { color: '#d9ff00', marginTop: 16 }]}>{notice}</Text>}
+      </>}
+    </ScrollView>
+    {!loading && product && <View style={styles.bottomBar}>
+      <Pressable disabled={!canBuy} onPress={() => void add(false)} style={[styles.cartButton, !canBuy && { opacity: 0.4 }]} accessibilityLabel="Thêm vào giỏ hàng"><FontAwesome name="cart-plus" size={19} color="#d9ff00" /></Pressable>
+      <View style={styles.quantityControl}><Pressable disabled={!canBuy || quantity <= 1} onPress={() => setQuantity(q => Math.max(1, q - 1))} accessibilityLabel="Giảm số lượng"><Text style={styles.quantityAction}>−</Text></Pressable><Text style={styles.quantity}>{quantity}</Text><Pressable disabled={!canBuy || quantity >= 99} onPress={() => setQuantity(q => Math.min(99, q + 1))} accessibilityLabel="Tăng số lượng"><Text style={styles.quantityAction}>+</Text></Pressable></View>
+      <Pressable disabled={!canBuy} onPress={() => void add(true)} style={[styles.buyButton, !canBuy && { opacity: 0.4 }]}><Text style={styles.buyButtonText}>{adding ? 'ĐANG THÊM...' : product.TrangThai !== 'ACTIVE' ? 'HẾT HÀNG' : 'THÊM & XEM GIỎ HÀNG'}</Text></Pressable>
+    </View>}
+  </SafeAreaView></View>;
 }
 
 const styles = StyleSheet.create({

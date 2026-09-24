@@ -1,194 +1,78 @@
 import { FontAwesome } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { router } from "expo-router";
-import { useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { DEFAULT_PRODUCT_IMAGE } from "@/constants/shop-image";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import Header from "@/app/Common/header";
-import { products, type Product } from "@/constants/products";
-
-const categories = [
-  "Tất cả (8)",
-  "Whey Protein",
-  "Pre-Workout & EAA",
-  "Phụ kiện",
-];
-function ProductCard({
-  product,
-  onPress,
-}: {
-  product: Product;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      style={styles.productCard}
-      onPress={onPress}
-      accessibilityLabel={`Xem chi tiết ${product[0]}`}
-    >
-      <View style={styles.productImageWrap}>
-        <Image
-          source={{ uri: product[7] }}
-          style={styles.productImage}
-          contentFit="cover"
-        />
-        {product[6] !== "" && (
-          <Text style={styles.productBadge}>{product[6]}</Text>
-        )}
-        <Pressable
-          style={styles.favorite}
-          accessibilityLabel={`Yêu thích ${product[0]}`}
-        >
-          <Text style={styles.favoriteText}>♡</Text>
-        </Pressable>
-      </View>
-      <View style={styles.productInfo}>
-        <Text style={styles.rating}>
-          ★ {product[4]} <Text style={styles.reviewCount}>({product[5]})</Text>
-        </Text>
-        <Text style={styles.productName} numberOfLines={2}>
-          {product[0]}
-        </Text>
-        <Text style={styles.productDetail} numberOfLines={1}>
-          {product[1]}
-        </Text>
-        {product[3] !== "" && <Text style={styles.oldPrice}>{product[3]}</Text>}
-        <View style={styles.priceRow}>
-          <Text style={styles.productPrice}>{product[2]}</Text>
-          <Pressable
-            style={styles.addButton}
-            accessibilityLabel={`Thêm ${product[0]} vào giỏ`}
-          >
-            <Text style={styles.addButtonText}>+</Text>
-          </Pressable>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
+import { useAuth } from "@/context/AuthContext";
+import { formatPrice, getCatalog, searchKey, updateCart, type ShopProduct, type ShopCategory } from "@/lib/shop-api";
 
 export default function ProductsScreen() {
-  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
-  return (
-    <View style={styles.container}>
-      <SafeAreaView edges={["top"]} style={styles.safeArea}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}
-        >
-          <Header />
-          <View style={styles.intro}>
-            <Text style={styles.kicker}>
-              ✦ CHÍNH HÃNG 100% • BẢO ĐẢM QA-GYM
-            </Text>
-            <Text style={styles.title}>QA-Gym Pro Shop & Dinh{`\n`}Dưỡng</Text>
-            <Text style={styles.subtitle}>
-              Thực phẩm bổ sung chính hãng, phụ kiện tập luyện cao cấp
-            </Text>
-          </View>
-          <View style={styles.searchRow}>
-            <View style={styles.searchBox}>
-              <FontAwesome name="search" size={15} color="#a8b09f" />
-              <TextInput
-                placeholder="Tìm Whey, Pre-workout, đai lưng..."
-                placeholderTextColor="#8c9389"
-                style={styles.searchInput}
-              />
-            </View>
-            <Pressable
-              style={styles.filterButton}
-              accessibilityLabel="Bộ lọc sản phẩm"
-            >
-              <FontAwesome name="sliders" size={18} color="#d9ff00" />
-              <View style={styles.filterDot} />
-            </Pressable>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryList}
-          >
-            {categories.map((category) => (
-              <Pressable
-                key={category}
-                onPress={() => setSelectedCategory(category)}
-                style={[
-                  styles.categoryChip,
-                  selectedCategory === category && styles.categoryChipActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.categoryText,
-                    selectedCategory === category && styles.categoryTextActive,
-                  ]}
-                >
-                  {category}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-          <View style={styles.promoCard}>
-            <View style={styles.promoIcon}>
-              <FontAwesome name="certificate" size={22} color="#d9ff00" />
-            </View>
-            <View style={styles.promoCopy}>
-              <Text style={styles.promoTitle}>
-                ĐẶC QUYỀN HỘI VIÊN QA-GYM{" "}
-                <Text style={styles.promoDiscount}>-10% THẬT QUÁY</Text>
-              </Text>
-              <Text style={styles.promoText}>
-                Hội viên QA-Gym giảm thêm 10% cho mọi đơn hàng phụ kiện và dinh
-                dưỡng khi quét mã tích điểm tại quầy lễ tân.
-              </Text>
-            </View>
-          </View>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              Sản phẩm tuyển chọn <Text style={styles.countBadge}>8</Text>
-            </Text>
-            <Text style={styles.sortText}>↕ Phổ biến nhất</Text>
-          </View>
-          <View style={styles.productGrid}>
-            {products.map((product, index) => (
-              <ProductCard
-                key={product[0]}
-                product={product}
-                onPress={() =>
-                  router.push({
-                    pathname: "/product-detail",
-                    params: { productId: String(index) },
-                  })
-                }
-              />
-            ))}
-          </View>
-          <View style={styles.helpCard}>
-            <View style={styles.helpIcon}>
-              <FontAwesome name="headphones" size={18} color="#d9ff00" />
-            </View>
-            <View style={styles.helpCopy}>
-              <Text style={styles.helpTitle}>Cần tư vấn chọn Whey & Pre?</Text>
-              <Text style={styles.helpText}>
-                PT và chuyên gia dinh dưỡng sẵn sàng hỗ trợ bạn.
-              </Text>
-            </View>
-            <Pressable style={styles.helpButton}>
-              <Text style={styles.helpButtonText}>Hỏi{`\n`}ngay</Text>
-            </Pressable>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
-  );
+  const { user } = useAuth();
+  const [products, setProducts] = useState<ShopProduct[]>([]);
+  const [categories, setCategories] = useState<ShopCategory[]>([]);
+  const [categoryId, setCategoryId] = useState(0);
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState(0);
+  const [availableOnly, setAvailableOnly] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [adding, setAdding] = useState<number | null>(null);
+  const busy = useRef(false);
+  const [reload, setReload] = useState(0);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    setLoading(true); setError('');
+    getCatalog().then(data => {
+      if (!active) return;
+      setProducts(data.products); setCategories(data.categories);
+      setCategoryId(id => data.categories.some(c => c.DanhMucID === id) ? id : 0);
+    }).catch(e => { if (active) setError(e.message); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  // reload intentionally invalidates the focus callback for pull-to-refresh/retry.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reload]));
+  const visible = useMemo(() => {
+    const result = products.filter(p => (!categoryId || p.DanhMucID === categoryId)
+      && (!availableOnly || p.TrangThai === 'ACTIVE')
+      && searchKey(`${p.TenSanPham} ${p.MoTa || ''}`).includes(searchKey(search.trim())));
+    return result.sort((a, b) => sort === 1 ? a.GiaBan - b.GiaBan : sort === 2 ? b.GiaBan - a.GiaBan : b.SanPhamID - a.SanPhamID);
+  }, [products, categoryId, availableOnly, search, sort]);
+  async function add(p: ShopProduct) {
+    if (!user?.accountId) { router.push('/login'); return; }
+    if (busy.current) return;
+    busy.current = true; setAdding(p.SanPhamID); setNotice('');
+    try { await updateCart(user.accountId, p.SanPhamID, 1); setNotice(`Đã thêm ${p.TenSanPham} vào giỏ hàng.`); }
+    catch (e) { setNotice(e instanceof Error ? e.message : 'Không thêm được sản phẩm.'); }
+    finally { busy.current = false; setAdding(null); }
+  }
+  return <View style={styles.container}><SafeAreaView edges={["top"]} style={styles.safeArea}>
+    <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => setReload(n => n + 1)} tintColor="#d9ff00" />}>
+      <Header />
+      <View style={styles.intro}><Text style={styles.kicker}>QA-GYM PRO SHOP</Text><Text style={styles.title}>Cửa hàng & Dinh dưỡng</Text><Text style={styles.subtitle}>Thực phẩm bổ sung và phụ kiện tập luyện</Text></View>
+      <View style={styles.searchRow}><View style={styles.searchBox}><FontAwesome name="search" size={15} color="#a8b09f" /><TextInput value={search} onChangeText={setSearch} placeholder="Tìm sản phẩm..." placeholderTextColor="#8c9389" style={styles.searchInput} accessibilityLabel="Tìm sản phẩm" /></View>
+        <Pressable style={styles.filterButton} onPress={() => router.push('/cart')} accessibilityLabel="Mở giỏ hàng"><FontAwesome name="shopping-cart" size={20} color="#d9ff00" /></Pressable></View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryList}>
+        {[{ DanhMucID: 0, TenDanhMuc: `Tất cả (${products.length})` }, ...categories].map(c => <Pressable key={c.DanhMucID} onPress={() => setCategoryId(c.DanhMucID)} style={[styles.categoryChip, categoryId === c.DanhMucID && styles.categoryChipActive]}><Text style={[styles.categoryText, categoryId === c.DanhMucID && styles.categoryTextActive]}>{c.TenDanhMuc}</Text></Pressable>)}
+      </ScrollView>
+      <View style={styles.sectionHeader}><Pressable onPress={() => setAvailableOnly(v => !v)}><Text style={styles.sortText}>{availableOnly ? '☑' : '☐'} Chỉ còn hàng</Text></Pressable><Pressable onPress={() => setSort(v => (v + 1) % 3)}><Text style={styles.sortText}>↕ {['Mới nhất', 'Giá tăng dần', 'Giá giảm dần'][sort]}</Text></Pressable></View>
+      {!!notice && <Text accessibilityLiveRegion="polite" style={styles.subtitle}>{notice}</Text>}
+      {loading ? <ActivityIndicator color="#d9ff00" /> : error ? <View><Text style={styles.subtitle}>{error}</Text><Pressable onPress={() => setReload(n => n + 1)}><Text style={styles.sortText}>Thử lại</Text></Pressable></View> : <>
+        <Text style={styles.sectionTitle}>{visible.length} sản phẩm</Text>
+        {!visible.length && <Text style={styles.subtitle}>Không tìm thấy sản phẩm phù hợp.</Text>}
+        <View style={styles.productGrid}>{visible.map(p => <View key={p.SanPhamID} style={styles.productCard}>
+          <Pressable onPress={() => router.push({ pathname: '/product-detail', params: { productId: p.SanPhamID } })} accessibilityLabel={`Xem chi tiết ${p.TenSanPham}`}>
+            <View style={styles.productImageWrap}><Image source={DEFAULT_PRODUCT_IMAGE} style={styles.productImage} contentFit="contain" />{p.TrangThai === 'OUT_OF_STOCK' && <Text style={styles.productBadge}>HẾT HÀNG</Text>}</View>
+            <View style={styles.productInfo}><Text style={styles.productName} numberOfLines={2}>{p.TenSanPham}</Text><Text style={styles.productDetail} numberOfLines={1}>{p.MoTa || p.DonViTinh}</Text></View>
+          </Pressable>
+          <View style={[styles.priceRow, { padding: 10 }]}><Text style={styles.productPrice}>{formatPrice(p.GiaBan)}</Text><Pressable disabled={adding !== null || p.TrangThai !== 'ACTIVE'} onPress={() => void add(p)} style={[styles.addButton, (adding !== null || p.TrangThai !== 'ACTIVE') && { opacity: 0.4 }]} accessibilityLabel={`Thêm ${p.TenSanPham} vào giỏ`}><Text style={styles.addButtonText}>{adding === p.SanPhamID ? '…' : '+'}</Text></Pressable></View>
+        </View>)}</View>
+      </>}
+    </ScrollView>
+  </SafeAreaView></View>;
 }
 
 const styles = StyleSheet.create({
