@@ -1,10 +1,12 @@
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 export type ApiAccount = { TaiKhoanID: number; Email: string; MatKhau: string; VaiTro: string; TrangThai: string };
 
-// Set EXPO_PUBLIC_API_URL to the computer's LAN address when using a physical phone.
+const expoHost = Constants.expoConfig?.hostUri?.split(':')[0];
+
 export const baseUrl = (process.env.EXPO_PUBLIC_API_URL ||
-  (Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000')).replace(/\/$/, '');
+  (Platform.OS === 'android' ? `http://${expoHost || '10.0.2.2'}:3000` : 'http://localhost:3000')).replace(/\/$/, '');
 
 export async function getAccounts(): Promise<ApiAccount[]> {
   try {
