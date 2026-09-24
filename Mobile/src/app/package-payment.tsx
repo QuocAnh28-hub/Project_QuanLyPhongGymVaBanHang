@@ -1,7 +1,17 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import * as Clipboard from "expo-clipboard";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthColors as C } from "@/constants/theme";
 import { formatVND } from "@/lib/package-logic";
@@ -12,16 +22,30 @@ import {
 } from "@/lib/payment-api";
 
 export default function PackagePaymentScreen() {
+  const { width: screenWidth } = useWindowDimensions();
   const { paymentId } = useLocalSearchParams<{ paymentId?: string }>();
   const id = Number(paymentId);
   const validId = Number.isInteger(id) && id > 0;
   const [loadedPayment, setPayment] = useState<PackagePayment | null>();
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
+  const [reportedPaid, setReportedPaid] = useState(false);
   const order = loadedPayment?.ThanhToanID === id ? loadedPayment : undefined;
   const success =
     order?.TrangThaiThanhToan === "SUCCESS" &&
     order.TrangThaiDangKy === "ACTIVE";
+  const failed = order?.TrangThaiThanhToan === "FAILED";
+  const cancelled = order?.TrangThaiThanhToan === "CANCELLED";
+  const pending = order?.TrangThaiThanhToan === "PENDING";
+
+  async function copy(value: string, message: string) {
+    try {
+      await Clipboard.setStringAsync(value);
+      Alert.alert(message);
+    } catch {
+      Alert.alert("Không thể sao chép", "Vui lòng thử lại.");
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -83,16 +107,24 @@ export default function PackagePaymentScreen() {
                 name={
                   success
                     ? "checkmark-circle-outline"
+                    : failed
+                      ? "close-circle-outline"
+                      : cancelled
+                        ? "ban-outline"
                     : "time-outline"
                 }
-                color={C.lime}
+                color={failed || cancelled ? C.error : C.lime}
                 size={38}
               />
             </View>
-            <Text style={s.status}>
+            <Text style={[s.status, (failed || cancelled) && s.statusError]}>
               {success
                 ? "THANH TOÁN THÀNH CÔNG"
-                : "CHỜ THANH TOÁN"}
+                : failed
+                  ? "THANH TOÁN THẤT BẠI"
+                  : cancelled
+                    ? "THANH TOÁN ĐÃ HỦY"
+                    : "CHỜ THANH TOÁN"}
             </Text>
             <Text style={s.intro}>
               {success
@@ -124,6 +156,54 @@ export default function PackagePaymentScreen() {
               <Row label="Đăng ký" value={order.TrangThaiDangKy} />
             </View>
 
+            {order.PhuongThucThanhToan === "CHUYEN_KHOAN" && pending ? (
+              <View style={s.qrCard}>
+                <Text style={s.qrTitle}>QUÉT MÃ VIETQR ĐỂ THANH TOÁN</Text>
+                <Image
+                  source={require("../../assets/payment/techcombank-vietqr.png")}
+                  style={[
+                    s.qrImage,
+                    {
+                      width: Math.min(screenWidth - 52, 300),
+                      height: Math.min(screenWidth - 52, 300) * (16 / 9),
+                    },
+                  ]}
+                  resizeMode="contain"
+                />
+                <View style={s.transferRow}>
+                  <View style={s.transferValue}>
+                    <Text style={s.transferLabel}>SỐ TIỀN</Text>
+                    <Text style={s.transferText}>{formatVND(Number(order.SoTien))}</Text>
+                  </View>
+                  <Pressable
+                    style={s.copyButton}
+                    accessibilityLabel="Sao chép số tiền"
+                    onPress={() => copy(String(Math.round(Number(order.SoTien))), "Đã sao chép số tiền")}
+                  >
+                    <Ionicons name="copy-outline" color={C.lime} size={18} />
+                    <Text style={s.copyText}>SAO CHÉP</Text>
+                  </Pressable>
+                </View>
+                <View style={s.transferRow}>
+                  <View style={s.transferValue}>
+                    <Text style={s.transferLabel}>NỘI DUNG CHUYỂN KHOẢN</Text>
+                    <Text style={s.transferText}>QAGYM TT{order.ThanhToanID}</Text>
+                  </View>
+                  <Pressable
+                    style={s.copyButton}
+                    accessibilityLabel="Sao chép nội dung chuyển khoản"
+                    onPress={() => copy(`QAGYM TT${order.ThanhToanID}`, "Đã sao chép nội dung chuyển khoản")}
+                  >
+                    <Ionicons name="copy-outline" color={C.lime} size={18} />
+                    <Text style={s.copyText}>SAO CHÉP</Text>
+                  </Pressable>
+                </View>
+                <Text style={s.qrNote}>
+                  Vui lòng nhập đúng số tiền và nội dung để phòng gym đối soát thanh toán.
+                </Text>
+              </View>
+            ) : null}
+
             <View style={s.notice}>
               <Ionicons
                 name={
@@ -136,7 +216,11 @@ export default function PackagePaymentScreen() {
               />
               <View style={{ flex: 1 }}>
                 <Text style={s.noticeTitle}>
-                  {order.PhuongThucThanhToan === "TIEN_MAT"
+                  {failed
+                    ? "Thanh toán thất bại"
+                    : cancelled
+                      ? "Thanh toán đã hủy"
+                      : order.PhuongThucThanhToan === "TIEN_MAT"
                     ? "Thanh toán tại lễ tân QA-Gym"
                     : success
                       ? "Đã xác nhận thanh toán"
@@ -145,7 +229,11 @@ export default function PackagePaymentScreen() {
                 <Text style={s.muted}>
                   {success
                     ? "Thanh toán đã được backend xác nhận."
-                    : order.PhuongThucThanhToan === "TIEN_MAT"
+                    : failed
+                      ? "Giao dịch không thành công. Vui lòng thử lại hoặc chọn phương thức khác."
+                      : cancelled
+                        ? "Giao dịch này đã bị hủy và gói tập chưa được kích hoạt."
+                        : order.PhuongThucThanhToan === "TIEN_MAT"
                       ? "Vui lòng cung cấp mã thanh toán tại quầy."
                       : order.PhuongThucThanhToan === "THE"
                         ? "Phương thức này chưa kết nối gateway thật."
@@ -153,6 +241,26 @@ export default function PackagePaymentScreen() {
                 </Text>
               </View>
             </View>
+
+            {order.PhuongThucThanhToan === "CHUYEN_KHOAN" && pending ? (
+              <>
+                <Pressable
+                  style={[s.primary, reportedPaid && s.disabled]}
+                  disabled={reportedPaid}
+                  onPress={() => setReportedPaid(true)}
+                >
+                  <Text style={s.primaryText}>
+                    {reportedPaid ? "ĐÃ BÁO CHUYỂN KHOẢN" : "TÔI ĐÃ CHUYỂN KHOẢN"}
+                  </Text>
+                  <Ionicons name="checkmark" color={C.surfaceLowest} />
+                </Pressable>
+                {reportedPaid ? (
+                  <Text style={s.reportedText}>
+                    Đã ghi nhận yêu cầu, đang chờ xác nhận.
+                  </Text>
+                ) : null}
+              </>
+            ) : null}
 
             <Pressable style={s.secondary} onPress={() => setReload((x) => x + 1)}>
               <Text style={s.secondaryText}>TẢI LẠI TRẠNG THÁI</Text>
@@ -226,7 +334,7 @@ const s = StyleSheet.create({
     maxWidth: 540,
     alignSelf: "center",
     padding: 14,
-    gap: 15,
+    gap: 12,
   },
   stepper: {
     flexDirection: "row",
@@ -262,7 +370,7 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
-    marginTop: 18,
+    marginTop: 8,
   },
   status: {
     color: C.lime,
@@ -270,6 +378,7 @@ const s = StyleSheet.create({
     fontWeight: "900",
     textAlign: "center",
   },
+  statusError: { color: C.error },
   intro: {
     color: C.muted,
     fontSize: 13,
@@ -279,8 +388,8 @@ const s = StyleSheet.create({
   card: {
     backgroundColor: C.surface,
     borderRadius: 13,
-    padding: 14,
-    gap: 12,
+    padding: 12,
+    gap: 8,
   },
   title: { color: C.text, fontSize: 17, fontWeight: "800" },
   error: { color: C.error, fontSize: 12, lineHeight: 17 },
@@ -290,7 +399,7 @@ const s = StyleSheet.create({
     gap: 14,
     borderBottomWidth: 1,
     borderBottomColor: C.surfaceHigh,
-    paddingBottom: 10,
+    paddingBottom: 7,
   },
   muted: { color: C.muted, fontSize: 12, lineHeight: 17, flex: 1 },
   value: {
@@ -301,6 +410,41 @@ const s = StyleSheet.create({
     flex: 1.5,
   },
   accent: { color: C.lime, fontSize: 17, fontWeight: "900" },
+  qrCard: {
+    backgroundColor: C.surface,
+    borderRadius: 13,
+    padding: 12,
+    gap: 10,
+    alignItems: "center",
+  },
+  qrTitle: { color: C.text, fontSize: 15, fontWeight: "900", textAlign: "center" },
+  qrImage: { alignSelf: "center" },
+  transferRow: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: C.surfaceHigh,
+    borderRadius: 10,
+    padding: 12,
+  },
+  transferValue: { flex: 1, gap: 4 },
+  transferLabel: { color: C.muted, fontSize: 10, fontWeight: "800" },
+  transferText: { color: C.text, fontSize: 17, fontWeight: "900" },
+  copyButton: {
+    minWidth: 74,
+    height: 42,
+    borderRadius: 9,
+    flexDirection: "row",
+    gap: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: C.surface,
+  },
+  copyText: { color: C.lime, fontSize: 9, fontWeight: "900" },
+  qrNote: { color: C.muted, fontSize: 12, lineHeight: 17, textAlign: "center" },
+  reportedText: { color: C.lime, fontSize: 12, lineHeight: 17, textAlign: "center" },
+  disabled: { opacity: 0.6 },
   notice: {
     flexDirection: "row",
     gap: 10,
