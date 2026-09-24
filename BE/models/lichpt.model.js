@@ -29,6 +29,34 @@ Lichpt.getAll = (callback) => {
   });
 };
 
+Lichpt.getAvailableByPT = (PTID, from, to, callback) => {
+  let sqlString = `
+    SELECT
+      LichPTID,
+      PTID,
+      DATE_FORMAT(NgayLam, '%Y-%m-%d') AS NgayLam,
+      TIME_FORMAT(GioBatDau, '%H:%i:%s') AS GioBatDau,
+      TIME_FORMAT(GioKetThuc, '%H:%i:%s') AS GioKetThuc,
+      TrangThai
+    FROM lichpt
+    WHERE PTID = ?
+      AND TrangThai = 'AVAILABLE'
+      AND NgayLam >= CURDATE()
+      AND TIMESTAMP(NgayLam, GioBatDau) > NOW()
+  `;
+  const params = [PTID];
+  if (from) {
+    sqlString += " AND NgayLam >= ?";
+    params.push(from);
+  }
+  if (to) {
+    sqlString += " AND NgayLam <= ?";
+    params.push(to);
+  }
+  sqlString += " ORDER BY NgayLam ASC, GioBatDau ASC";
+  db.query(sqlString, params, callback);
+};
+
 Lichpt.insert = (lichpt, callback) => {
   const sqlString = "INSERT INTO `lichpt` SET ?";
   db.query(sqlString, lichpt, (err, res) => {

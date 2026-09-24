@@ -34,6 +34,21 @@ Pt.getAll = (callback) => {
   });
 };
 
+Pt.getActive = (callback) => {
+  db.query(
+    "SELECT * FROM pt WHERE TrangThai = 'ACTIVE' ORDER BY PTID DESC",
+    callback,
+  );
+};
+
+Pt.getActiveById = (PTID, callback) => {
+  db.query(
+    "SELECT * FROM pt WHERE PTID = ? AND TrangThai = 'ACTIVE' LIMIT 1",
+    [PTID],
+    (err, result) => callback(err, result?.[0] ?? null),
+  );
+};
+
 Pt.insert = (pt, callback) => {
   const sqlString = "INSERT INTO `pt` SET ?";
   db.query(sqlString, pt, (err, res) => {

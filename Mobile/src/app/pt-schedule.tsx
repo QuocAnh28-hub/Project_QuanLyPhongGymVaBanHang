@@ -1,443 +1,143 @@
-import { FontAwesome } from "@expo/vector-icons";
-import { Image } from "expo-image";
-import { router } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const week = [
-  ["T2", "09"],
-  ["T3", "10"],
-  ["T4", "11"],
-  ["T5", "12"],
-  ["T6", "13"],
-  ["T7", "14"],
-  ["CN", "15"],
-];
+import { useAuth } from "@/context/AuthContext";
+import { cancelPTBooking, getMyPTBookings, type ApiPTBooking } from "@/lib/pt-api";
+
+const labels: Record<ApiPTBooking["TrangThai"], string> = {
+  PENDING: "CHỜ XÁC NHẬN",
+  CONFIRMED: "ĐÃ XÁC NHẬN",
+  COMPLETED: "HOÀN THÀNH",
+  CANCELLED: "ĐÃ HỦY",
+};
+const money = (value: string | number) => `${Number(value).toLocaleString("vi-VN")}đ`;
 
 export default function PTScheduleScreen() {
-  const [selectedDay, setSelectedDay] = useState(3);
+  const { user } = useAuth();
+  const accountId = user?.accountId;
+  const [bookings, setBookings] = useState<ApiPTBooking[]>();
+  const [error, setError] = useState("");
+  const [cancelling, setCancelling] = useState<number | null>(null);
+  const [now, setNow] = useState(0);
+
+  const load = useCallback(async () => {
+    if (!accountId) {
+      setBookings([]);
+      setError("Không tìm thấy tài khoản đăng nhập.");
+      return;
+    }
+    try {
+      setBookings(await getMyPTBookings(accountId));
+      setNow(Date.now());
+      setError("");
+    } catch (loadError) {
+      setBookings([]);
+      setError(loadError instanceof Error ? loadError.message : "Không tải được lịch thuê PT.");
+    }
+  }, [accountId]);
+
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  function askCancel(booking: ApiPTBooking) {
+    Alert.alert("Hủy lịch PT", `Bạn muốn hủy lịch với ${booking.HoTenPT}?`, [
+      { text: "Không", style: "cancel" },
+      {
+        text: "Hủy lịch",
+        style: "destructive",
+        onPress: async () => {
+          if (!user?.accountId || cancelling) return;
+          setCancelling(booking.ThuePTID);
+          try {
+            await cancelPTBooking({ accountId: user.accountId, bookingId: booking.ThuePTID });
+            await load();
+          } catch (cancelError) {
+            Alert.alert("Không thể hủy", cancelError instanceof Error ? cancelError.message : "Vui lòng thử lại.");
+          } finally {
+            setCancelling(null);
+          }
+        },
+      },
+    ]);
+  }
+
   return (
-    <View style={styles.container}>
-      <SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.content}
-        >
-          <View style={styles.header}>
-            <Pressable
-              style={styles.iconButton}
-              onPress={() => router.back()}
-              accessibilityLabel="Quay lại"
-            >
-              <FontAwesome name="angle-left" size={21} color="#edf2e8" />
-            </Pressable>
-            <Text style={styles.headerTitle}>PT SCHEDULE VIEWS</Text>
-            <View style={styles.account}>
-              <FontAwesome name="user" size={11} color="#516000" />
-            </View>
+    <SafeAreaView style={s.safe} edges={["top"]}>
+      <View style={s.header}>
+        <Pressable style={s.icon} onPress={() => router.canGoBack() ? router.back() : router.replace("/profile")}><Ionicons name="arrow-back" color="#eef4e8" size={21} /></Pressable>
+        <Text style={s.headerTitle}>LỊCH THUÊ PT</Text>
+        <Pressable style={s.add} onPress={() => router.push("/pt")}><Ionicons name="add" color="#182000" size={22} /></Pressable>
+      </View>
+      <ScrollView contentContainerStyle={s.content}>
+        <Text style={s.kicker}>DỮ LIỆU TỪ HỆ THỐNG</Text>
+        <Text style={s.title}>LỊCH PT CỦA TÔI</Text>
+        {bookings === undefined ? <Text style={s.center}>Đang tải lịch PT...</Text> : null}
+        {error ? <Text style={s.error}>{error}</Text> : null}
+        {bookings && !bookings.length && !error ? (
+          <View style={s.empty}>
+            <Ionicons name="calendar-outline" color="#d9ff00" size={36} />
+            <Text style={s.cardTitle}>Bạn chưa có lịch thuê PT</Text>
+            <Pressable style={s.primary} onPress={() => router.push("/pt")}><Text style={s.primaryText}>CHỌN HUẤN LUYỆN VIÊN</Text></Pressable>
           </View>
-          <View style={styles.heading}>
-            <View>
-              <Text style={styles.kicker}>HUẤN LUYỆN CÁ NHÂN</Text>
-              <Text style={styles.title}>LỊCH TẬP VỚI PT</Text>
+        ) : null}
+        {bookings?.map((booking) => {
+          const start = new Date(`${booking.NgayLam}T${booking.GioBatDau}`);
+          const cancellable = ["PENDING", "CONFIRMED"].includes(booking.TrangThai) && start.getTime() > now;
+          return (
+            <View key={booking.ThuePTID} style={s.card}>
+              <View style={s.cardHead}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.cardTitle}>{booking.HoTenPT}</Text>
+                  <Text style={s.specialty}>{booking.ChuyenMon || "Chưa cập nhật chuyên môn"}</Text>
+                </View>
+                <Text style={[s.status, booking.TrangThai === "CANCELLED" && s.cancelled]}>{labels[booking.TrangThai]}</Text>
+              </View>
+              <Row label="Ngày tập" value={new Date(`${booking.NgayLam}T00:00:00`).toLocaleDateString("vi-VN")} />
+              <Row label="Khung giờ" value={`${booking.GioBatDau.slice(0, 5)} - ${booking.GioKetThuc.slice(0, 5)}`} />
+              <Row label="Giá thuê" value={money(booking.GiaThue)} />
+              {booking.GhiChu ? <Row label="Ghi chú" value={booking.GhiChu} /> : null}
+              {cancellable ? (
+                <Pressable disabled={cancelling === booking.ThuePTID} style={s.cancelButton} onPress={() => askCancel(booking)}>
+                  <Text style={s.cancelText}>{cancelling === booking.ThuePTID ? "ĐANG HỦY..." : "HỦY LỊCH"}</Text>
+                </Pressable>
+              ) : null}
             </View>
-            <View style={styles.headingActions}>
-              <Pressable style={styles.smallButton}>
-                <FontAwesome name="sliders" size={11} color="#d9ff00" />
-              </Pressable>
-              <Pressable
-                style={styles.addButton}
-                onPress={() => router.push("/pt")}
-                accessibilityLabel="Đặt lịch PT mới"
-              >
-                <FontAwesome name="plus" size={13} color="#182000" />
-              </Pressable>
-            </View>
-          </View>
-          <View style={styles.memberCard}>
-            <Image
-              source={{
-                uri: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=500&q=85",
-              }}
-              style={styles.memberImage}
-              contentFit="cover"
-            />
-            <View style={styles.memberCopy}>
-              <Text style={styles.memberKicker}>● HLV HIỆN BIỆT</Text>
-              <Text style={styles.memberName}>Trần Hoàng Nam</Text>
-              <Text style={styles.memberDetail}>Gói 24 Buổi • Còn 18 buổi</Text>
-            </View>
-            <Text style={styles.memberTag}>1-1-ON1 VIP</Text>
-          </View>
-          <SectionTitle title="LỊCH TẬP TUẦN NÀY" action="Tháng 5, 2026" />
-          <View style={styles.calendar}>
-            {week.map(([day, date], index) => (
-              <Pressable
-                key={date}
-                onPress={() => setSelectedDay(index)}
-                style={[
-                  styles.date,
-                  selectedDay === index && styles.dateActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.day,
-                    selectedDay === index && styles.activeText,
-                  ]}
-                >
-                  {day}
-                </Text>
-                <Text
-                  style={[
-                    styles.dateNumber,
-                    selectedDay === index && styles.activeText,
-                  ]}
-                >
-                  {date}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          <View style={styles.nextSession}>
-            <View style={styles.nextHeader}>
-              <Text style={styles.nextLabel}>● BUỔI TẬP SẮP TỚI</Text>
-              <Text style={styles.confirmed}>ĐÃ XÁC NHẬN</Text>
-            </View>
-            <Text style={styles.sessionDate}>HÔM NAY • THỨ NĂM</Text>
-            <Text style={styles.sessionTime}>18:30 - 19:30</Text>
-            <Text style={styles.sessionTitle}>Thân Dưới & Core Chuẩn Sâu</Text>
-            <Text style={styles.sessionDetail}>
-              Các bài tập trọng tâm: Barbell Back Squat, Romanian Deadlift, Hip
-              Thrust & Cable Woodchopper.
-            </Text>
-            <View style={styles.sessionMeta}>
-              <Text style={styles.sessionMetaText}>⚡ 5 bài tập</Text>
-              <Text style={styles.sessionMetaText}>◉ 60 phút</Text>
-              <Text style={styles.sessionMetaText}>◉ ~520 kcal</Text>
-            </View>
-            <Text style={styles.location}>
-              ◎ QA-Gym Vincom Đồng Khởi{`\n`}Khu vực Strength & Free Weights
-              (Tầng 3)
-            </Text>
-            <Pressable style={styles.checkin}>
-              <FontAwesome name="qrcode" size={12} color="#182000" />
-              <Text style={styles.checkinText}>
-                CHECK-IN BUỔI TẬP (QUÉT MÃ)
-              </Text>
-            </Pressable>
-            <View style={styles.sessionActions}>
-              <Pressable style={styles.mutedButton}>
-                <Text style={styles.mutedText}>⌑ Xin dời lịch</Text>
-              </Pressable>
-              <Pressable style={styles.mutedButton}>
-                <Text style={styles.mutedText}>☷ Ghi chú cho HLV</Text>
-              </Pressable>
-            </View>
-          </View>
-          <SectionTitle
-            title="BUỔI TIẾP THEO TRONG TUẦN"
-            action="Đã lên lịch"
-          />
-          <View style={styles.upcoming}>
-            <Text style={styles.upcomingDate}>T7{`\n`}16</Text>
-            <View style={styles.upcomingCopy}>
-              <Text style={styles.upcomingTime}>09:00 - 10:00 • Buổi 16</Text>
-              <Text style={styles.upcomingName}>Cardio HIIT & Đốt Mỡ</Text>
-              <Text style={styles.upcomingDetail}>
-                Khu vực Functional Turf • HLV Hoàng Nam
-              </Text>
-            </View>
-            <FontAwesome name="ellipsis-v" size={13} color="#9ca79c" />
-          </View>
-          <SectionTitle title="NHẬT KÝ ĐÃ TẬP" action="Xem tất cả →" />
-          <View style={styles.logCard}>
-            <View style={styles.logTop}>
-              <Text style={styles.logDate}>Buổi 14 • Hôm qua • 18:30</Text>
-              <Text style={styles.stars}>★★★★★</Text>
-            </View>
-            <Text style={styles.logTitle}>Lưng Xô & Cánh Tay Trước</Text>
-            <Text style={styles.logTag}>
-              ✓ KỶ LỤC MỚI (PR): Deadlift 120kg × 3 reps
-            </Text>
-            <Text style={styles.logNote}>
-              Nhận xét từ HLV Hoàng Nam: “Khóa hông tốt, biên độ kiểm soát chắc
-              chắn set cuối.”
-            </Text>
-          </View>
-          <View style={styles.options}>
-            <Text style={styles.optionsTitle}>☷ TÙY CHỌN HỖ TRỢ ĐẶT LỊCH</Text>
-            <View style={styles.optionRow}>
-              <Pressable style={styles.option}>
-                <FontAwesome name="calendar" size={13} color="#d9ff00" />
-                <Text style={styles.optionTitle}>Đặt hẹn linh hoạt</Text>
-                <Text style={styles.optionDetail}>Chọn giờ ngoài giờ tập</Text>
-              </Pressable>
-              <Pressable style={styles.option}>
-                <FontAwesome name="exchange" size={13} color="#d9ff00" />
-                <Text style={styles.optionTitle}>Đổi HLV phụ trách</Text>
-                <Text style={styles.optionDetail}>
-                  Yêu cầu bảo lưu / đổi người
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+          );
+        })}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-function SectionTitle({ title, action }: { title: string; action: string }) {
-  return (
-    <View style={styles.sectionTitle}>
-      <Text style={styles.sectionTitleText}>{title}</Text>
-      <Text style={styles.sectionAction}>{action}</Text>
-    </View>
-  );
+function Row({ label, value }: { label: string; value: string }) {
+  return <View style={s.row}><Text style={s.muted}>{label}</Text><Text style={s.value}>{value}</Text></View>;
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0d1011" },
-  safeArea: { flex: 1, width: "100%", maxWidth: 540, alignSelf: "center" },
-  content: { paddingHorizontal: 10, paddingBottom: 25 },
-  header: {
-    height: 43,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  iconButton: {
-    width: 31,
-    height: 31,
-    borderRadius: 9,
-    backgroundColor: "#242829",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { color: "#e9f0e5", fontSize: 10, fontWeight: "900" },
-  account: {
-    width: 25,
-    height: 25,
-    borderRadius: 13,
-    backgroundColor: "#edf5dc",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  heading: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  kicker: { color: "#d9ff00", fontSize: 7, fontWeight: "900" },
-  title: { color: "#f0f5eb", fontSize: 17, fontWeight: "900", marginTop: 4 },
-  headingActions: { flexDirection: "row", gap: 7 },
-  smallButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    backgroundColor: "#252b2d",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    backgroundColor: "#caff00",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  memberCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1b2022",
-    borderRadius: 7,
-    padding: 9,
-  },
-  memberImage: { width: 48, height: 48, borderRadius: 5 },
-  memberCopy: { flex: 1, marginLeft: 8 },
-  memberKicker: { color: "#49d79e", fontSize: 7, fontWeight: "900" },
-  memberName: {
-    color: "#eff5e9",
-    fontSize: 11,
-    fontWeight: "900",
-    marginTop: 3,
-  },
-  memberDetail: { color: "#aab5aa", fontSize: 8, marginTop: 3 },
-  memberTag: {
-    color: "#d9ff00",
-    backgroundColor: "#304216",
-    fontSize: 7,
-    fontWeight: "900",
-    padding: 5,
-    borderRadius: 3,
-  },
-  sectionTitle: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 15,
-    marginBottom: 7,
-  },
-  sectionTitleText: { color: "#e9f0e5", fontSize: 10, fontWeight: "900" },
-  sectionAction: { color: "#d9ff00", fontSize: 7, fontWeight: "900" },
-  calendar: {
-    flexDirection: "row",
-    gap: 5,
-    backgroundColor: "#181d1e",
-    borderRadius: 7,
-    padding: 6,
-  },
-  date: { flex: 1, alignItems: "center", paddingVertical: 6, borderRadius: 5 },
-  dateActive: { backgroundColor: "#caff00" },
-  day: { color: "#aeb9ad", fontSize: 7, fontWeight: "900" },
-  dateNumber: {
-    color: "#eff5eb",
-    fontSize: 14,
-    fontWeight: "900",
-    marginTop: 3,
-  },
-  activeText: { color: "#182000" },
-  nextSession: {
-    backgroundColor: "#1b2022",
-    borderRadius: 8,
-    padding: 10,
-    marginTop: 8,
-    borderTopWidth: 2,
-    borderTopColor: "#caff00",
-  },
-  nextHeader: { flexDirection: "row", justifyContent: "space-between" },
-  nextLabel: { color: "#d9ff00", fontSize: 8, fontWeight: "900" },
-  confirmed: {
-    color: "#182000",
-    backgroundColor: "#caff00",
-    borderRadius: 7,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    fontSize: 7,
-    fontWeight: "900",
-  },
-  sessionDate: {
-    color: "#d9ff00",
-    fontSize: 7,
-    fontWeight: "900",
-    marginTop: 9,
-  },
-  sessionTime: {
-    color: "#e9f0e5",
-    fontSize: 18,
-    fontWeight: "900",
-    marginTop: 3,
-  },
-  sessionTitle: {
-    color: "#e8efe4",
-    fontSize: 11,
-    fontWeight: "900",
-    marginTop: 5,
-  },
-  sessionDetail: {
-    color: "#a7b2a7",
-    fontSize: 8,
-    lineHeight: 11,
-    marginTop: 4,
-  },
-  sessionMeta: {
-    color: "#ffffff",
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 8,
-  },
-  sessionMetaText: { color: "#ffffff", fontSize: 13 },
-  location: {
-    color: "#abb6aa",
-    fontSize: 8,
-    lineHeight: 11,
-    marginTop: 9,
-    backgroundColor: "#242a2b",
-    borderRadius: 5,
-    padding: 7,
-  },
-  checkin: {
-    height: 34,
-    backgroundColor: "#caff00",
-    borderRadius: 6,
-    marginTop: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 7,
-  },
-  checkinText: { color: "#182000", fontSize: 8, fontWeight: "900" },
-  sessionActions: { flexDirection: "row", gap: 6, marginTop: 6 },
-  mutedButton: {
-    flex: 1,
-    height: 28,
-    borderRadius: 5,
-    backgroundColor: "#303638",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  mutedText: { color: "#aeb9ad", fontSize: 8 },
-  upcoming: {
-    backgroundColor: "#1b2022",
-    borderRadius: 7,
-    padding: 9,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  upcomingDate: {
-    color: "#d9ff00",
-    backgroundColor: "#263522",
-    borderRadius: 5,
-    padding: 5,
-    textAlign: "center",
-    fontSize: 9,
-    fontWeight: "900",
-  },
-  upcomingCopy: { flex: 1, marginLeft: 8 },
-  upcomingTime: { color: "#44d69c", fontSize: 7, fontWeight: "900" },
-  upcomingName: {
-    color: "#e8efe4",
-    fontSize: 10,
-    fontWeight: "900",
-    marginTop: 4,
-  },
-  upcomingDetail: { color: "#919c91", fontSize: 7, marginTop: 3 },
-  logCard: { backgroundColor: "#1b2022", borderRadius: 7, padding: 10 },
-  logTop: { flexDirection: "row", justifyContent: "space-between" },
-  logDate: { color: "#93a093", fontSize: 7 },
-  stars: { color: "#d9ff00", fontSize: 10 },
-  logTitle: { color: "#e8efe4", fontSize: 12, fontWeight: "900", marginTop: 5 },
-  logTag: {
-    color: "#49d79e",
-    backgroundColor: "#163a2d",
-    fontSize: 7,
-    padding: 5,
-    marginTop: 6,
-  },
-  logNote: { color: "#adb8ad", fontSize: 8, lineHeight: 11, marginTop: 7 },
-  options: {
-    backgroundColor: "#252b2d",
-    borderRadius: 7,
-    padding: 10,
-    marginTop: 10,
-  },
-  optionsTitle: {
-    color: "#cbd800",
-    fontSize: 8,
-    fontWeight: "900",
-    marginBottom: 8,
-  },
-  optionRow: { flexDirection: "row", gap: 7 },
-  option: { flex: 1, backgroundColor: "#303638", borderRadius: 5, padding: 8 },
-  optionTitle: {
-    color: "#eef4e8",
-    fontSize: 8,
-    fontWeight: "900",
-    marginTop: 7,
-  },
-  optionDetail: { color: "#98a399", fontSize: 7, marginTop: 3 },
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: "#0d1011" },
+  header: { height: 54, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  icon: { width: 40, height: 40, borderRadius: 10, backgroundColor: "#242829", alignItems: "center", justifyContent: "center" },
+  add: { width: 40, height: 40, borderRadius: 10, backgroundColor: "#caff00", alignItems: "center", justifyContent: "center" },
+  headerTitle: { color: "#eef4e8", fontSize: 12, fontWeight: "900" },
+  content: { width: "100%", maxWidth: 540, alignSelf: "center", padding: 15, gap: 12, paddingBottom: 35 },
+  kicker: { color: "#d9ff00", fontSize: 9, fontWeight: "900" },
+  title: { color: "#f0f5eb", fontSize: 22, fontWeight: "900" },
+  center: { color: "#aeb9ad", textAlign: "center", padding: 30 },
+  error: { color: "#ff8d82", textAlign: "center", padding: 15 },
+  empty: { backgroundColor: "#1b2022", borderRadius: 14, padding: 25, alignItems: "center", gap: 12 },
+  card: { backgroundColor: "#1b2022", borderRadius: 13, padding: 14, gap: 10 },
+  cardHead: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
+  cardTitle: { color: "#eef4e8", fontSize: 17, fontWeight: "900" },
+  specialty: { color: "#d9ff00", fontSize: 9, marginTop: 3 },
+  status: { color: "#182000", backgroundColor: "#caff00", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, fontSize: 8, fontWeight: "900" },
+  cancelled: { color: "#ffaaa1", backgroundColor: "#442b2b" },
+  row: { flexDirection: "row", justifyContent: "space-between", gap: 12, borderTopWidth: 1, borderTopColor: "#303638", paddingTop: 9 },
+  muted: { color: "#8e998d", fontSize: 10 },
+  value: { color: "#e8efe4", fontSize: 11, fontWeight: "700", textAlign: "right", flex: 1 },
+  cancelButton: { minHeight: 40, backgroundColor: "#3a2a2a", borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  cancelText: { color: "#ff9f96", fontSize: 10, fontWeight: "900" },
+  primary: { minHeight: 44, backgroundColor: "#caff00", borderRadius: 9, paddingHorizontal: 18, alignItems: "center", justifyContent: "center" },
+  primaryText: { color: "#182000", fontSize: 10, fontWeight: "900" },
 });
