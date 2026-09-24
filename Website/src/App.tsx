@@ -1,9 +1,8 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { clearSession, logout, restoreSession, type AdminSession } from './services/auth'
 import Header from './components/Header'
 import Navigation from './components/Navigation'
 import Login from './pages/Login'
-import Signup from './pages/Signup'
-import ForgotPassword from './pages/ForgotPassword'
 import MemberList from './pages/MemberList'
 import MemberDetail from './pages/MemberDetail'
 import ActivityHistory from './pages/ActivityHistory'
@@ -34,9 +33,20 @@ function App() {
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const [showActivityHistory, setShowActivityHistory] = useState(false)
   const [moduleTab, setModuleTab] = useState(0)
-  const [screen, setScreen] = useState<
-    'login' | 'signup' | 'forgot' | 'dashboard'
-  >('login')
+  const [session, setSession] = useState<AdminSession | null>(null)
+  const [checkingSession, setCheckingSession] = useState(true)
+  useEffect(() => {
+    let active = true
+    void restoreSession().then(value => {
+      if (active) { setSession(value); setCheckingSession(false) }
+    })
+    return () => { active = false }
+  }, [])
+  useEffect(() => {
+    if (!session) return
+    const timer = window.setTimeout(() => { clearSession(); setSession(null) }, Math.max(0, session.expiresAt - Date.now()))
+    return () => window.clearTimeout(timer)
+  }, [session])
 
   const moduleViews: Record<string, { tabs: string[]; pages: ReactNode[] }> = {
     'Gói tập': {
@@ -80,23 +90,14 @@ function App() {
   }
   const activeModule = moduleViews[activePage]
 
-  if (screen === 'login')
-    return (
-      <Login
-        onLogin={() => setScreen('dashboard')}
-        onSignup={() => setScreen('signup')}
-        onForgot={() => setScreen('forgot')}
-      />
-    )
-  if (screen === 'signup')
-    return (
-      <Signup
-        onLogin={() => setScreen('login')}
-        onRegister={() => setScreen('dashboard')}
-      />
-    )
-  if (screen === 'forgot')
-    return <ForgotPassword onBack={() => setScreen('login')} />
+  if (checkingSession) return <main className="admin-session-loading" role="status">Đang kiểm tra phiên đăng nhập…</main>
+  if (!session) return <Login onLogin={value => {
+    setActivePage('Dashboard')
+    setModuleTab(0)
+    setSelectedMember(null)
+    setShowActivityHistory(false)
+    setSession(value)
+  }} />
 
   return (
     <main className="app-shell">
@@ -108,7 +109,7 @@ function App() {
           setSelectedMember(null)
           setShowActivityHistory(false)
         }}
-        onLogout={() => setScreen('login')}
+        onLogout={() => { void logout(session.token); setSession(null) }}
       />
       <section className="workspace">
         <Header />

@@ -65,6 +65,7 @@ app.get('/health', (req, res) => {
 });
 
 const routes = [
+  ['/auth/admin', './routes/admin-auth.route'],
   ['/auth', './routes/recovery.route'],
   ['/apdungkhuyenmaidonhang', './routes/apdungkhuyenmaidonhang.route'],
   ['/apdungkhuyenmaigoitap', './routes/apdungkhuyenmaigoitap.route'],
