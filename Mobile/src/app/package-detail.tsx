@@ -13,10 +13,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { PackageClass } from "@/constants/package-detail";
-import { getPackageById, type GymPackage } from "@/lib/packages";
+import { type GymPackage } from "@/lib/packages";
 import {
   getActivePackageDetail,
-  mergePackageDetail,
+  packageFromApiDetail,
 } from "@/lib/package-api";
 import { useAuth } from "@/context/AuthContext";
 import { AuthColors as C } from "@/constants/theme";
@@ -73,48 +73,50 @@ export default function PackageDetailScreen() {
     renewal?: string;
   }>();
   const { user } = useAuth();
-  const localPackageId = typeof id === "string" ? id : "";
-  const localItem = getPackageById(localPackageId);
-  const [item, setItem] = useState<GymPackage | null>(localItem);
+  const packageId = Number(id);
+  const validPackageId = Number.isInteger(packageId) && packageId > 0;
+  const [loadedItem, setItem] = useState<GymPackage | null>(null);
   const [detailError, setDetailError] = useState("");
+  const item = loadedItem?.apiId === packageId ? loadedItem : null;
+  const visibleDetailError = validPackageId
+    ? detailError
+    : "Mã gói tập không hợp lệ.";
 
   useEffect(() => {
-    setItem(localItem);
-    setDetailError("");
-    if (!localItem) return;
+    if (!validPackageId) return;
 
     let active = true;
-    getActivePackageDetail(localItem.id)
+    getActivePackageDetail(packageId)
       .then((apiPackage) => {
-        if (active) setItem(mergePackageDetail(localItem, apiPackage));
+        if (active) {
+          setItem(packageFromApiDetail(apiPackage));
+          setDetailError("");
+        }
       })
       .catch((error) => {
         if (!active) return;
-        setItem(localItem);
         setDetailError(
-          `${
-            error instanceof Error
-              ? error.message
-              : "Không tải được chi tiết gói tập từ API"
-          }. Đang hiển thị dữ liệu cục bộ.`,
+          error instanceof Error
+            ? error.message
+            : "Không tải được chi tiết gói tập từ API.",
         );
       });
 
     return () => {
       active = false;
     };
-  }, [localItem?.id]);
+  }, [packageId, validPackageId]);
   const [selectedMonths, setSelectedMonths] = useState(Number(duration) || 12);
   const [favorite, setFavoriteState] = useState(false);
   const [studentVerified, setStudentVerified] = useState(false);
   const [toast, setToast] = useState("");
   const [selectedClass, setSelectedClass] = useState<PackageClass | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const packageId = item?.id;
+  const favoriteId = item ? String(item.apiId) : "";
   useEffect(() => {
-    if (!packageId || !user) return;
+    if (!favoriteId || !user) return;
     let active = true;
-    getFavorite(user.email, packageId)
+    getFavorite(user.email, favoriteId)
       .then((value) => {
         if (active) setFavoriteState(value);
       })
@@ -124,7 +126,7 @@ export default function PackageDetailScreen() {
     return () => {
       active = false;
     };
-  }, [packageId, user]);
+  }, [favoriteId, user]);
   useEffect(() => {
     if (!user || !item?.requiresStudentVerification) return;
     let active = true;
@@ -162,7 +164,9 @@ export default function PackageDetailScreen() {
           <Text style={s.headerTitle}>CHI TIẾT GÓI TẬP</Text>
         </View>
         <View style={s.notFound}>
-          <Text style={s.title}>Không tìm thấy gói tập</Text>
+          <Text style={s.title}>
+            {visibleDetailError || "Đang tải gói tập..."}
+          </Text>
           <Action
             title="VỀ GÓI TẬP"
             onPress={() => router.replace("/packages")}
@@ -177,7 +181,7 @@ export default function PackageDetailScreen() {
     const next = !favorite;
     try {
       if (!user) return showToast("Vui lòng đăng nhập.");
-      await setFavorite(user.email, item!.id, next);
+      await setFavorite(user.email, String(item!.apiId), next);
       setFavoriteState(next);
       showToast(next ? "Đã lưu gói yêu thích." : "Đã bỏ lưu gói tập.");
     } catch {
@@ -185,6 +189,7 @@ export default function PackageDetailScreen() {
     }
   }
   async function sharePackage() {
+    if (!option) return showToast("Gói tập chưa cấu hình thời hạn đăng ký.");
     try {
       await Share.share({
         title: `${item!.name} | QA-Gym`,
@@ -252,7 +257,7 @@ export default function PackageDetailScreen() {
             </Pressable>
           </View>
         </View>
-        {detailError ? (
+        {visibleDetailError ? (
           <Text
             style={{
               color: C.error,
@@ -261,7 +266,7 @@ export default function PackageDetailScreen() {
               marginBottom: 10,
             }}
           >
-            {detailError}
+            {visibleDetailError}
           </Text>
         ) : null}
         <View style={s.heroCard}>
@@ -290,7 +295,7 @@ export default function PackageDetailScreen() {
               </Text>
             </View>
           </View>
-          <View style={s.priceBox}>
+          {option ? <View style={s.priceBox}>
             <View style={s.priceRow}>
               <Text style={s.price}>{formatVND(option.monthlyPrice)}</Text>
               <Text style={s.perMonth}>/ THÁNG</Text>
@@ -301,7 +306,7 @@ export default function PackageDetailScreen() {
               </Text>
               <Text style={s.discount}>{option.discountLabel}</Text>
             </View>
-          </View>
+          </View> : null}
           <View style={s.durationHead}>
             <Text style={s.tinyLabel}>THỜI HẠN ĐÓNG GÓI</Text>
           </View>
@@ -335,6 +340,9 @@ export default function PackageDetailScreen() {
               </Pressable>
             ))}
           </View>
+          {!item.durations.length ? (
+            <Text style={s.sectionCopy}>Chưa cấu hình thời hạn đăng ký.</Text>
+          ) : null}
         </View>
         <SectionHeading
           title={`ĐẶC QUYỀN ${item.tier}`}
@@ -364,6 +372,9 @@ export default function PackageDetailScreen() {
             </View>
           </View>
         ))}
+        {!item.privileges.length ? (
+          <Text style={s.sectionCopy}>Chưa có quyền lợi được cấu hình.</Text>
+        ) : null}
         {item.classes.length ? (
           <>
             <SectionHeading
@@ -462,33 +473,46 @@ export default function PackageDetailScreen() {
       <View style={s.checkout}>
         <View style={s.checkoutInfo}>
           <Text style={s.checkoutLabel}>TỔNG ƯỚC TÍNH</Text>
-          <Text style={s.checkoutPrice}>{formatVND(option.totalPrice)}</Text>
-          <Text style={s.checkoutPeriod}>{periodLabel(option)}</Text>
+          <Text style={s.checkoutPrice}>
+            {option ? formatVND(option.totalPrice) : "Chưa có thời hạn"}
+          </Text>
+          {option ? (
+            <Text style={s.checkoutPeriod}>{periodLabel(option)}</Text>
+          ) : null}
         </View>
         <Pressable
-          disabled={item.availability !== "active"}
+          disabled={item.availability !== "active" || !option}
           style={[
             s.checkoutButton,
-            item.availability !== "active" && { opacity: 0.4 },
+            (item.availability !== "active" || !option) && { opacity: 0.4 },
           ]}
-          onPress={() =>
-            item.requiresStudentVerification && !studentVerified
-              ? router.push({
-                  pathname: "/student-verification" as never,
-                  params: { duration: String(option.months) },
-                })
-              : router.push({
-                  pathname: "/package-enrollment",
-                  params: {
-                    id: item.id,
-                    duration: String(option.months),
-                    renewal,
-                  },
-                })
-          }
+          onPress={() => {
+            if (!option) return;
+            if (item.requiresStudentVerification && !studentVerified) {
+              router.push({
+                pathname: "/student-verification" as never,
+                params: {
+                  packageId: String(item.apiId),
+                  durationId: String(option.durationId),
+                  duration: String(option.months),
+                },
+              });
+              return;
+            }
+            router.push({
+              pathname: "/package-enrollment",
+              params: {
+                packageId: String(item.apiId),
+                durationId: String(option.durationId),
+                renewal,
+              },
+            });
+          }}
         >
           <Text style={s.checkoutButtonText}>
-            {item.availability !== "active"
+            {!option
+              ? "CHƯA CÓ THỜI HẠN"
+              : item.availability !== "active"
               ? "CHƯA MỞ BÁN"
               : item.requiresStudentVerification && !studentVerified
                 ? "XÁC MINH HSSV"

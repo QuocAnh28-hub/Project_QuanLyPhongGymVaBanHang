@@ -13,7 +13,11 @@ import { requestStudentVerification } from "@/lib/student-verification";
 
 export default function StudentVerificationScreen() {
   const { user } = useAuth();
-  const { duration } = useLocalSearchParams<{ duration?: string }>();
+  const { packageId, durationId, duration } = useLocalSearchParams<{
+    packageId?: string;
+    durationId?: string;
+    duration?: string;
+  }>();
   const [schoolName, setSchoolName] = useState("");
   const [studentId, setStudentId] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
@@ -73,7 +77,7 @@ export default function StudentVerificationScreen() {
           onPress={() =>
             router.replace({
               pathname: "/package-detail",
-              params: { id: "student-pass", duration: duration ?? "12" },
+              params: { id: packageId, durationId, duration },
             })
           }
         >

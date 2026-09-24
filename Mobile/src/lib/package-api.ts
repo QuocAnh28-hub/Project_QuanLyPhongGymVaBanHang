@@ -4,6 +4,7 @@ import type {
   PackageDuration,
   PrivilegeCode,
 } from "@/lib/packages";
+import { getPackagePresentation } from "@/lib/packages";
 
 export type ApiPackage = {
   GoiTapID: number;
@@ -46,15 +47,6 @@ export type ApiPackageDetail = {
   QuyenLoi: ApiPackagePrivilege[];
 };
 
-// Temporary bridge between current DB numeric IDs and existing UI slugs.
-// Replace with a stable MaGoi/catalog key in DB when that field is introduced.
-const API_ID_BY_LOCAL_ID: Record<string, number> = {
-  "silver-pass": 1,
-  "gold-vip": 2,
-  "diamond-all-access": 3,
-  "student-pass": 4,
-};
-
 const PRIVILEGE_CODES = new Set<PrivilegeCode>([
   "CHECKIN_24_7",
   "GROUP_X",
@@ -86,10 +78,6 @@ function parseMoney(value: string | number): number {
   return Number.isFinite(amount) && amount >= 0 ? amount : 0;
 }
 
-export function getApiPackageId(localId: string): number | null {
-  return API_ID_BY_LOCAL_ID[localId] ?? null;
-}
-
 export async function getActivePackages(): Promise<ApiPackage[]> {
   try {
     const response = await fetch(`${baseUrl}/goitap/active`);
@@ -115,14 +103,9 @@ export async function getActivePackages(): Promise<ApiPackage[]> {
 }
 
 export async function getActivePackageDetail(
-  localId: string,
+  packageId: number,
 ): Promise<ApiPackageDetail> {
-  const apiId = getApiPackageId(localId);
-  if (!apiId) {
-    throw new Error("Không ánh xạ được gói Mobile sang GoiTapID");
-  }
-
-  const response = await fetch(`${baseUrl}/goitap/active/${apiId}`);
+  const response = await fetch(`${baseUrl}/goitap/active/${packageId}`);
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
@@ -152,6 +135,7 @@ function durationFromApi(row: ApiPackageDuration): PackageDuration {
   const originalMonthlyPrice = Math.round(baseAmount / months);
 
   return {
+    durationId: row.GoiTapThoiHanID,
     months,
     bonusMonths,
     baseAmount,
@@ -190,71 +174,54 @@ function privilegeFromApi(
   };
 }
 
-export function mergePackageDetail(
-  localPackage: GymPackage,
-  apiPackage: ApiPackageDetail,
-): GymPackage {
-  const durations = apiPackage.ThoiHan.length
-    ? [...apiPackage.ThoiHan]
-        .sort((a, b) => a.SoThang - b.SoThang)
-        .map(durationFromApi)
-    : [...localPackage.durations];
-
-  const privileges = apiPackage.QuyenLoi.length
-    ? [...apiPackage.QuyenLoi]
-        .sort((a, b) => a.ThuTu - b.ThuTu || a.QuyenLoiID - b.QuyenLoiID)
-        .map(privilegeFromApi)
-    : [...localPackage.privileges];
+export function packageFromApi(apiPackage: ApiPackage): GymPackage {
+  const presentation = getPackagePresentation(apiPackage.GoiTapID);
+  const price = parseMoney(apiPackage.Gia);
+  const months = Math.max(1, Math.round(Number(apiPackage.ThoiHan) / 30) || 1);
 
   return {
-    ...localPackage,
-    name: apiPackage.TenGoi?.trim() || localPackage.name,
-    description: apiPackage.MoTa?.trim() || localPackage.description,
+    ...presentation,
+    id: String(apiPackage.GoiTapID),
+    apiId: apiPackage.GoiTapID,
+    name: apiPackage.TenGoi?.trim() || `Gói tập #${apiPackage.GoiTapID}`,
+    description: apiPackage.MoTa?.trim() || "Chưa có mô tả.",
     availability: apiPackage.TrangThai === "ACTIVE" ? "active" : "inactive",
-    durations,
-    privileges,
+    accessHours: undefined,
+    requiresStudentVerification: undefined,
+    durations: [{
+      months,
+      bonusMonths: 0,
+      baseAmount: price,
+      packagePromotion: 0,
+      monthlyPrice: price,
+      originalMonthlyPrice: price,
+      totalPrice: price,
+      discountLabel: "Giá từ hệ thống",
+      subtitle: `${months} tháng`,
+    }],
+    privileges: [],
   };
 }
 
-export function mergeActivePackages(
-  localPackages: readonly GymPackage[],
-  apiPackages: readonly ApiPackage[],
-): GymPackage[] {
-  const rowsById = new Map(apiPackages.map((row) => [row.GoiTapID, row]));
+export function packageFromApiDetail(apiPackage: ApiPackageDetail): GymPackage {
+  const presentation = getPackagePresentation(apiPackage.GoiTapID);
 
-  return localPackages.flatMap((localPackage) => {
-    const apiId = API_ID_BY_LOCAL_ID[localPackage.id];
-    if (!apiId) return [];
-
-    const apiPackage = rowsById.get(apiId);
-    if (!apiPackage) return [];
-
-    const apiPrice = parseMoney(apiPackage.Gia);
-
-    const durations: PackageDuration[] = localPackage.durations.map((option) => {
-      if (option.months !== 1) return { ...option };
-
-      return {
-        ...option,
-        baseAmount: apiPrice,
-        packagePromotion: 0,
-        monthlyPrice: apiPrice,
-        originalMonthlyPrice: apiPrice,
-        totalPrice: apiPrice,
-        discountLabel: "Giá từ hệ thống",
-        subtitle: "1 tháng",
-      };
-    });
-
-    return [
-      {
-        ...localPackage,
-        name: apiPackage.TenGoi?.trim() || localPackage.name,
-        description: apiPackage.MoTa?.trim() || localPackage.description,
-        availability:
-          apiPackage.TrangThai === "ACTIVE" ? "active" : "inactive",
-        durations,
-      },
-    ];
-  });
+  return {
+    ...presentation,
+    id: String(apiPackage.GoiTapID),
+    apiId: apiPackage.GoiTapID,
+    name: apiPackage.TenGoi?.trim() || `Gói tập #${apiPackage.GoiTapID}`,
+    description: apiPackage.MoTa?.trim() || "Chưa có mô tả.",
+    availability: apiPackage.TrangThai === "ACTIVE" ? "active" : "inactive",
+    accessHours: undefined,
+    requiresStudentVerification: undefined,
+    durations: [...apiPackage.ThoiHan]
+      .filter((row) => row.TrangThai === "ACTIVE")
+      .sort((a, b) => a.SoThang - b.SoThang)
+      .map(durationFromApi),
+    privileges: [...apiPackage.QuyenLoi]
+      .filter((row) => row.TrangThai === "ACTIVE")
+      .sort((a, b) => a.ThuTu - b.ThuTu || a.QuyenLoiID - b.QuyenLoiID)
+      .map(privilegeFromApi),
+  };
 }

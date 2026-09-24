@@ -1,8 +1,10 @@
-﻿import { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useFocusEffect } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Header from "@/app/Common/header";
+import { AuthColors as C } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import {
   getActiveMembership,
@@ -10,9 +12,14 @@ import {
   setFavorite,
   type MembershipEnrollment,
 } from "@/lib/membership";
-import { getActivePackages, mergeActivePackages } from "@/lib/package-api";
+import {
+  getActivePackageDetail,
+  getActivePackages,
+  packageFromApi,
+  packageFromApiDetail,
+} from "@/lib/package-api";
 import { formatVND } from "@/lib/package-logic";
-import { packages, type GymPackage, type PrivilegeCode } from "@/lib/packages";
+import { type GymPackage, type PrivilegeCode } from "@/lib/packages";
 
 const months = [1, 3, 6, 12];
 const comparison: { label: string; code?: PrivilegeCode; hours?: true }[] = [
@@ -30,7 +37,7 @@ export default function PackagesScreen() {
   const { user } = useAuth();
   const [selectedDuration, setSelectedDuration] = useState(12);
   const [displayPackages, setDisplayPackages] =
-    useState<readonly GymPackage[]>(packages);
+    useState<readonly GymPackage[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [membership, setMembership] = useState<MembershipEnrollment | null>(
     null,
@@ -39,7 +46,7 @@ export default function PackagesScreen() {
   
   const [apiError, setApiError] = useState("");
   const comparePackages = displayPackages.filter((item) =>
-    ["silver-pass", "gold-vip", "diamond-all-access"].includes(item.id),
+    [1, 2, 3].includes(item.apiId),
   );
 
   useFocusEffect(
@@ -47,27 +54,37 @@ export default function PackagesScreen() {
       let live = true;
 
       getActivePackages()
-        .then((rows) => {
+        .then(async (rows) => {
+          const details = await Promise.allSettled(
+            rows.map((row) => getActivePackageDetail(row.GoiTapID)),
+          );
           if (!live) return;
 
-          const merged = mergeActivePackages(packages, rows);
-          setDisplayPackages(merged);
+          const packagesFromApi = rows.map((row, index) => {
+            const detail = details[index];
+            return detail.status === "fulfilled"
+              ? packageFromApiDetail(detail.value)
+              : { ...packageFromApi(row), durations: [], privileges: [] };
+          });
+          setDisplayPackages(packagesFromApi);
           setApiError(
-            merged.length
-              ? ""
-              : "API da ket noi nhung chua co goi tap ACTIVE.",
+            !packagesFromApi.length
+              ? "Hiện chưa có gói tập đang mở."
+              : details.some((detail) => detail.status === "rejected")
+                ? "Một số gói chưa tải được thời hạn. Vui lòng mở lại màn hình."
+                : "",
           );
         })
         .catch((apiError) => {
           if (!live) return;
 
-          setDisplayPackages(packages);
+          setDisplayPackages([]);
           setApiError(
             `${
               apiError instanceof Error
                 ? apiError.message
-                : "Khong ket noi duoc API goi tap"
-            }. Dang hien thi du lieu cuc bo.`,
+                : "Không kết nối được API gói tập"
+            }.`,
           );
         });
 
@@ -87,8 +104,10 @@ useFocusEffect(
       Promise.all([
         getActiveMembership(user.email),
         Promise.all(
-          packages.map(async (item) =>
-            (await getFavorite(user.email, item.id)) ? item.id : null,
+          displayPackages.map(async (item) =>
+            (await getFavorite(user.email, String(item.apiId)))
+              ? String(item.apiId)
+              : null,
           ),
         ),
       ])
@@ -104,21 +123,22 @@ useFocusEffect(
       return () => {
         live = false;
       };
-    }, [user]),
+    }, [user, displayPackages]),
   );
   const open = (item: GymPackage) =>
     item.availability === "active" &&
     router.push({
       pathname: "/package-detail",
-      params: { id: item.id, duration: String(selectedDuration) },
+      params: { id: String(item.apiId), duration: String(selectedDuration) },
     });
   async function toggle(item: GymPackage) {
     if (!user) return router.push("/login");
-    const next = !favorites.includes(item.id);
+    const favoriteId = String(item.apiId);
+    const next = !favorites.includes(favoriteId);
     try {
-      await setFavorite(user.email, item.id, next);
+      await setFavorite(user.email, favoriteId, next);
       setFavorites((current) =>
-        next ? [...current, item.id] : current.filter((id) => id !== item.id),
+        next ? [...current, favoriteId] : current.filter((id) => id !== favoriteId),
       );
     } catch {
       setError("Không thể lưu yêu thích.");
@@ -163,12 +183,13 @@ useFocusEffect(
             const option = item.durations.find(
               (row) => row.months === selectedDuration,
             );
-            if (!option) return null;
+            const visiblePrivileges = item.privileges.slice(0, 4);
+            const remainingPrivileges = item.privileges.length - visiblePrivileges.length;
             const owned = membership?.packageId === item.id;
             return (
               <Pressable
-                key={item.id}
-                style={[s.card, item.id === "student-pass" && s.student]}
+                key={item.apiId}
+                style={[s.card, item.apiId === 4 && s.student]}
                 onPress={() =>
                   owned ? router.push("/membership-detail") : open(item)
                 }
@@ -178,8 +199,8 @@ useFocusEffect(
                   <Text
                     style={[
                       s.tag,
-                      item.id === "diamond-all-access" && s.blue,
-                      item.id === "student-pass" && s.green,
+                      item.apiId === 3 && s.blue,
+                      item.apiId === 4 && s.green,
                     ]}
                   >
                     {item.popular ? "✦ BÁN CHẠY NHẤT" : item.tier}
@@ -193,33 +214,81 @@ useFocusEffect(
                     accessibilityLabel={`Yêu thích ${item.name}`}
                   >
                     <Text style={s.star}>
-                      {favorites.includes(item.id) ? "★" : "☆"}
+                      {favorites.includes(String(item.apiId)) ? "★" : "☆"}
                     </Text>
                   </Pressable>
                 </View>
                 <Text style={s.name}>{item.name}</Text>
-                <View style={s.priceRow}>
-                  <Text style={[s.price, item.popular && s.lime]}>
-                    {formatVND(option.monthlyPrice)}
-                  </Text>
-                  <Text style={s.perMonth}>/tháng</Text>
-                </View>
-                <Text style={s.saving}>
-                  Tổng {formatVND(option.totalPrice)} · {option.discountLabel}
-                  {option.bonusMonths
-                    ? ` · Tặng ${option.bonusMonths} tháng`
-                    : ""}
-                </Text>
-                <View style={s.benefits}>
-                  {item.privileges
-                    .slice(0, item.id === "diamond-all-access" ? 5 : 4)
-                    .map((p) => (
-                      <View style={s.benefit} key={p.id}>
-                        <Text style={s.check}>✦</Text>
-                        <Text style={s.benefitText}>{p.title}</Text>
+                {option ? (
+                  <>
+                    <View style={s.priceRow}>
+                      <Text style={[s.price, item.popular && s.lime]}>
+                        {formatVND(option.monthlyPrice)}
+                      </Text>
+                      <Text style={s.perMonth}>/tháng</Text>
+                    </View>
+                    <View style={s.priceSummary}>
+                      <View style={s.priceSummaryRow}>
+                        <View style={s.priceTotal}>
+                          <Text style={s.priceMetaLabel}>TỔNG THANH TOÁN</Text>
+                          <Text style={s.priceMetaValue} numberOfLines={1}>
+                            {formatVND(option.totalPrice)}
+                          </Text>
+                        </View>
+                        <Text style={s.durationPill}>
+                          {option.months} THÁNG
+                        </Text>
+                      </View>
+                      {option.packagePromotion > 0 || option.bonusMonths > 0 ? (
+                        <View style={s.offerRow}>
+                          {option.packagePromotion > 0 ? (
+                            <Text style={s.savingPill}>
+                              TIẾT KIỆM {formatVND(option.packagePromotion)}
+                            </Text>
+                          ) : null}
+                          {option.bonusMonths > 0 ? (
+                            <Text style={s.bonusPill}>
+                              + TẶNG {option.bonusMonths} THÁNG
+                            </Text>
+                          ) : null}
+                        </View>
+                      ) : null}
+                    </View>
+                  </>
+                ) : (
+                  <View style={s.unavailableDuration}>
+                    <Text style={s.unavailableDurationText}>
+                      Chưa có gói {selectedDuration} tháng
+                    </Text>
+                  </View>
+                )}
+                {visiblePrivileges.length ? (
+                  <View style={s.benefits}>
+                    {visiblePrivileges.map((privilege) => (
+                      <View style={s.benefit} key={privilege.id}>
+                        <Ionicons
+                          name={privilege.icon as keyof typeof Ionicons.glyphMap}
+                          color={
+                            privilege.accent === "cyan"
+                              ? C.cyan
+                              : privilege.accent === "mint"
+                                ? C.mint
+                                : C.lime
+                          }
+                          size={15}
+                        />
+                        <Text style={s.benefitText} numberOfLines={2}>
+                          {privilege.title}
+                        </Text>
                       </View>
                     ))}
-                </View>
+                    {remainingPrivileges > 0 ? (
+                      <Text style={s.moreBenefits}>
+                        + {remainingPrivileges} quyền lợi khác
+                      </Text>
+                    ) : null}
+                  </View>
+                ) : null}
                 {item.requiresStudentVerification ? (
                   <Text style={s.restriction}>
                     Cần xác minh thẻ HSSV còn hiệu lực
@@ -231,13 +300,15 @@ useFocusEffect(
                       ? "XEM GÓI ĐANG DÙNG"
                       : item.availability !== "active"
                         ? "CHƯA MỞ BÁN"
-                        : item.id === "silver-pass"
+                        : item.apiId === 1
                           ? "CHỌN SILVER PASS"
-                          : item.id === "gold-vip"
+                          : item.apiId === 2
                             ? "ĐĂNG KÝ GÓI GOLD VIP"
-                            : item.id === "student-pass"
+                            : item.apiId === 4
                               ? "ĐĂNG KÝ HSSV"
-                              : "XEM CHI TIẾT DIAMOND"}
+                              : item.apiId === 3
+                                ? "XEM CHI TIẾT DIAMOND"
+                                : "XEM CHI TIẾT GÓI"}
                   </Text>
                   <Text style={s.arrow}>↗</Text>
                 </View>
@@ -251,7 +322,7 @@ useFocusEffect(
               <Text style={[s.cell, s.label]}>Đặc quyền</Text>
               {comparePackages.map((item) => (
                 <Pressable
-                  key={item.id}
+                  key={item.apiId}
                   style={s.cell}
                   onPress={() => open(item)}
                 >
@@ -263,7 +334,7 @@ useFocusEffect(
               <View style={s.row} key={row.label}>
                 <Text style={[s.cell, s.label]}>{row.label}</Text>
                 {comparePackages.map((item) => (
-                  <Text style={s.cell} key={item.id}>
+                  <Text style={s.cell} key={item.apiId}>
                     {row.hours
                       ? item.accessHours
                         ? `${item.accessHours.from}–${item.accessHours.to}`
@@ -358,16 +429,96 @@ const s = StyleSheet.create({
   price: { color: "#e0e4df", fontSize: 28, fontWeight: "900" },
   lime: { color: "#d9ff00" },
   perMonth: { color: "#88908b", fontSize: 10, marginLeft: 3 },
-  saving: { color: "#bbdb00", fontSize: 10, marginTop: 3 },
-  benefits: { marginTop: 9, gap: 5 },
+  priceSummary: {
+    backgroundColor: C.surfaceLowest,
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 9,
+    gap: 8,
+  },
+  priceSummaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  priceTotal: { flex: 1, minWidth: 0 },
+  priceMetaLabel: { color: C.muted, fontSize: 9, fontWeight: "800" },
+  priceMetaValue: {
+    color: C.text,
+    fontSize: 14,
+    fontWeight: "900",
+    marginTop: 2,
+    flexShrink: 1,
+  },
+  durationPill: {
+    color: C.lime,
+    backgroundColor: C.surfaceHigh,
+    borderRadius: 12,
+    overflow: "hidden",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    fontSize: 9,
+    fontWeight: "900",
+  },
+  offerRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  savingPill: {
+    color: C.surfaceLowest,
+    backgroundColor: C.lime,
+    borderRadius: 5,
+    overflow: "hidden",
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    fontSize: 9,
+    fontWeight: "900",
+  },
+  bonusPill: {
+    color: C.mint,
+    backgroundColor: C.surfaceHigh,
+    borderRadius: 5,
+    overflow: "hidden",
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    fontSize: 9,
+    fontWeight: "900",
+  },
+  unavailableDuration: {
+    backgroundColor: C.surfaceLowest,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 13,
+    marginTop: 9,
+  },
+  unavailableDurationText: {
+    color: C.muted,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  benefits: { marginTop: 8, gap: 5 },
   benefit: {
     flexDirection: "row",
-    backgroundColor: "#171a1c",
-    borderRadius: 4,
-    padding: 7,
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: C.surfaceLowest,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
   },
-  check: { color: "#cfff00", width: 17 },
-  benefitText: { color: "#c4c9c4", flex: 1, fontSize: 11 },
+  benefitText: {
+    color: C.text,
+    flex: 1,
+    minWidth: 0,
+    fontSize: 11,
+    fontWeight: "600",
+    lineHeight: 15,
+  },
+  moreBenefits: {
+    color: C.lime,
+    fontSize: 10,
+    fontWeight: "700",
+    paddingHorizontal: 3,
+    paddingTop: 2,
+  },
   restriction: { color: "#50d9a9", fontSize: 10, marginTop: 9 },
   button: {
     backgroundColor: "#caff00",

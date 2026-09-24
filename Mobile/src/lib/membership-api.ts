@@ -1,5 +1,4 @@
 import { baseUrl } from "@/lib/account-api";
-import { getApiPackageId } from "@/lib/package-api";
 import type { PaymentMethod } from "@/lib/membership";
 
 export type RegistrationResult = {
@@ -49,16 +48,11 @@ async function readError(response: Response): Promise<string> {
 
 export async function registerPackage(input: {
   accountId: number;
-  localPackageId: string;
+  packageId: number;
   durationId: number;
   activationDate: string;
   voucherCode?: string | null;
 }): Promise<RegistrationResult> {
-  const packageId = getApiPackageId(input.localPackageId);
-  if (!packageId) {
-    throw new Error("Không ánh xạ được gói Mobile sang GoiTapID");
-  }
-
   const response = await fetch(`${baseUrl}/dangkygoitap/register`, {
     method: "POST",
     headers: {
@@ -66,7 +60,7 @@ export async function registerPackage(input: {
     },
     body: JSON.stringify({
       TaiKhoanID: input.accountId,
-      GoiTapID: packageId,
+      GoiTapID: input.packageId,
       GoiTapThoiHanID: input.durationId,
       NgayBatDau: input.activationDate,
       MaKhuyenMai: input.voucherCode || undefined,

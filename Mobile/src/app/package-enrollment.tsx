@@ -1,9 +1,8 @@
 import { enrollmentGifts, homeClubs } from "@/constants/package-detail";
-import { getPackageById, type GymPackage } from "@/lib/packages";
+import { type GymPackage } from "@/lib/packages";
 import {
   getActivePackageDetail,
-  mergePackageDetail,
-  type ApiPackageDetail,
+  packageFromApiDetail,
 } from "@/lib/package-api";
 import { registerPackage } from "@/lib/membership-api";
 import { getActiveMembership, getEnrollment } from "@/lib/membership";
@@ -95,18 +94,21 @@ const activationOptions = [
 
 export default function PackageEnrollmentScreen() {
   const params = useLocalSearchParams<{
-    id?: string;
-    duration?: string;
+    packageId?: string;
+    durationId?: string;
     renewal?: string;
   }>();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const localItem = getPackageById(
-    typeof params.id === "string" ? params.id : "",
-  );
-  const [item, setItem] = useState<GymPackage | null>(localItem);
-  const [apiDetail, setApiDetail] = useState<ApiPackageDetail | null>(null);
+  const packageId = Number(params.packageId);
+  const durationId = Number(params.durationId);
+  const [loadedItem, setItem] = useState<GymPackage | null>(null);
   const [apiDetailError, setApiDetailError] = useState("");
+  const validPackageId = Number.isInteger(packageId) && packageId > 0;
+  const item = loadedItem?.apiId === packageId ? loadedItem : null;
+  const visibleApiError = validPackageId
+    ? apiDetailError
+    : "GoiTapID không hợp lệ.";
   const today = startOfDay(new Date());
   const [form, setForm] = useState<{
     name: string;
@@ -138,21 +140,17 @@ export default function PackageEnrollmentScreen() {
   const switchConfirmed = useRef(false);
 
   useEffect(() => {
-    setItem(localItem);
-    setApiDetail(null);
-    setApiDetailError("");
-    if (!localItem) return;
+    if (!validPackageId) return;
 
     let active = true;
-    getActivePackageDetail(localItem.id)
+    getActivePackageDetail(packageId)
       .then((detail) => {
         if (!active) return;
-        setApiDetail(detail);
-        setItem(mergePackageDetail(localItem, detail));
+        setItem(packageFromApiDetail(detail));
+        setApiDetailError("");
       })
       .catch((error) => {
         if (!active) return;
-        setItem(localItem);
         setApiDetailError(
           `${
             error instanceof Error
@@ -165,10 +163,10 @@ export default function PackageEnrollmentScreen() {
     return () => {
       active = false;
     };
-  }, [localItem?.id]);
+  }, [packageId, validPackageId]);
 
   const option = item?.durations.find(
-    (row) => row.months === Number(params.duration),
+    (row) => row.durationId === durationId,
   );
   const pricing = option ? calculatePrice(option, appliedVoucher) : null;
   const club = homeClubs.find((row) => row.id === form.homeClubId);
@@ -182,14 +180,16 @@ export default function PackageEnrollmentScreen() {
       ? router.back()
       : router.replace({
           pathname: "/package-detail",
-          params: { id: item?.id ?? "diamond-all-access" },
+          params: { id: String(packageId) },
         });
   if (!item || !option || !pricing || !user)
     return (
       <SafeAreaView style={s.safe}>
         <Header back={back} />
         <View style={s.empty}>
-          <Text style={s.title}>Gói tập hoặc thời hạn không hợp lệ.</Text>
+          <Text style={s.title}>
+            {visibleApiError || "Gói tập hoặc thời hạn không hợp lệ."}
+          </Text>
           <Pressable style={s.primary} onPress={back}>
             <Text style={s.primaryText}>QUAY LẠI CHI TIẾT GÓI</Text>
           </Pressable>
@@ -262,7 +262,7 @@ export default function PackageEnrollmentScreen() {
       const active = await getActiveMembership(currentUser.email);
       if (
         active &&
-        active.packageId !== selectedItem.id &&
+        active.packageId !== String(selectedItem.apiId) &&
         !switchConfirmed.current
       ) {
         const warning =
@@ -292,7 +292,10 @@ export default function PackageEnrollmentScreen() {
       const renewal = params.renewal
         ? await getEnrollment(currentUser.email, params.renewal)
         : null;
-      if (params.renewal && (!renewal || renewal.packageId !== selectedItem.id))
+      if (
+        params.renewal &&
+        (!renewal || renewal.packageId !== String(selectedItem.apiId))
+      )
         throw new Error("Gói gia hạn không hợp lệ.");
       const activationDate = renewal
         ? renewal.expiryDate > localDate(today)
@@ -301,21 +304,13 @@ export default function PackageEnrollmentScreen() {
         : form.activationDate;
       if (!currentUser.accountId)
         throw new Error("Phiên đăng nhập chưa có TaiKhoanID từ backend.");
-      if (!apiDetail)
-        throw new Error(
-          apiDetailError || "Chưa tải được chi tiết gói tập từ backend.",
-        );
-
-      const backendDuration = apiDetail.ThoiHan.find(
-        (row) => row.SoThang === selectedOption.months,
-      );
-      if (!backendDuration)
+      if (!selectedOption.durationId)
         throw new Error("Thời hạn đã chọn không tồn tại trên backend.");
 
       const registration = await registerPackage({
         accountId: currentUser.accountId,
-        localPackageId: selectedItem.id,
-        durationId: backendDuration.GoiTapThoiHanID,
+        packageId: selectedItem.apiId,
+        durationId: selectedOption.durationId,
         activationDate,
         voucherCode: appliedVoucher?.code ?? null,
       });
@@ -386,7 +381,7 @@ export default function PackageEnrollmentScreen() {
                 TIẾT KIỆM {formatVND(pricing.membershipDiscount)}
               </Text>
             </View>
-            {item.id === "diamond-all-access" ? (
+            {item.apiId === 3 ? (
               <>
                 <View style={s.giftHeading}>
                   <Ionicons name="gift-outline" color={C.mint} size={15} />
