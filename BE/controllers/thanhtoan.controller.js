@@ -1,6 +1,88 @@
 const Thanhtoan = require('../models/thanhtoan.model');
 
+function positiveInteger(value) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function sendError(res, error, fallback) {
+  if (error.status) {
+    return res.status(error.status).json({
+      message: error.message,
+      code: error.code,
+      ...(error.data && { data: error.data })
+    });
+  }
+  console.error(fallback, error);
+  return res.status(500).json({ message: fallback });
+}
+
 const ThanhtoanController = {
+
+  createPackagePayment: (req, res) => {
+    const DangKyID = positiveInteger(req.body?.DangKyID);
+    const PhuongThucThanhToan = String(req.body?.PhuongThucThanhToan || '');
+    if (!DangKyID) return res.status(400).json({ message: 'DangKyID không hợp lệ' });
+    if (!['TIEN_MAT', 'CHUYEN_KHOAN', 'THE'].includes(PhuongThucThanhToan)) {
+      return res.status(400).json({ message: 'Phương thức thanh toán không hợp lệ' });
+    }
+
+    Thanhtoan.createPackagePayment({ DangKyID, PhuongThucThanhToan }, (error, result) => {
+      if (error) return sendError(res, error, 'Không thể tạo yêu cầu thanh toán');
+      res.status(result.existing ? 200 : 201).json({
+        message: result.existing
+          ? result.payment.TrangThai === 'SUCCESS'
+            ? 'Đăng ký đã được thanh toán'
+            : 'Đăng ký đã có thanh toán đang chờ xử lý'
+          : 'Tạo yêu cầu thanh toán thành công',
+        data: result.payment
+      });
+    });
+  },
+
+  getPackagePaymentDetail: (req, res) => {
+    const id = positiveInteger(req.params.ThanhToanID);
+    if (!id) return res.status(400).json({ message: 'ThanhToanID không hợp lệ' });
+    Thanhtoan.getPackagePaymentDetail(id, (error, result) => {
+      if (error) return sendError(res, error, 'Không thể tải thanh toán');
+      if (!result) return res.status(404).json({ message: 'Không tìm thấy thanh toán' });
+      res.json(result);
+    });
+  },
+
+  getByRegistration: (req, res) => {
+    const id = positiveInteger(req.params.DangKyID);
+    if (!id) return res.status(400).json({ message: 'DangKyID không hợp lệ' });
+    Thanhtoan.getByRegistration(id, (error, result) => {
+      if (error) return sendError(res, error, 'Không thể tải thanh toán');
+      if (!result) return res.status(404).json({ message: 'Đăng ký chưa có thanh toán' });
+      res.json(result);
+    });
+  },
+
+  // Dev/test only until the project has an ADMIN/STAFF authorization guard.
+  confirmPackagePayment: (req, res) => {
+    const id = positiveInteger(req.params.ThanhToanID);
+    if (!id) return res.status(400).json({ message: 'ThanhToanID không hợp lệ' });
+    Thanhtoan.confirmPackagePayment(id, (error, result) => {
+      if (error) return sendError(res, error, 'Không thể xác nhận thanh toán');
+      res.json({
+        message: result.alreadyConfirmed
+          ? 'Thanh toán đã được xác nhận trước đó'
+          : 'Xác nhận thanh toán và kích hoạt gói tập thành công',
+        data: result
+      });
+    });
+  },
+
+  cancelPackagePayment: (req, res) => {
+    const id = positiveInteger(req.params.ThanhToanID);
+    if (!id) return res.status(400).json({ message: 'ThanhToanID không hợp lệ' });
+    Thanhtoan.cancelPackagePayment(id, (error, result) => {
+      if (error) return sendError(res, error, 'Không thể hủy thanh toán');
+      res.json({ message: 'Đã hủy thanh toán', data: result });
+    });
+  },
 
   getAll: (req, res) => {
     Thanhtoan.getAll((err, result) => {

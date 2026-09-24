@@ -138,7 +138,8 @@ const DangkygoitapController = {
           if (err.status) {
             return res.status(err.status).json({
               message: err.message,
-              code: err.code
+              code: err.code,
+              ...(err.data && { data: err.data })
             });
           }
 

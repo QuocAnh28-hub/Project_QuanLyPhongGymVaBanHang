@@ -332,6 +332,7 @@ CREATE TABLE ChiTietPhieuNhap (
 
 CREATE TABLE ThanhToan (
     ThanhToanID INT AUTO_INCREMENT PRIMARY KEY,
+    DangKyID INT NULL,
     HoiVienID INT NOT NULL,
     NhanVienID INT NULL,
     SoTien DECIMAL(15,2) NOT NULL,
@@ -348,6 +349,12 @@ CREATE TABLE ThanhToan (
     CONSTRAINT FK_ThanhToan_HoiVien
         FOREIGN KEY (HoiVienID)
         REFERENCES HoiVien(HoiVienID)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+
+    CONSTRAINT FK_ThanhToan_DangKyGoiTap
+        FOREIGN KEY (DangKyID)
+        REFERENCES DangKyGoiTap(DangKyID)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 

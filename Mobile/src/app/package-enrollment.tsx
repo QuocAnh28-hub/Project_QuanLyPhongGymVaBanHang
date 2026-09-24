@@ -4,7 +4,14 @@ import {
   getActivePackageDetail,
   packageFromApiDetail,
 } from "@/lib/package-api";
-import { registerPackage } from "@/lib/membership-api";
+import {
+  registerPackage,
+  RegistrationApiError,
+} from "@/lib/membership-api";
+import {
+  createPackagePayment,
+  getPaymentByRegistration,
+} from "@/lib/payment-api";
 import { getActiveMembership, getEnrollment } from "@/lib/membership";
 import { getStudentVerification } from "@/lib/student-verification";
 import { AuthColors as C } from "@/constants/theme";
@@ -307,19 +314,41 @@ export default function PackageEnrollmentScreen() {
       if (!selectedOption.durationId)
         throw new Error("Thời hạn đã chọn không tồn tại trên backend.");
 
-      const registration = await registerPackage({
-        accountId: currentUser.accountId,
-        packageId: selectedItem.apiId,
-        durationId: selectedOption.durationId,
-        activationDate,
-        voucherCode: appliedVoucher?.code ?? null,
-      });
+      let registrationId: number;
+      try {
+        const registration = await registerPackage({
+          accountId: currentUser.accountId,
+          packageId: selectedItem.apiId,
+          durationId: selectedOption.durationId,
+          activationDate,
+          voucherCode: appliedVoucher?.code ?? null,
+        });
+        registrationId = registration.DangKyID;
+      } catch (error) {
+        if (
+          !(error instanceof RegistrationApiError) ||
+          error.code !== "PENDING_EXISTS" ||
+          !error.registrationId
+        ) {
+          throw error;
+        }
+        registrationId = error.registrationId;
+      }
+
+      const existingPayment = await getPaymentByRegistration(registrationId);
+      const payment =
+        existingPayment?.TrangThaiThanhToan === "PENDING" ||
+        existingPayment?.TrangThaiThanhToan === "SUCCESS"
+          ? existingPayment
+          : await createPackagePayment({
+              registrationId,
+              paymentMethod: selectedPaymentMethod,
+            });
 
       router.replace({
         pathname: "/package-payment",
         params: {
-          registrationId: String(registration.DangKyID),
-          paymentMethod: selectedPaymentMethod,
+          paymentId: String(payment.ThanhToanID),
         },
       });
     } catch (error) {

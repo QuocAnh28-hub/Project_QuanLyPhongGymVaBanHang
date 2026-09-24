@@ -37,6 +37,16 @@ export type RegistrationDetail = {
   SoTienGiam: string | number;
 };
 
+export class RegistrationApiError extends Error {
+  constructor(
+    message: string,
+    readonly code?: string,
+    readonly registrationId?: number,
+  ) {
+    super(message);
+  }
+}
+
 async function readError(response: Response): Promise<string> {
   try {
     const data = (await response.json()) as { message?: string };
@@ -68,7 +78,16 @@ export async function registerPackage(input: {
   });
 
   if (!response.ok) {
-    throw new Error(await readError(response));
+    const data = (await response.json().catch(() => null)) as {
+      message?: string;
+      code?: string;
+      data?: { DangKyID?: number };
+    } | null;
+    throw new RegistrationApiError(
+      data?.message || `HTTP ${response.status}`,
+      data?.code,
+      data?.data?.DangKyID,
+    );
   }
 
   const payload = (await response.json()) as {

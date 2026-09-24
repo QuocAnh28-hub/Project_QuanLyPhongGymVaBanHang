@@ -1,9 +1,10 @@
 const db = require("../common/db");
 
-function appError(status, code, message) {
+function appError(status, code, message, data) {
   const error = new Error(message);
   error.status = status;
   error.code = code;
+  error.data = data;
   return error;
 }
 
@@ -193,6 +194,7 @@ Dangkygoitap.register = (input, callback) => {
           409,
           "PENDING_EXISTS",
           "Bạn đã có đăng ký gói này đang chờ xử lý",
+          { DangKyID: duplicates[0].DangKyID },
         );
       }
 
