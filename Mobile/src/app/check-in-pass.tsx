@@ -1,6 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -13,19 +13,12 @@ import QRCode from "react-native-qrcode-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { homeClubs } from "@/constants/package-detail";
-import { checkAccess, getPackageById } from "@/lib/packages";
 import { useAuth } from "@/context/AuthContext";
 import {
-  CHECK_IN_TOKEN_SECONDS,
-  encodeCheckInToken,
-  generateCheckInToken,
-  type CheckInToken,
-} from "@/lib/check-in";
-import { localDate } from "@/lib/package-logic";
-import {
-  getActiveMembership,
-  type MembershipEnrollment,
-} from "@/lib/membership";
+  CheckInApiError,
+  createCheckInToken,
+  type CheckInQrToken,
+} from "@/lib/check-in-api";
 
 const C = {
   bg: "#111316",
@@ -47,77 +40,66 @@ const club = {
 
 export default function CheckInPassScreen() {
   const { user } = useAuth();
+  const accountId = user?.accountId;
   const { width } = useWindowDimensions();
-  const [membership, setMembership] = useState<MembershipEnrollment | null>();
-  const [kind, setKind] = useState<CheckInToken["kind"]>("member");
-  const [token, setToken] = useState<CheckInToken | null>(null);
-  const [seconds, setSeconds] = useState(CHECK_IN_TOKEN_SECONDS);
+  const [token, setToken] = useState<CheckInQrToken | null>();
+  const [seconds, setSeconds] = useState(0);
+  const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const requestToken = useCallback(async () => {
+    if (!accountId) {
+      setToken(null);
+      setError("Không tìm thấy tài khoản đăng nhập.");
+      return;
+    }
+    try {
+      const next = await createCheckInToken(accountId);
+      setToken(next);
+      setSeconds(next.expiresIn);
+      setError("");
+    } catch (loadError) {
+      setToken(null);
+      setError(
+        loadError instanceof CheckInApiError
+          ? loadError.message
+          : "Không thể tải mã QR check-in.",
+      );
+    }
+  }, [accountId]);
+
   useFocusEffect(
     useCallback(() => {
-      let mounted = true;
-      if (user)
-        getActiveMembership(user.email).then((value) => {
-          if (mounted) setMembership(value);
-        });
-      return () => {
-        mounted = false;
-      };
-    }, [user]),
+      requestToken();
+    }, [requestToken]),
   );
-  const activePackage = membership
-    ? getPackageById(membership.packageId)
-    : null;
-  const guestAllowed = !!activePackage?.privileges.some(
-    (item) => item.code === "GUEST_PASS",
-  );
-  const access = checkAccess(activePackage);
+
   useEffect(() => {
-    let remaining = CHECK_IN_TOKEN_SECONDS;
-    const refresh = () => {
-      const now = new Date();
-      if (
-        !user ||
-        !membership ||
-        membership.expiryDate < localDate(now) ||
-        membership.activationDate > localDate(now) ||
-        checkAccess(activePackage, now) !== "OK" ||
-        (kind === "guest" && !guestAllowed)
-      ) {
-        setToken(null);
-        return;
-      }
-      remaining = CHECK_IN_TOKEN_SECONDS;
-      setToken(generateCheckInToken(user.email, membership.id, kind, now));
+    if (!token) return;
+    const tick = () => {
+      const remaining = Math.max(
+        0,
+        Math.ceil((new Date(token.expiresAt).getTime() - Date.now()) / 1000),
+      );
       setSeconds(remaining);
+      if (!remaining) {
+        setToken(null);
+        requestToken();
+      }
     };
-    const initial = setTimeout(refresh, 0);
+    tick();
     const timer = setInterval(() => {
-      remaining -= 1;
-      if (remaining <= 0) refresh();
-      else setSeconds(remaining);
+      tick();
     }, 1000);
-    return () => {
-      clearTimeout(initial);
-      clearInterval(timer);
-    };
-  }, [activePackage, guestAllowed, kind, membership, user]);
+    return () => clearInterval(timer);
+  }, [requestToken, token]);
   const qrSize = Math.min(230, width - 96);
-  const memberCode = membership?.id.replace("QA-MEM-", "QA-") ?? "";
+  const memberCode = token ? `QA-${token.DangKyID}` : "";
   const initials = (user?.name ?? "QA")
     .split(/\s+/)
     .slice(-2)
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-  const barcode = useMemo(
-    () =>
-      [...memberCode].flatMap((char, index) => [
-        2 + (char.charCodeAt(0) % 3),
-        1 + (index % 2),
-      ]),
-    [memberCode],
-  );
   const back = () =>
     router.canGoBack() ? router.back() : router.replace("/profile");
   return (
@@ -171,24 +153,20 @@ export default function CheckInPassScreen() {
         ) : null}
         <View style={s.tabs}>
           <Tab
-            active={kind === "member"}
+            active
             label="MÃ CÁ NHÂN"
             icon="id-card-outline"
-            onPress={() => setKind("member")}
+            onPress={() => undefined}
           />
           <Tab
-            active={kind === "guest"}
-            disabled={!guestAllowed}
+            active={false}
+            disabled
             label="MÃ KHÁCH MỜI (+1)"
             icon="person-add-outline"
-            onPress={() => setKind("guest")}
+            onPress={() => undefined}
           />
         </View>
-        {!guestAllowed ? (
-          <Text style={s.disabledReason}>
-            Mã khách chỉ mở khi gói đang hoạt động có quyền dẫn bạn.
-          </Text>
-        ) : null}
+        <Text style={s.disabledReason}>Mã khách mời sẽ được hỗ trợ sau.</Text>
         <View style={s.club}>
           <View style={s.row}>
             <Ionicons name="location-outline" color={C.lime} size={22} />
@@ -198,9 +176,7 @@ export default function CheckInPassScreen() {
             </View>
             <View style={s.online} />
           </View>
-          <Text style={s.demo}>
-            TRẠNG THÁI DEMO CỤC BỘ · CHƯA KẾT NỐI CỔNG THẬT
-          </Text>
+          <Text style={s.demo}>QR DO BACKEND CẤP · DÀNH CHO CỔNG/NHÂN VIÊN QUÉT</Text>
           <View style={s.statusRow}>
             <Status
               icon="radio-outline"
@@ -214,20 +190,18 @@ export default function CheckInPassScreen() {
             />
           </View>
         </View>
-        {membership === undefined ? (
+        {token === undefined ? (
           <Text style={s.center}>Đang tải thẻ hội viên...</Text>
-        ) : !membership ? (
+        ) : !token ? (
           <View style={s.empty}>
             <Ionicons name="lock-closed-outline" color={C.lime} size={34} />
-            <Text style={s.cardTitle}>Bạn chưa có gói tập đang hoạt động</Text>
-            <Text style={s.muted}>
-              Đơn chờ thanh toán chưa thể tạo mã vào cửa.
-            </Text>
+            <Text style={s.cardTitle}>Không thể cấp mã QR</Text>
+            <Text style={s.muted}>{error || "Bạn chưa có gói tập đang hoạt động."}</Text>
             <Pressable
               style={s.primary}
-              onPress={() => router.push("/packages")}
+              onPress={requestToken}
             >
-              <Text style={s.primaryText}>KHÁM PHÁ GÓI TẬP</Text>
+              <Text style={s.primaryText}>THỬ LẠI</Text>
             </Pressable>
           </View>
         ) : (
@@ -240,7 +214,7 @@ export default function CheckInPassScreen() {
                 <Text style={s.cardTitle}>{user?.name.toUpperCase()}</Text>
                 <View style={s.row}>
                   <Text style={s.badge}>
-                    {kind === "guest" ? "GUEST PASS" : activePackage?.tier}
+                    MEMBER PASS
                   </Text>
                   <Text style={s.muted}>#{memberCode}</Text>
                 </View>
@@ -256,7 +230,7 @@ export default function CheckInPassScreen() {
                 <View
                   style={[
                     s.timerFill,
-                    { width: `${(seconds / CHECK_IN_TOKEN_SECONDS) * 100}%` },
+                    { width: `${(seconds / token.expiresIn) * 100}%` },
                   ]}
                 />
               </View>
@@ -268,41 +242,14 @@ export default function CheckInPassScreen() {
                 accessibilityLabel={`QR token ${token.token}`}
               >
                 <QRCode
-                  value={encodeCheckInToken(token)}
+                  value={token.token}
                   size={qrSize}
                   backgroundColor="#fff"
                   color="#0c0e11"
                   ecl="M"
                 />
-                <Text style={s.qrLabel}>♢ MÃ TOKEN OFFLINE ĐỘNG</Text>
+                <Text style={s.qrLabel}>♢ MÃ QR ĐƯỢC BACKEND KÝ</Text>
               </View>
-            ) : (
-              <Text style={s.disabledReason}>
-                {access === "OUTSIDE_ACCESS_HOURS"
-                  ? "OUTSIDE_ACCESS_HOURS · Ngoài khung giờ tập của gói."
-                  : "Không đủ quyền tạo QR."}
-              </Text>
-            )}
-            {token ? (
-              <>
-                <Text style={s.barcodeHint}>
-                  DỰ PHÒNG CHO MÁY QUÉT TIA LASER
-                </Text>
-                <View style={s.barcode}>
-                  {barcode.map((bar, index) => (
-                    <View
-                      key={index}
-                      style={{
-                        width: bar,
-                        height: 35,
-                        backgroundColor: "#0c0e11",
-                        marginRight: 2,
-                      }}
-                    />
-                  ))}
-                  <Text style={s.barcodeText}>{memberCode}</Text>
-                </View>
-              </>
             ) : null}
             <View style={s.localWarning}>
               <Ionicons
@@ -311,8 +258,8 @@ export default function CheckInPassScreen() {
                 size={18}
               />
               <Text style={s.muted}>
-                Mã local phục vụ offline/development, chưa được máy chủ ký và
-                chưa thể mở cổng vật lý.
+                Mã hết hạn sau {token.expiresIn} giây và tự động làm mới. Chỉ
+                cổng hoặc nhân viên mới thực hiện scan check-in.
               </Text>
             </View>
           </View>

@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import Header from "@/app/Common/header";
 import { useAuth } from "@/context/AuthContext";
-import { getCheckInHistory } from "@/lib/check-in";
+import { getCheckInHistory } from "@/lib/check-in-api";
 import { getCurrentMembership, type CurrentMembership } from "@/lib/membership-api";
 import { getActivePackageDetail, packageFromApiDetail } from "@/lib/package-api";
 import type { GymPackage } from "@/lib/packages";
@@ -46,7 +46,7 @@ export default function ProfileScreen() {
       if (user?.accountId)
         Promise.all([
           getCurrentMembership(user.accountId),
-          getCheckInHistory(user.email).catch(() => []),
+          getCheckInHistory(user.accountId).catch(() => []),
         ]).then(async ([membership, history]) => {
             const gymPackage = membership
               ? await getActivePackageDetail(membership.GoiTapID)
@@ -216,7 +216,7 @@ export default function ProfileScreen() {
                   style={styles.darkButton}
                   onPress={() => router.push("/check-in-pass")}
                 >
-                  <Text style={styles.darkButtonText}>▧ MÃ QR VÀO CỬA</Text>
+                  <Text style={styles.darkButtonText}>▧ MÃ QR CHECK-IN</Text>
                 </Pressable>
                 <Pressable
                   style={styles.primaryButtonSmall}
@@ -228,6 +228,15 @@ export default function ProfileScreen() {
                 </Pressable>
               </View>
             </View>
+            <Pressable
+              style={styles.ordersButton}
+              onPress={() => router.push("/check-in-history")}
+              accessibilityLabel="Xem lịch sử check-in"
+            >
+              <FontAwesome name="history" size={12} color="#182000" />
+              <Text style={styles.ordersButtonText}>LỊCH SỬ CHECK-IN</Text>
+              <FontAwesome name="arrow-right" size={11} color="#182000" />
+            </Pressable>
             <Pressable
               style={styles.ptBookingButton}
               onPress={() => router.push("/pt-schedule")}
