@@ -92,7 +92,6 @@ function WorkoutCard({
       <View style={styles.workoutCopy}>
         <Text style={styles.workoutTitle}>{title}</Text>
         <Text style={styles.workoutDetail}>{detail}</Text>
-        <Text style={styles.workoutLink}>Khám phá khu vực →</Text>
       </View>
     </View>
   );
@@ -146,7 +145,7 @@ export default function HomeScreen() {
             ))}
           </View>
 
-          <SectionTitle title="Khu vực luyện tập" action="4 khu vực" />
+          <SectionTitle title="Khu vực luyện tập" action="3 khu vực" />
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -332,12 +331,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 4,
     lineHeight: 13,
-  },
-  workoutLink: {
-    color: "#d9ff00",
-    fontSize: 10,
-    fontWeight: "800",
-    marginTop: 7,
   },
   schedule: {
     backgroundColor: "#1b201c",

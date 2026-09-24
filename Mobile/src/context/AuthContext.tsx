@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { readLocal, writeLocal } from '@/lib/local-store';
-import { getAccount, getAccounts, isActiveCustomer, type ApiAccount } from '@/lib/account-api';
+import { getAccount, getAccounts, isActiveCustomer, registerAccount, type ApiAccount } from '@/lib/account-api';
 
 type Account = { name: string; email: string; phone: string; password: string; role: 'member'; avatar: string | null; height: number | null; weight: number | null; birthDate: string | null; fitnessGoal: string | null };
 type Registration = Pick<Account, 'name' | 'email' | 'phone' | 'password'>;
@@ -23,7 +23,6 @@ const API_SESSION = 'qa-gym-api-session-v1';
 const AuthContext = createContext<AuthValue | null>(null);
 
 // ponytail: local development accounts only; replace this store with server auth before production.
-function identity(account: Account) { const { password: _password, ...user } = account; return user; }
 function apiIdentity(account: ApiAccount): Omit<Account, 'password'> {
   return { name: account.Email.split('@')[0], email: account.Email, phone: '', role: 'member', avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
 }
@@ -71,12 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   }
   async function register(account: Registration) {
-    if (accounts.some(a => a.email.toLowerCase() === account.email.trim().toLowerCase() || a.phone.replace(/\s/g, '') === account.phone.replace(/\s/g, ''))) return 'Email hoặc số điện thoại đã được sử dụng.';
-    const next = [...accounts, asMember({ ...account, email: account.email.trim().toLowerCase(), phone: account.phone.replace(/\s/g, '') })];
-    await writeLocal(ACCOUNTS, JSON.stringify(next));
-    setAccounts(next);
-    await writeLocal(SESSION, account.email.trim().toLowerCase());
-    setUser(identity(next[next.length - 1]));
+    await registerAccount({
+      ...account,
+      name: account.name.trim(),
+      email: account.email.trim().toLowerCase(),
+      phone: account.phone.replace(/\s/g, '').replace(/^\+84/, '0'),
+    });
     return null;
   }
   async function logout() { await Promise.all([writeLocal(SESSION, null), writeLocal(API_SESSION, null)]); setUser(null); setRecovery(null); }

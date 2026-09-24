@@ -6,6 +6,7 @@ const TaikhoanController = require('../controllers/taikhoan.controller');
 router.get('/', TaikhoanController.getAll);
 router.get('/:TaiKhoanID', TaikhoanController.getById);
 router.post('/', TaikhoanController.create);
+router.post('/register', require('../controllers/register.controller'));
 router.put('/:TaiKhoanID', TaikhoanController.update);
 router.delete('/:TaiKhoanID', TaikhoanController.delete);
 

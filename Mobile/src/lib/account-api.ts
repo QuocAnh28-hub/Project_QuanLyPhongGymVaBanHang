@@ -28,3 +28,24 @@ export async function getAccount(id: number): Promise<ApiAccount | null> {
 export function isActiveCustomer(account: ApiAccount): boolean {
   return account.VaiTro === 'CUSTOMER' && account.TrangThai === 'ACTIVE';
 }
+
+export async function registerAccount(account: { name: string; email: string; phone: string; password: string }): Promise<void> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(`${baseUrl}/taikhoan/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(account),
+      signal: controller.signal,
+    });
+    const result = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(result?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+    if (!result?.data?.TaiKhoanID) throw new Error('Phản hồi đăng ký không hợp lệ. Vui lòng thử đăng nhập để kiểm tra tài khoản.');
+  } catch (error) {
+    if (error instanceof Error && error.name !== 'AbortError' && error.name !== 'TypeError') throw error;
+    throw new Error('Không nhận được phản hồi từ máy chủ. Kiểm tra kết nối; nếu đã gửi đăng ký, hãy thử đăng nhập trước khi gửi lại.');
+  } finally {
+    clearTimeout(timeout);
+  }
+}

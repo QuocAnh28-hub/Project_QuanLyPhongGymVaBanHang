@@ -1,5 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useState } from "react";
+import { router } from "expo-router";
+import { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import {
   AuthButton,
@@ -30,16 +31,19 @@ export default function Register() {
   const [goalsSelected, setGoalsSelected] = useState<string[]>([]);
   const [terms, setTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const submittingRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [message, setMessage] = useState("");
   const set = (key: keyof typeof form) => (value: string) =>
-    setForm((old) => ({ ...old, [key]: value }));
+    { setMessage(""); setForm((old) => ({ ...old, [key]: value })); };
   const errors = {
-    name: !form.name.trim() ? "Vui lòng nhập họ và tên." : "",
-    phone: !form.phone.trim() ? "Vui lòng nhập số điện thoại." : "",
-    email: !/^\S+@\S+\.\S+$/.test(form.email.trim())
+    name: (!form.name.trim() || form.name.trim().length > 100) ? "Vui lòng nhập họ và tên (tối đa 100 ký tự)." : "",
+    phone: !/^0[35789]\d{8}$/.test(form.phone.replace(/\s/g, "").replace(/^\+84/, "0")) ? "Số di động Việt Nam không hợp lệ." : "",
+    email: (form.email.trim().length > 100 || !/^\S+@\S+\.\S+$/.test(form.email.trim()))
       ? "Email không hợp lệ."
       : "",
-    password: form.password.length < 8 ? "Mật khẩu cần ít nhất 8 ký tự." : "",
+    password: (form.password.length < 8 || form.password.length > 255 || !/[A-Za-z]/.test(form.password) || !/\d/.test(form.password)) ? "Mật khẩu cần 8–255 ký tự, gồm chữ và số." : "",
     confirm:
       form.confirm !== form.password || !form.confirm
         ? "Mật khẩu xác nhận không khớp."
@@ -55,21 +59,27 @@ export default function Register() {
         ? 3
         : 2;
   async function handleRegister() {
+    if (submittingRef.current || success) return;
     setSubmitted(true);
+    setMessage("");
     if (Object.values(errors).some(Boolean) || !terms) return;
+    submittingRef.current = true;
+    setSubmitting(true);
     try {
-      setMessage(
-        (await register({
-          name: form.name.trim(),
-          phone: form.phone.trim(),
-          email: form.email.trim(),
-          password: form.password,
-        })) ?? "",
-      );
-    } catch {
-      setMessage("Không thể lưu tài khoản. Vui lòng thử lại.");
+      const error = await register({
+        name: form.name.trim(), phone: form.phone.trim(),
+        email: form.email.trim(), password: form.password,
+      });
+      if (error) setMessage(error);
+      else setSuccess(true);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Đăng ký thất bại. Vui lòng thử lại.");
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   }
+
   return (
     <AuthScreen>
       <View style={s.promo}>
@@ -99,6 +109,7 @@ export default function Register() {
         </View>
       </View>
       <AuthField
+        editable={!submitting && !success}
         label="HỌ VÀ TÊN"
         icon="person-outline"
         placeholder="Nguyễn Tuấn Anh"
@@ -107,6 +118,7 @@ export default function Register() {
         error={submitted ? errors.name : undefined}
       />
       <AuthField
+        editable={!submitting && !success}
         label="SỐ ĐIỆN THOẠI"
         icon="call-outline"
         placeholder="0912 345 678"
@@ -116,6 +128,7 @@ export default function Register() {
         error={submitted ? errors.phone : undefined}
       />
       <AuthField
+        editable={!submitting && !success}
         label="EMAIL"
         icon="mail-outline"
         placeholder="email@example.com"
@@ -126,6 +139,7 @@ export default function Register() {
         error={submitted ? errors.email : undefined}
       />
       <AuthField
+        editable={!submitting && !success}
         label="MẬT KHẨU"
         icon="lock-closed-outline"
         placeholder="Ít nhất 8 ký tự, gồm chữ và số"
@@ -153,6 +167,7 @@ export default function Register() {
         </View>
       </View>
       <AuthField
+        editable={!submitting && !success}
         label="XÁC NHẬN MẬT KHẨU"
         icon="lock-closed-outline"
         placeholder="Nhập lại mật khẩu"
@@ -163,13 +178,14 @@ export default function Register() {
       />
       <View style={s.sectionRow}>
         <Text style={s.sectionTitle}>MỤC TIÊU TẬP LUYỆN CHÍNH</Text>
-        <Text style={s.hint}>Chọn 1 hoặc nhiều</Text>
+        <Text style={s.hint}>Chưa hỗ trợ lưu</Text>
       </View>
       <View style={s.goals}>
         {goals.map((goal) => {
           const selected = goalsSelected.includes(goal.title);
           return (
             <Pressable
+              disabled
               key={goal.title}
               style={[s.goal, selected && s.goalSelected]}
               onPress={() =>
@@ -198,6 +214,7 @@ export default function Register() {
         })}
       </View>
       <Pressable
+        disabled={submitting || success}
         style={s.terms}
         onPress={() => setTerms(!terms)}
         accessibilityRole="checkbox"
@@ -215,7 +232,12 @@ export default function Register() {
         <Text style={s.error}>Vui lòng đồng ý với điều khoản.</Text>
       ) : null}
       {message ? <Text style={s.error}>{message}</Text> : null}
-      <AuthButton title="ĐĂNG KÝ HỘI VIÊN" onPress={handleRegister} />
+      {success ? <Text style={[s.error, { color: C.mint }]}>Đăng ký thành công! Hãy đăng nhập bằng email và mật khẩu vừa tạo.</Text> : null}
+      <AuthButton
+        title={success ? "ĐĂNG NHẬP NGAY" : submitting ? "ĐANG ĐĂNG KÝ..." : "ĐĂNG KÝ HỘI VIÊN"}
+        onPress={success ? () => router.replace("/login") : handleRegister}
+        disabled={submitting}
+      />
       <AuthDivider title="HOẶC ĐĂNG KÝ NHANH" />
       <SocialButtons />
       <View style={s.community}>
@@ -285,7 +307,7 @@ const s = StyleSheet.create({
   hint: { color: C.lime, fontSize: 12, fontWeight: "700" },
   goals: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   goal: {
-    width: "48.8%",
+    width: "48%",
     flexDirection: "row",
     alignItems: "center",
     minHeight: 56,
