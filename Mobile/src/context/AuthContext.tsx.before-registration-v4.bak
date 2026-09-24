@@ -1,48 +1,51 @@
-import { requestRecoveryCode, verifyRecoveryCode, changeRecoveredPassword } from '@/lib/recovery-api';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { readLocal, writeLocal } from '@/lib/local-store';
-import { getAccount, getAccounts, isActiveCustomer, registerAccount, type ApiAccount } from '@/lib/account-api';
+import { getAccount, getAccounts, isActiveCustomer, type ApiAccount } from '@/lib/account-api';
 
-type Account = { accountId: number | null; name: string; email: string; phone: string; password: string; role: 'member'; avatar: string | null; height: number | null; weight: number | null; birthDate: string | null; fitnessGoal: string | null };
+type Account = { name: string; email: string; phone: string; password: string; role: 'member'; avatar: string | null; height: number | null; weight: number | null; birthDate: string | null; fitnessGoal: string | null };
 type Registration = Pick<Account, 'name' | 'email' | 'phone' | 'password'>;
-type Recovery = { email: string; verified: boolean; resetToken?: string; resendAt: number };
+type Recovery = { email: string; verified: boolean };
 type AuthValue = {
   ready: boolean; user: Omit<Account, 'password'> | null; savedCredential: string;
   login: (credential: string, password: string, remember: boolean) => Promise<boolean>;
   register: (account: Registration) => Promise<string | null>;
   logout: () => Promise<void>;
-  beginRecovery: (email: string) => Promise<void>;
-  verifyOtp: (code: string) => Promise<boolean>;
+  beginRecovery: (credential: string, method: 'sms' | 'email') => string | null;
+  verifyOtp: (code: string) => boolean;
   resetPassword: (password: string) => Promise<boolean>;
   recovery: Recovery | null;
 };
-
-const SEED: Account = { accountId: null, name: 'Admin QA-Gym', email: 'admin', phone: '0123456789', password: '12345678', role: 'member', avatar: null, height: 178, weight: 74, birthDate: '1998-09-12', fitnessGoal: 'Tăng cơ siết mỡ (Lean Muscle)' };
+const SEED: Account = { name: 'Admin QA-Gym', email: 'admin', phone: '0123456789', password: '12345678', role: 'member', avatar: null, height: 178, weight: 74, birthDate: '1998-09-12', fitnessGoal: 'Tăng cơ siết mỡ (Lean Muscle)' };
 const ACCOUNTS = 'qa-gym-dev-accounts-v2';
-
 const SESSION = 'qa-gym-dev-session-v2';
 const REMEMBERED = 'qa-gym-dev-credential-v2';
 const API_SESSION = 'qa-gym-api-session-v1';
 const AuthContext = createContext<AuthValue | null>(null);
 
+// ponytail: local development accounts only; replace this store with server auth before production.
+function identity(account: Account) { const { password: _password, ...user } = account; return user; }
 function apiIdentity(account: ApiAccount): Omit<Account, 'password'> {
-  return { accountId: account.TaiKhoanID, name: account.Email.split('@')[0], email: account.Email, phone: '', role: 'member', avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
+  return { name: account.Email.split('@')[0], email: account.Email, phone: '', role: 'member', avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
 }
-
 function asMember(account: Registration & Partial<Account>): Account {
-  const profile = account.email.toLowerCase() === SEED.email ? SEED : { accountId: null, avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
+  const profile = account.email.toLowerCase() === SEED.email ? SEED : { avatar: null, height: null, weight: null, birthDate: null, fitnessGoal: null };
   return { ...profile, ...account, role: 'member' };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<AuthValue['user']>(null);
+  const [accounts, setAccounts] = useState<Account[]>([SEED]);
   const [savedCredential, setSavedCredential] = useState('');
   const [recovery, setRecovery] = useState<Recovery | null>(null);
   useEffect(() => {
     (async () => {
       try {
-        const [remembered, apiSession] = await Promise.all([readLocal(REMEMBERED), readLocal(API_SESSION)]);
+        const [savedAccounts, remembered, apiSession] = await Promise.all([readLocal(ACCOUNTS), readLocal(REMEMBERED), readLocal(API_SESSION)]);
+        const list: Account[] = savedAccounts ? JSON.parse(savedAccounts) : [];
+        const all = list.length ? list.map(asMember) : [SEED];
+        if (list.length) await writeLocal(ACCOUNTS, JSON.stringify(all));
+        setAccounts(all);
         if (apiSession) {
           const account = await getAccount(Number(apiSession));
           if (account && isActiveCustomer(account)) setUser(apiIdentity(account));
@@ -68,30 +71,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   }
   async function register(account: Registration) {
-    await registerAccount({
-      ...account,
-      name: account.name.trim(),
-      email: account.email.trim().toLowerCase(),
-      phone: account.phone.replace(/\s/g, '').replace(/^\+84/, '0'),
-    });
+    if (accounts.some(a => a.email.toLowerCase() === account.email.trim().toLowerCase() || a.phone.replace(/\s/g, '') === account.phone.replace(/\s/g, ''))) return 'Email hoặc số điện thoại đã được sử dụng.';
+    const next = [...accounts, asMember({ ...account, email: account.email.trim().toLowerCase(), phone: account.phone.replace(/\s/g, '') })];
+    await writeLocal(ACCOUNTS, JSON.stringify(next));
+    setAccounts(next);
+    await writeLocal(SESSION, account.email.trim().toLowerCase());
+    setUser(identity(next[next.length - 1]));
     return null;
   }
   async function logout() { await Promise.all([writeLocal(SESSION, null), writeLocal(API_SESSION, null)]); setUser(null); setRecovery(null); }
-  async function beginRecovery(email: string) {
-    const normalized = email.trim().toLowerCase();
-    const result = await requestRecoveryCode(normalized);
-    setRecovery({ email: normalized, verified: false, resendAt: Date.now() + result.retryAfter * 1000 });
+  function beginRecovery(credential: string, method: 'sms' | 'email') {
+    const normalized = credential.trim().toLowerCase().replace(/\s/g, '');
+    const account = accounts.find(a => method === 'sms' ? a.phone === normalized : a.email === normalized);
+    if (!account) return 'Không tìm thấy tài khoản tương ứng.';
+    setRecovery({ email: account.email, verified: false });
+    return null;
   }
-  async function verifyOtp(code: string) {
-    if (!recovery) return false;
-    const result = await verifyRecoveryCode(recovery.email, code);
-    if (!result.resetToken) return false;
-    setRecovery({ ...recovery, verified: true, resetToken: result.resetToken });
-    return true;
-  }
+  function verifyOtp(code: string) { if (code !== '123456' || !recovery) return false; setRecovery({ ...recovery, verified: true }); return true; }
   async function resetPassword(password: string) {
-    if (!recovery?.verified || !recovery.resetToken) return false;
-    await changeRecoveredPassword(recovery.email, recovery.resetToken, password);
+    if (!recovery?.verified) return false;
+    const updated = accounts.map(a => a.email === recovery.email ? { ...a, password } : a);
+    await writeLocal(ACCOUNTS, JSON.stringify(updated));
+    setAccounts(updated);
     setRecovery(null);
     return true;
   }

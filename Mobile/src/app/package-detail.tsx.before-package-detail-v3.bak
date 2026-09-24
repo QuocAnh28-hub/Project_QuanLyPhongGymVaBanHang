@@ -13,11 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { PackageClass } from "@/constants/package-detail";
-import { getPackageById, type GymPackage } from "@/lib/packages";
-import {
-  getActivePackageDetail,
-  mergePackageDetail,
-} from "@/lib/package-api";
+import { getPackageById } from "@/lib/packages";
 import { useAuth } from "@/context/AuthContext";
 import { AuthColors as C } from "@/constants/theme";
 import { formatVND, periodLabel } from "@/lib/package-logic";
@@ -73,37 +69,7 @@ export default function PackageDetailScreen() {
     renewal?: string;
   }>();
   const { user } = useAuth();
-  const localPackageId = typeof id === "string" ? id : "";
-  const localItem = getPackageById(localPackageId);
-  const [item, setItem] = useState<GymPackage | null>(localItem);
-  const [detailError, setDetailError] = useState("");
-
-  useEffect(() => {
-    setItem(localItem);
-    setDetailError("");
-    if (!localItem) return;
-
-    let active = true;
-    getActivePackageDetail(localItem.id)
-      .then((apiPackage) => {
-        if (active) setItem(mergePackageDetail(localItem, apiPackage));
-      })
-      .catch((error) => {
-        if (!active) return;
-        setItem(localItem);
-        setDetailError(
-          `${
-            error instanceof Error
-              ? error.message
-              : "Không tải được chi tiết gói tập từ API"
-          }. Đang hiển thị dữ liệu cục bộ.`,
-        );
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [localItem?.id]);
+  const item = getPackageById(typeof id === "string" ? id : "");
   const [selectedMonths, setSelectedMonths] = useState(Number(duration) || 12);
   const [favorite, setFavoriteState] = useState(false);
   const [studentVerified, setStudentVerified] = useState(false);
@@ -252,18 +218,6 @@ export default function PackageDetailScreen() {
             </Pressable>
           </View>
         </View>
-        {detailError ? (
-          <Text
-            style={{
-              color: C.error,
-              fontSize: 11,
-              lineHeight: 15,
-              marginBottom: 10,
-            }}
-          >
-            {detailError}
-          </Text>
-        ) : null}
         <View style={s.heroCard}>
           <View style={s.heroTop}>
             <View style={s.bestBadge}>

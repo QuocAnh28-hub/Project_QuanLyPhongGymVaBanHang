@@ -38,63 +38,12 @@ Goitap.getActive = (callback) => {
   db.query(sqlString, callback);
 };
 
-Goitap.getActiveDetailById = (GoiTapID, callback) => {
-  const packageSql = `SELECT
-      GoiTapID,
-      TenGoi,
-      MoTa,
-      ThoiHan AS ThoiHanNgay,
-      Gia,
-      TrangThai,
-      NgayTao
+Goitap.getActiveById = (GoiTapID, callback) => {
+  const sqlString = `SELECT GoiTapID, TenGoi, MoTa, ThoiHan, Gia, TrangThai, NgayTao
     FROM \`goitap\`
-    WHERE GoiTapID = ?
-      AND TrangThai = 'ACTIVE'
+    WHERE GoiTapID = ? AND TrangThai = 'ACTIVE'
     LIMIT 1`;
-
-  db.query(packageSql, [GoiTapID], (packageError, packageRows) => {
-    if (packageError) return callback(packageError);
-    if (!packageRows || packageRows.length === 0) return callback(null, null);
-
-    const durationSql = `SELECT
-        GoiTapThoiHanID,
-        SoThang,
-        ThangTang,
-        GiaGoc,
-        GiaBan,
-        TrangThai
-      FROM \`GoiTapThoiHan\`
-      WHERE GoiTapID = ?
-        AND TrangThai = 'ACTIVE'
-      ORDER BY SoThang ASC, GoiTapThoiHanID ASC`;
-
-    db.query(durationSql, [GoiTapID], (durationError, durationRows) => {
-      if (durationError) return callback(durationError);
-
-      const privilegeSql = `SELECT
-          QuyenLoiID,
-          MaQuyenLoi,
-          TenQuyenLoi,
-          MoTa,
-          SoLuong,
-          ThuTu,
-          TrangThai
-        FROM \`QuyenLoiGoiTap\`
-        WHERE GoiTapID = ?
-          AND TrangThai = 'ACTIVE'
-        ORDER BY ThuTu ASC, QuyenLoiID ASC`;
-
-      db.query(privilegeSql, [GoiTapID], (privilegeError, privilegeRows) => {
-        if (privilegeError) return callback(privilegeError);
-
-        callback(null, {
-          ...packageRows[0],
-          ThoiHan: durationRows,
-          QuyenLoi: privilegeRows,
-        });
-      });
-    });
-  });
+  db.query(sqlString, [GoiTapID], callback);
 };
 
 Goitap.insert = (goitap, callback) => {

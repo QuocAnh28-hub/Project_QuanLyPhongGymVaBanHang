@@ -1,9 +1,9 @@
-const Goitap = require('../models/goitap.model');
+const Dangkygoitap = require('../models/dangkygoitap.model');
 
-const GoitapController = {
+const DangkygoitapController = {
 
   getAll: (req, res) => {
-    Goitap.getAll((err, result) => {
+    Dangkygoitap.getAll((err, result) => {
       if (err) {
         return res.status(500).json({
           message: 'Lỗi khi lấy dữ liệu',
@@ -15,9 +15,9 @@ const GoitapController = {
   },
 
   getById: (req, res) => {
-    const id = req.params.GoiTapID;
+    const id = req.params.DangKyID;
 
-    Goitap.getById(id, (err, result) => {
+    Dangkygoitap.getById(id, (err, result) => {
       if (err) {
         return res.status(500).json({
           message: 'Lỗi khi lấy dữ liệu',
@@ -35,44 +35,10 @@ const GoitapController = {
     });
   },
 
-  getActive: (req, res) => {
-    Goitap.getActive((err, result) => {
-      if (err) {
-        console.error('Lỗi khi lấy danh sách gói tập đang hoạt động:', err);
-        return res.status(500).json({ message: 'Lỗi khi lấy dữ liệu' });
-      }
-
-      res.json(result);
-    });
-  },
-
-  getActiveById: (req, res) => {
-    const id = Number(req.params.GoiTapID);
-
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({ message: 'GoiTapID không hợp lệ' });
-    }
-
-    Goitap.getActiveDetailById(id, (err, result) => {
-      if (err) {
-        console.error('Lỗi khi lấy chi tiết gói tập đang hoạt động:', err);
-        return res.status(500).json({ message: 'Lỗi khi lấy dữ liệu' });
-      }
-
-      if (!result) {
-        return res.status(404).json({
-          message: 'Không tìm thấy gói tập đang hoạt động'
-        });
-      }
-
-      res.json(result);
-    });
-  },
-
   create: (req, res) => {
     const data = req.body;
 
-    Goitap.insert(data, (err, result) => {
+    Dangkygoitap.insert(data, (err, result) => {
       if (err) {
         return res.status(500).json({
           message: 'Thêm dữ liệu thất bại',
@@ -88,10 +54,10 @@ const GoitapController = {
   },
 
   update: (req, res) => {
-    const id = req.params.GoiTapID;
+    const id = req.params.DangKyID;
     const data = req.body;
 
-    Goitap.update(data, id, (err, result) => {
+    Dangkygoitap.update(data, id, (err, result) => {
       if (err) {
         return res.status(500).json({
           message: 'Cập nhật thất bại',
@@ -107,9 +73,9 @@ const GoitapController = {
   },
 
   delete: (req, res) => {
-    const id = req.params.GoiTapID;
+    const id = req.params.DangKyID;
 
-    Goitap.delete(id, (err, result) => {
+    Dangkygoitap.delete(id, (err, result) => {
       if (err) {
         return res.status(500).json({
           message: 'Xóa thất bại',
@@ -126,4 +92,4 @@ const GoitapController = {
 
 };
 
-module.exports = GoitapController;
+module.exports = DangkygoitapController;

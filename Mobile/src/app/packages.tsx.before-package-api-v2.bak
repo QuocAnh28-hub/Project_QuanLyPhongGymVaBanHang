@@ -1,4 +1,4 @@
-﻿import { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { router, useFocusEffect } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -10,7 +10,6 @@ import {
   setFavorite,
   type MembershipEnrollment,
 } from "@/lib/membership";
-import { getActivePackages, mergeActivePackages } from "@/lib/package-api";
 import { formatVND } from "@/lib/package-logic";
 import { packages, type GymPackage, type PrivilegeCode } from "@/lib/packages";
 
@@ -26,57 +25,19 @@ const comparison: { label: string; code?: PrivilegeCode; hours?: true }[] = [
   { label: "Guest pass", code: "GUEST_PASS" },
   { label: "Smart Locker", code: "SMART_LOCKER" },
 ];
+const comparePackages = packages.filter((item) =>
+  ["silver-pass", "gold-vip", "diamond-all-access"].includes(item.id),
+);
+
 export default function PackagesScreen() {
   const { user } = useAuth();
   const [selectedDuration, setSelectedDuration] = useState(12);
-  const [displayPackages, setDisplayPackages] =
-    useState<readonly GymPackage[]>(packages);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [membership, setMembership] = useState<MembershipEnrollment | null>(
     null,
   );
   const [error, setError] = useState("");
-  
-  const [apiError, setApiError] = useState("");
-  const comparePackages = displayPackages.filter((item) =>
-    ["silver-pass", "gold-vip", "diamond-all-access"].includes(item.id),
-  );
-
   useFocusEffect(
-    useCallback(() => {
-      let live = true;
-
-      getActivePackages()
-        .then((rows) => {
-          if (!live) return;
-
-          const merged = mergeActivePackages(packages, rows);
-          setDisplayPackages(merged);
-          setApiError(
-            merged.length
-              ? ""
-              : "API da ket noi nhung chua co goi tap ACTIVE.",
-          );
-        })
-        .catch((apiError) => {
-          if (!live) return;
-
-          setDisplayPackages(packages);
-          setApiError(
-            `${
-              apiError instanceof Error
-                ? apiError.message
-                : "Khong ket noi duoc API goi tap"
-            }. Dang hien thi du lieu cuc bo.`,
-          );
-        });
-
-      return () => {
-        live = false;
-      };
-    }, []),
-  );
-useFocusEffect(
     useCallback(() => {
       let live = true;
       if (!user) {
@@ -158,8 +119,7 @@ useFocusEffect(
             ))}
           </View>
           {error ? <Text style={s.error}>{error}</Text> : null}
-          {apiError ? <Text style={s.error}>{apiError}</Text> : null}
-          {displayPackages.map((item) => {
+          {packages.map((item) => {
             const option = item.durations.find(
               (row) => row.months === selectedDuration,
             );
@@ -413,4 +373,3 @@ const s = StyleSheet.create({
     textAlign: "center",
   },
 });
-

@@ -1,16 +1,10 @@
 import { enrollmentGifts, homeClubs } from "@/constants/package-detail";
-import { getPackageById, type GymPackage } from "@/lib/packages";
-import {
-  getActivePackageDetail,
-  mergePackageDetail,
-  type ApiPackageDetail,
-} from "@/lib/package-api";
-import { registerPackage } from "@/lib/membership-api";
+import { getPackageById } from "@/lib/packages";
 import { getActiveMembership, getEnrollment } from "@/lib/membership";
 import { getStudentVerification } from "@/lib/student-verification";
 import { AuthColors as C } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
-import { type PaymentMethod } from "@/lib/membership";
+import { createEnrollment, type PaymentMethod } from "@/lib/membership";
 import {
   calculatePrice,
   findVoucher,
@@ -22,7 +16,7 @@ import {
 } from "@/lib/package-logic";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   Alert,
   Image,
@@ -101,12 +95,10 @@ export default function PackageEnrollmentScreen() {
   }>();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const localItem = getPackageById(
-    typeof params.id === "string" ? params.id : "",
+  const item = getPackageById(typeof params.id === "string" ? params.id : "");
+  const option = item?.durations.find(
+    (row) => row.months === Number(params.duration),
   );
-  const [item, setItem] = useState<GymPackage | null>(localItem);
-  const [apiDetail, setApiDetail] = useState<ApiPackageDetail | null>(null);
-  const [apiDetailError, setApiDetailError] = useState("");
   const today = startOfDay(new Date());
   const [form, setForm] = useState<{
     name: string;
@@ -133,43 +125,8 @@ export default function PackageEnrollmentScreen() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const scrollRef = useRef<ScrollView>(null);
   const submitting = useRef(false);
   const switchConfirmed = useRef(false);
-
-  useEffect(() => {
-    setItem(localItem);
-    setApiDetail(null);
-    setApiDetailError("");
-    if (!localItem) return;
-
-    let active = true;
-    getActivePackageDetail(localItem.id)
-      .then((detail) => {
-        if (!active) return;
-        setApiDetail(detail);
-        setItem(mergePackageDetail(localItem, detail));
-      })
-      .catch((error) => {
-        if (!active) return;
-        setItem(localItem);
-        setApiDetailError(
-          `${
-            error instanceof Error
-              ? error.message
-              : "Không tải được dữ liệu gói từ backend"
-          }.`,
-        );
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [localItem?.id]);
-
-  const option = item?.durations.find(
-    (row) => row.months === Number(params.duration),
-  );
   const pricing = option ? calculatePrice(option, appliedVoucher) : null;
   const club = homeClubs.find((row) => row.id === form.homeClubId);
   const dates = Array.from({ length: 31 }, (_, days) => {
@@ -241,11 +198,7 @@ export default function PackageEnrollmentScreen() {
     const next: Errors = validateMemberForm(form);
     if (!termsAccepted) next.terms = "Bạn cần đồng ý điều khoản để tiếp tục.";
     if (Object.keys(next).length) {
-      setErrors({
-        ...next,
-        submit: "Vui lòng kiểm tra các thông tin bắt buộc ở phía trên.",
-      });
-      scrollRef.current?.scrollTo({ y: 0, animated: true });
+      setErrors(next);
       return;
     }
     submitting.current = true;
@@ -299,33 +252,35 @@ export default function PackageEnrollmentScreen() {
           ? renewal.expiryDate
           : localDate(today)
         : form.activationDate;
-      if (!currentUser.accountId)
-        throw new Error("Phiên đăng nhập chưa có TaiKhoanID từ backend.");
-      if (!apiDetail)
-        throw new Error(
-          apiDetailError || "Chưa tải được chi tiết gói tập từ backend.",
-        );
-
-      const backendDuration = apiDetail.ThoiHan.find(
-        (row) => row.SoThang === selectedOption.months,
-      );
-      if (!backendDuration)
-        throw new Error("Thời hạn đã chọn không tồn tại trên backend.");
-
-      const registration = await registerPackage({
-        accountId: currentUser.accountId,
-        localPackageId: selectedItem.id,
-        durationId: backendDuration.GoiTapThoiHanID,
+      const canonical = calculatePrice(selectedOption, appliedVoucher);
+      const order = await createEnrollment({
+        userId: currentUser.email,
+        packageId: selectedItem.id,
+        packageName: selectedItem.name,
+        durationMonths: selectedOption.months,
+        bonusMonths: selectedOption.bonusMonths,
+        memberName: form.name.trim(),
+        phone: form.phone.replace(/\s/g, ""),
+        email: form.email.trim().toLowerCase(),
         activationDate,
-        voucherCode: appliedVoucher?.code ?? null,
+        homeClubId: form.homeClubId,
+        paymentMethod: selectedPaymentMethod,
+        renewalOf: renewal?.id,
+        termsAcceptedAt: new Date().toISOString(),
+        gifts:
+          selectedItem.id === "diamond-all-access"
+            ? enrollmentGifts.map(({ id, quantity, name, detail }) => ({
+                id,
+                quantity,
+                name,
+                detail,
+              }))
+            : [],
+        ...canonical,
       });
-
       router.replace({
         pathname: "/package-payment",
-        params: {
-          registrationId: String(registration.DangKyID),
-          paymentMethod: selectedPaymentMethod,
-        },
+        params: { orderId: order.id },
       });
     } catch (error) {
       setErrors({
@@ -346,7 +301,6 @@ export default function PackageEnrollmentScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          ref={scrollRef}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
@@ -574,15 +528,13 @@ export default function PackageEnrollmentScreen() {
             <Cost label="Phí" value={pricing.fees} />
             <View style={s.divider} />
             <View style={s.totalRow}>
-              <View style={s.totalLabel}>
+              <View>
                 <Text style={s.title}>Tổng thanh toán</Text>
                 <Text style={s.small}>
                   Chỉ tạo đơn chờ thanh toán, chưa kích hoạt gói.
                 </Text>
               </View>
-              <Text style={s.total} numberOfLines={1}>
-                {formatVND(pricing.finalAmount)}
-              </Text>
+              <Text style={s.total}>{formatVND(pricing.finalAmount)}</Text>
             </View>
           </Card>
           <Pressable
@@ -620,19 +572,17 @@ export default function PackageEnrollmentScreen() {
         <View
           style={[s.bottom, { paddingBottom: Math.max(insets.bottom, 10) }]}
         >
-          <View style={s.bottomTotal}>
+          <View>
             <Text style={s.label}>TỔNG CẦN THANH TOÁN</Text>
-            <Text style={s.bottomPrice} numberOfLines={1}>
-              {formatVND(pricing.finalAmount)}
-            </Text>
+            <Text style={s.bottomPrice}>{formatVND(pricing.finalAmount)}</Text>
           </View>
           <Pressable
-            disabled={isSubmitting}
+            disabled={isSubmitting || !termsAccepted}
             onPress={submit}
             style={[
               s.primary,
               s.submit,
-              isSubmitting && s.disabled,
+              (isSubmitting || !termsAccepted) && s.disabled,
             ]}
           >
             <Text style={s.primaryText}>
@@ -1104,15 +1054,7 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
     gap: 8,
   },
-  totalLabel: { flex: 1, minWidth: 0 },
-  total: {
-    color: C.lime,
-    fontSize: 23,
-    fontWeight: "900",
-    flexShrink: 1,
-    minWidth: 0,
-    textAlign: "right",
-  },
+  total: { color: C.lime, fontSize: 23, fontWeight: "900", flexShrink: 0 },
   terms: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -1147,13 +1089,7 @@ const s = StyleSheet.create({
     alignItems: "center",
     gap: 10,
   },
-  bottomTotal: { flexShrink: 1, minWidth: 0, maxWidth: "42%" },
-  bottomPrice: {
-    color: C.lime,
-    fontSize: 19,
-    fontWeight: "900",
-    flexShrink: 1,
-  },
+  bottomPrice: { color: C.lime, fontSize: 19, fontWeight: "900" },
   primary: {
     minHeight: 48,
     backgroundColor: C.lime,
