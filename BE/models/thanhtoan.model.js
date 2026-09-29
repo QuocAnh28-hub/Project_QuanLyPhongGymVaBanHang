@@ -168,8 +168,15 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
       }
       const payment = payments[0];
       if (payment.TrangThai === "SUCCESS") {
+        const [invoice] = await query.query(
+          `INSERT INTO hoadon (ThanhToanID, NhanVienID, TongTien, TrangThai)
+           VALUES (?, ?, ?, 'ACTIVE')
+           ON DUPLICATE KEY UPDATE ThanhToanID = VALUES(ThanhToanID)`,
+          [payment.ThanhToanID, payment.NhanVienID, payment.SoTien],
+        );
+        const [invoices] = await query.query("SELECT HoaDonID FROM hoadon WHERE ThanhToanID = ?", [ThanhToanID]);
         await query.commit();
-        return callback(null, { ...payment, alreadyConfirmed: true });
+        return callback(null, { ...payment, HoaDonID: invoice.insertId || invoices[0].HoaDonID, alreadyConfirmed: true });
       }
       if (payment.TrangThai !== "PENDING") {
         throw appError(409, "PAYMENT_NOT_PENDING", "Chỉ thanh toán PENDING mới được xác nhận");
@@ -198,11 +205,20 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
         throw appError(409, "REGISTRATION_UPDATE_FAILED", "Không thể kích hoạt đăng ký gói tập");
       }
 
+      const [invoice] = await query.query(
+        `INSERT INTO hoadon (ThanhToanID, NhanVienID, TongTien, TrangThai)
+         VALUES (?, ?, ?, 'ACTIVE')
+         ON DUPLICATE KEY UPDATE ThanhToanID = VALUES(ThanhToanID)`,
+        [payment.ThanhToanID, payment.NhanVienID, payment.SoTien],
+      );
+      const [invoices] = await query.query("SELECT HoaDonID FROM hoadon WHERE ThanhToanID = ?", [ThanhToanID]);
+
       await query.commit();
       callback(null, {
         ...payment,
         TrangThai: "SUCCESS",
         TrangThaiDangKy: "ACTIVE",
+        HoaDonID: invoice.insertId || invoices[0].HoaDonID,
         alreadyConfirmed: false,
       });
     } catch (error) {
@@ -239,12 +255,30 @@ Thanhtoan.getById = (ThanhToanID, callback) => {
 };
 
 Thanhtoan.getAll = (callback) => {
-  const sqlString = "SELECT * FROM `thanhtoan`";
-  db.query(sqlString, (err, result) => {
+  const sqlString = `
+    SELECT tt.ThanhToanID, tt.HoiVienID, hv.HoTen AS HoiVien,
+      tt.NoiDung, tt.SoTien, tt.PhuongThucThanhToan, tt.NgayThanhToan,
+      tt.TrangThai, hd.HoaDonID,
+      CASE WHEN tt.DangKyID IS NOT NULL THEN 'PACKAGE'
+           WHEN sc.DonHangID IS NOT NULL THEN 'SHOP'
+           ELSE 'UNKNOWN' END AS Loai,
+      tt.DangKyID, sc.DonHangID
+    FROM thanhtoan tt
+    JOIN hoivien hv ON hv.HoiVienID = tt.HoiVienID
+    LEFT JOIN hoadon hd ON hd.ThanhToanID = tt.ThanhToanID
+    LEFT JOIN shopcheckout sc ON sc.ThanhToanID = tt.ThanhToanID
+    ORDER BY tt.NgayThanhToan DESC, tt.ThanhToanID DESC`;
+  db.query(`INSERT IGNORE INTO hoadon (ThanhToanID, NhanVienID, TongTien, TrangThai)
+    SELECT tt.ThanhToanID,tt.NhanVienID,tt.SoTien,'ACTIVE' FROM thanhtoan tt
+    LEFT JOIN hoadon hd ON hd.ThanhToanID=tt.ThanhToanID
+    WHERE tt.TrangThai='SUCCESS' AND tt.DangKyID IS NOT NULL AND hd.HoaDonID IS NULL`, error => {
+    if (error) return callback(error);
+    db.query(sqlString, (err, result) => {
     if (err) {
       return callback(err);
     }
     callback(null, result);
+    });
   });
 };
 

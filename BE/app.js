@@ -88,6 +88,7 @@ const routes = [
   ['/nhanvien', './routes/nhanvien.route'],
   ['/phieunhap', './routes/phieunhap.route'],
   ['/pt', './routes/pt.route'],
+  ['/reports', './routes/report.route'],
   ['/sanpham', './routes/sanpham.route'],
   ['/taikhoan', './routes/taikhoan.route'],
   ['/thanhtoan', './routes/thanhtoan.route'],

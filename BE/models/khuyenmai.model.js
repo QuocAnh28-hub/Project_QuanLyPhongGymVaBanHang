@@ -1,64 +1,29 @@
-const db = require("../common/db");
+const db = require('../common/db');
 
-const Khuyenmai = (khuyenmai) => {
-  this.KhuyenMaiID = khuyenmai.KhuyenMaiID;
-  this.MaKhuyenMai = khuyenmai.MaKhuyenMai;
-  this.TenKhuyenMai = khuyenmai.TenKhuyenMai;
-  this.PhanTramGiam = khuyenmai.PhanTramGiam;
-  this.SoTienGiam = khuyenmai.SoTienGiam;
-  this.NgayBatDau = khuyenmai.NgayBatDau;
-  this.NgayKetThuc = khuyenmai.NgayKetThuc;
-  this.DieuKien = khuyenmai.DieuKien;
-  this.TrangThai = khuyenmai.TrangThai;
-};
+const fields = ['MaKhuyenMai','TenKhuyenMai','PhanTramGiam','SoTienGiam','NgayBatDau','NgayKetThuc','DieuKien','TrangThai'];
+const values = data => Object.fromEntries(fields.filter(key => data[key] !== undefined).map(key => [key, data[key]]));
 
-Khuyenmai.getById = (KhuyenMaiID, callback) => {
-  const sqlString = "SELECT * FROM `khuyenmai` WHERE `KhuyenMaiID` = ?";
-  db.query(sqlString, [KhuyenMaiID], (err, result) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, result);
-  });
-};
-
-Khuyenmai.getAll = (callback) => {
-  const sqlString = "SELECT * FROM `khuyenmai`";
-  db.query(sqlString, (err, result) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, result);
-  });
-};
-
-Khuyenmai.insert = (khuyenmai, callback) => {
-  const sqlString = "INSERT INTO `khuyenmai` SET ?";
-  db.query(sqlString, khuyenmai, (err, res) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, { KhuyenMaiID: res.insertId, ...khuyenmai });
-  });
-};
-
-Khuyenmai.update = (khuyenmai, KhuyenMaiID, callback) => {
-  const sqlString = "UPDATE `khuyenmai` SET ? WHERE `KhuyenMaiID` = ?";
-  db.query(sqlString, [khuyenmai, KhuyenMaiID], (err, res) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, { message: "Cập nhật khuyenmai thành công" });
-  });
-};
-
-Khuyenmai.delete = (KhuyenMaiID, callback) => {
-  db.query("DELETE FROM `khuyenmai` WHERE `KhuyenMaiID` = ?", [KhuyenMaiID], (err, res) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, { message: "Xóa khuyenmai thành công" });
-  });
-};
-
-module.exports = Khuyenmai;
+exports.getById = (id, callback) => db.query('SELECT * FROM khuyenmai WHERE KhuyenMaiID=?', [id], callback);
+exports.getAll = callback => db.query(`
+  SELECT k.KhuyenMaiID,k.MaKhuyenMai,k.TenKhuyenMai,k.PhanTramGiam,k.SoTienGiam,k.NgayBatDau,k.NgayKetThuc,k.DieuKien,
+    CASE WHEN k.TrangThai='ACTIVE' AND k.NgayKetThuc<NOW() THEN 'EXPIRED' ELSE k.TrangThai END AS TrangThai,
+    (SELECT COUNT(*) FROM apdungkhuyenmaigoitap x WHERE x.KhuyenMaiID=k.KhuyenMaiID)+
+    (SELECT COUNT(*) FROM apdungkhuyenmaidonhang x WHERE x.KhuyenMaiID=k.KhuyenMaiID)+
+    (SELECT COUNT(*) FROM apdungkhuyenmaipt x WHERE x.KhuyenMaiID=k.KhuyenMaiID) AS LuotSuDung,
+    (SELECT COALESCE(SUM(SoTienGiam),0) FROM apdungkhuyenmaigoitap x WHERE x.KhuyenMaiID=k.KhuyenMaiID)+
+    (SELECT COALESCE(SUM(SoTienGiam),0) FROM apdungkhuyenmaidonhang x WHERE x.KhuyenMaiID=k.KhuyenMaiID)+
+    (SELECT COALESCE(SUM(SoTienGiam),0) FROM apdungkhuyenmaipt x WHERE x.KhuyenMaiID=k.KhuyenMaiID) AS TongSoTienGiam
+  FROM khuyenmai k ORDER BY k.NgayBatDau DESC,k.KhuyenMaiID DESC`, callback);
+exports.getStats = callback => db.query(`SELECT COUNT(*) SoChuongTrinh,
+  SUM(TrangThai='ACTIVE' AND NOW() BETWEEN NgayBatDau AND NgayKetThuc) DangActive,
+  (SELECT COUNT(*) FROM apdungkhuyenmaigoitap)+(SELECT COUNT(*) FROM apdungkhuyenmaidonhang)+(SELECT COUNT(*) FROM apdungkhuyenmaipt) LuotSuDung,
+  (SELECT COALESCE(SUM(SoTienGiam),0) FROM apdungkhuyenmaigoitap)+(SELECT COALESCE(SUM(SoTienGiam),0) FROM apdungkhuyenmaidonhang)+(SELECT COALESCE(SUM(SoTienGiam),0) FROM apdungkhuyenmaipt) TongSoTienGiam
+  FROM khuyenmai`, (e, rows) => callback(e, rows?.[0]));
+exports.getHistory = callback => db.query(`
+  SELECT x.ApDungKhuyenMaiID,k.MaKhuyenMai,k.TenKhuyenMai,'PACKAGE' Loai,x.DangKyID ThamChieuID,x.SoTienGiam,x.NgayApDung FROM apdungkhuyenmaigoitap x JOIN khuyenmai k ON k.KhuyenMaiID=x.KhuyenMaiID
+  UNION ALL SELECT x.ApDungKhuyenMaiID,k.MaKhuyenMai,k.TenKhuyenMai,'SHOP',x.DonHangID,x.SoTienGiam,x.NgayApDung FROM apdungkhuyenmaidonhang x JOIN khuyenmai k ON k.KhuyenMaiID=x.KhuyenMaiID
+  UNION ALL SELECT x.ApDungKhuyenMaiID,k.MaKhuyenMai,k.TenKhuyenMai,'PT',x.ThuePTID,x.SoTienGiam,x.NgayApDung FROM apdungkhuyenmaipt x JOIN khuyenmai k ON k.KhuyenMaiID=x.KhuyenMaiID
+  ORDER BY NgayApDung DESC`, callback);
+exports.insert = (data, callback) => { const safe=values(data); db.query('INSERT INTO khuyenmai SET ?',safe,(e,r)=>callback(e,e?null:{KhuyenMaiID:r.insertId,...safe})); };
+exports.update = (data,id,callback) => { const safe=values(data); db.query('UPDATE khuyenmai SET ? WHERE KhuyenMaiID=?',[safe,id],(e,r)=>callback(e,e?null:{KhuyenMaiID:Number(id),...safe,affectedRows:r.affectedRows})); };
+exports.deactivate = (id, callback) => db.query("UPDATE khuyenmai SET TrangThai='INACTIVE' WHERE KhuyenMaiID=?",[id],callback);

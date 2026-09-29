@@ -4,6 +4,8 @@ const router = express.Router();
 const KhuyenmaiController = require('../controllers/khuyenmai.controller');
 
 router.get('/', KhuyenmaiController.getAll);
+router.get('/admin/stats', KhuyenmaiController.getStats);
+router.get('/admin/history', KhuyenmaiController.getHistory);
 router.get('/:KhuyenMaiID', KhuyenmaiController.getById);
 router.post('/', KhuyenmaiController.create);
 router.put('/:KhuyenMaiID', KhuyenmaiController.update);

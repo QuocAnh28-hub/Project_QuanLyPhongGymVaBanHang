@@ -11,8 +11,5 @@ router.post('/package', ThanhtoanController.createPackagePayment);
 router.post('/:ThanhToanID/confirm', ThanhtoanController.confirmPackagePayment);
 router.post('/:ThanhToanID/cancel', ThanhtoanController.cancelPackagePayment);
 router.get('/:ThanhToanID', ThanhtoanController.getById);
-router.post('/', ThanhtoanController.create);
-router.put('/:ThanhToanID', ThanhtoanController.update);
-router.delete('/:ThanhToanID', ThanhtoanController.delete);
 
 module.exports = router;
