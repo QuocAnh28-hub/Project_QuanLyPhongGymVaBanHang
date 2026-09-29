@@ -1,7 +1,7 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { MetricCard, Modal } from '../components/AdminLayout'
 import { money } from '../data/admin-utils'
-import { initialPackages, type GymPackage } from '../data/admin-packages'
+import { deletePackage, getPackages, savePackage, setPackageStatus, type GymPackage } from '../services/packages'
 
 const categories = [
   ['all', 'TẤT CẢ GÓI'],
@@ -22,11 +22,12 @@ const emptyPackage: GymPackage = {
   description: '',
   features: [''],
   members: 0,
-  renewal: 0,
 }
 
 export default function PackagesPage() {
-  const [packages, setPackages] = useState(initialPackages)
+  const [packages, setPackages] = useState<GymPackage[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [category, setCategory] = useState('all')
   const [search, setSearch] = useState('')
   const [duration, setDuration] = useState('all')
@@ -34,8 +35,6 @@ export default function PackagesPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(6)
   const [editing, setEditing] = useState<GymPackage | null>(null)
-  const [report, setReport] = useState<GymPackage | null>(null)
-  const [promo, setPromo] = useState(false)
   const [toast, setToast] = useState('')
   const notify = (message: string) => {
     setToast(message)
@@ -63,12 +62,16 @@ export default function PackagesPage() {
     (Math.min(page, pages) - 1) * pageSize,
     Math.min(page, pages) * pageSize
   )
-  const save = (value: GymPackage) => {
-    setPackages((current) =>
-      value.id
-        ? current.map((p) => (p.id === value.id ? value : p))
-        : [{ ...value, id: Date.now() }, ...current]
-    )
+  const load = async () => {
+    try { setPackages(await getPackages()); setError('') }
+    catch (e) { setError(e instanceof Error ? e.message : 'Không thể tải gói tập') }
+    finally { setLoading(false) }
+  }
+  // oxlint-disable-next-line react/set-state-in-effect -- fetch result initializes server state
+  useEffect(() => { void load() }, [])
+  const save = async (value: GymPackage) => {
+    try { await savePackage(value); await load() }
+    catch (e) { notify(e instanceof Error ? e.message : 'Không thể lưu gói tập'); return }
     setEditing(null)
     notify(value.id ? 'Đã cập nhật gói tập' : 'Đã thêm gói tập mới')
   }
@@ -76,31 +79,31 @@ export default function PackagesPage() {
     <div className="admin-page packages-page">
       <PageHeader
         onPdf={() => notify('Chức năng sẽ kết nối backend sau')}
-        onPromo={() => setPromo(true)}
+        onPromo={() => notify('Chưa có API cấu hình khuyến mãi')}
         onCreate={() => setEditing(emptyPackage)}
       />
       <section className="metrics-grid">
         <MetricCard
           label="TỔNG GÓI ĐANG KÍCH HOẠT"
-          value="14 Gói"
-          note="10 Gói Public Portal · 4 Gói Private VIP"
+          value={`${packages.filter(p => p.active).length} Gói`}
+          note={`${packages.filter(p => !p.active).length} gói ngừng hoạt động`}
         />
         <MetricCard
           label="GÓI BÁN CHẠY NHẤT"
-          value="Diamond All-Access 12T"
-          note="3.420 HV ACTIVE"
+          value={packages.reduce((best, p) => p.members > (best?.members ?? -1) ? p : best, packages[0])?.name || '—'}
+          note="Theo số hội viên ACTIVE thực tế"
           tone="mint"
         />
         <MetricCard
           label="DOANH THU BÁN GÓI"
-          value="1.144 Tỷ đồng"
-          note="↗ +14.5% MoM"
+          value="—"
+          note="Chưa có API báo cáo doanh thu"
           tone="cyan"
         />
         <MetricCard
           label="TỶ LỆ GIA HẠN TRUNG BÌNH"
-          value="78.4%"
-          note="86% tái tục gói 12 tháng"
+          value="—"
+          note="Chưa có dữ liệu tỷ lệ gia hạn"
           tone="mint"
         />
       </section>
@@ -151,6 +154,8 @@ export default function PackagesPage() {
           </button>
         </div>
       </section>
+      {loading && <div className="empty-state">Đang tải dữ liệu...</div>}
+      {error && <div className="empty-state">{error}</div>}
       <section className="package-grid">
         {shown.map((item) => (
           <PackageCard
@@ -158,25 +163,12 @@ export default function PackagesPage() {
             item={item}
             onEdit={() => setEditing(item)}
             onDuplicate={() => {
-              setPackages((x) => [
-                ...x,
-                {
-                  ...item,
-                  id: Date.now(),
-                  name: item.name + ' (Bản sao)',
-                  sku: item.sku + '-COPY',
-                },
-              ])
-              notify('Đã nhân bản gói tập')
+              void deletePackage(item.id).then(result => load().then(() => notify(result.message))).catch(e => notify(e.message))
             }}
-            onReport={() => setReport(item)}
-            onToggle={() =>
-              setPackages((x) =>
-                x.map((p) =>
-                  p.id === item.id ? { ...p, active: !p.active } : p
-                )
-              )
-            }
+            onReport={() => notify(`Gói ${item.name} có ${item.members} hội viên ACTIVE`)}
+            onToggle={() => {
+              void setPackageStatus(item.id, !item.active).then(load).catch(e => notify(e.message))
+            }}
           />
         ))}
       </section>
@@ -221,50 +213,6 @@ export default function PackagesPage() {
           onClose={() => setEditing(null)}
           onSave={save}
         />
-      )}{' '}
-      {report && (
-        <Modal
-          title={`BÁO CÁO · ${report.name}`}
-          onClose={() => setReport(null)}
-        >
-          <div className="mock-report">
-            <strong>{report.members.toLocaleString('vi-VN')}</strong>
-            <span>Hội viên đang kích hoạt</span>
-            <strong>{report.renewal}%</strong>
-            <span>Tỷ lệ gia hạn</span>
-            <p>Báo cáo mẫu frontend, chưa kết nối dữ liệu máy chủ.</p>
-          </div>
-        </Modal>
-      )}
-      {promo && (
-        <Modal title="CẤU HÌNH KHUYẾN MÃI" onClose={() => setPromo(false)}>
-          <div className="form-grid">
-            <label>
-              Tên chương trình
-              <input defaultValue="Flash Sale Gym" />
-            </label>
-            <label>
-              Mức giảm (%)
-              <input type="number" defaultValue="15" />
-            </label>
-            <label className="full">
-              Thời gian áp dụng
-              <input type="date" />
-            </label>
-          </div>
-          <footer className="modal-actions">
-            <button onClick={() => setPromo(false)}>Hủy</button>
-            <button
-              className="primary"
-              onClick={() => {
-                setPromo(false)
-                notify('Đã lưu cấu hình khuyến mãi mock')
-              }}
-            >
-              Lưu cấu hình
-            </button>
-          </footer>
-        </Modal>
       )}
       {toast && <div className="toast">✓ {toast}</div>}
     </div>
@@ -354,14 +302,13 @@ function PackageCard({
             ♙ {item.members.toLocaleString('vi-VN')}{' '}
             <small>Hội viên đang kích hoạt</small>
           </span>
-          <b>{item.renewal}% Gia hạn</b>
         </div>
         <nav>
           <button title="Chỉnh sửa" onClick={onEdit}>
             ✎
           </button>
-          <button title="Nhân bản" onClick={onDuplicate}>
-            ▣
+          <button title="Xóa hoặc ngừng hoạt động" onClick={onDuplicate}>
+            ×
           </button>
           <button title="Báo cáo" onClick={onReport}>
             ⌁

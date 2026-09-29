@@ -1,57 +1,61 @@
-import { useMemo, useState, type FormEvent } from 'react'
-import { MetricCard, Modal } from '../components/AdminLayout'
+import { useEffect, useMemo, useState } from 'react'
+import { MetricCard } from '../components/AdminLayout'
 import { money } from '../data/admin-utils'
-import {
-  initialContracts,
-  type Contract,
-  type ContractStatus,
-} from '../data/admin-contracts'
+import { confirmPayment, getRegistrations, renewRegistration, type Contract, type ContractStatus } from '../services/registrations'
 
 const statusFilters = [
   'Tất cả đơn',
-  'Chờ thanh toán',
-  'Chờ duyệt HĐ',
-  'Đã kích hoạt',
-  'Đã hủy / Hoàn tiền',
+  'PENDING',
+  'ACTIVE',
+  'SẮP HẾT HẠN',
+  'EXPIRED',
+  'CANCELLED',
 ]
 export default function RegistrationsPage() {
-  const [contracts, setContracts] = useState(initialContracts)
-  const [selected, setSelected] = useState(9922)
-  const [ids, setIds] = useState<number[]>([9922])
+  const [contracts, setContracts] = useState<Contract[]>([])
+  const [selected, setSelected] = useState(0)
+  const [ids, setIds] = useState<number[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [filter, setFilter] = useState('Tất cả đơn')
   const [search, setSearch] = useState('')
   const [branch, setBranch] = useState('all')
   const [payment, setPayment] = useState('all')
   const [page, setPage] = useState(1)
-  const [create, setCreate] = useState(false)
-  const [reject, setReject] = useState(false)
   const [toast, setToast] = useState('')
+  const [confirmingPaymentId, setConfirmingPaymentId] = useState<number | null>(null)
   const notify = (m: string) => {
     setToast(m)
     window.setTimeout(() => setToast(''), 2200)
   }
+  const load = async () => {
+    try {
+      const rows = await getRegistrations()
+      setContracts(rows)
+      setSelected((current) => current || rows[0]?.id || 0)
+      setError('')
+    } catch (e) { setError(e instanceof Error ? e.message : 'Không thể tải đăng ký') }
+    finally { setLoading(false) }
+  }
+  // oxlint-disable-next-line react/set-state-in-effect -- fetch result initializes server state
+  useEffect(() => { void load() }, [])
   const filtered = useMemo(
     () =>
       contracts.filter(
         (c) =>
-          (filter === 'Tất cả đơn' || c.status === filter) &&
+          (filter === 'Tất cả đơn' || c.status === filter ||
+            (filter === 'SẮP HẾT HẠN' && c.status === 'ACTIVE' && (c.daysLeft ?? 0) <= 30)) &&
           (!search ||
             `${c.code} ${c.member} ${c.phone} ${c.coach}`
               .toLowerCase()
               .includes(search.toLowerCase())) &&
           (branch === 'all' || c.branch.includes(branch)) &&
-          (payment === 'all' || c.payment.includes(payment))
+          (payment === 'all' || c.paymentMethod === payment)
       ),
     [contracts, filter, search, branch, payment]
   )
   const pageRows = filtered.slice((page - 1) * 5, page * 5),
     detail = contracts.find((c) => c.id === selected) || contracts[0]
-  const update = (target: number[], status: ContractStatus) => {
-    setContracts((x) =>
-      x.map((c) => (target.includes(c.id) ? { ...c, status } : c))
-    )
-    notify(`Đã cập nhật ${target.length} hợp đồng`)
-  }
   const toggleAll = () =>
     setIds(
       pageRows.every((c) => ids.includes(c.id))
@@ -66,22 +70,16 @@ export default function RegistrationsPage() {
             VẬN HÀNH CHÍNH　›　GÓI TẬP & HĐ　›　<b>QUẢN LÝ ĐĂNG KÝ GÓI TẬP</b>
           </p>
           <h1>QUẢN LÝ ĐĂNG KÝ GÓI TẬP & HỢP ĐỒNG</h1>
-          <span className="pending-badge">● 18 Đơn chờ duyệt</span>
+          <span className="pending-badge">● {contracts.filter(c => c.status === 'PENDING').length} đơn chờ thanh toán</span>
         </div>
         <div className="heading-actions">
           <button onClick={() => notify('Chức năng sẽ kết nối backend sau')}>
             ◉ Xuất báo cáo hợp đồng
           </button>
-          <button
-            onClick={() =>
-              ids.length
-                ? update(ids, 'Đã kích hoạt')
-                : notify('Hãy chọn hợp đồng cần duyệt')
-            }
-          >
+          <button disabled>
             ✓ Duyệt nhanh hàng loạt ({ids.length})
           </button>
-          <button className="primary" onClick={() => setCreate(true)}>
+          <button className="primary" onClick={() => notify('Đăng ký mới được tạo từ flow mua gói của hội viên')}>
             ⊕ Tạo hợp đồng mới
           </button>
         </div>
@@ -89,19 +87,19 @@ export default function RegistrationsPage() {
       <section className="metrics-grid">
         <MetricCard
           label="ĐĂNG KÝ MỚI HÔM NAY"
-          value="28"
-          note="↗ +14.8% · Tổng phát sinh 215.400.000đ"
+          value={String(contracts.filter(c => c.time.startsWith(new Date().toISOString().slice(0, 10))).length)}
+          note="Dữ liệu đăng ký thực từ hệ thống"
         />
         <MetricCard
           label="ĐANG CHỜ DUYỆT / KÝ SỐ"
-          value="18"
-          note="Cần xác nhận · 146.900.000đ"
+          value={String(contracts.filter(c => c.status === 'PENDING').length)}
+          note="Chưa được kích hoạt khi thanh toán chưa SUCCESS"
           tone="error"
         />
         <MetricCard
           label="ĐÃ KÍCH HOẠT"
-          value="420"
-          note="◎ 96.2% · 3.840.500.000đ"
+          value={String(contracts.filter(c => c.status === 'ACTIVE').length)}
+          note={`${contracts.filter(c => c.status === 'ACTIVE' && (c.daysLeft ?? 0) <= 30).length} gói sắp hết hạn`}
           tone="mint"
         />
         <MetricCard
@@ -123,7 +121,7 @@ export default function RegistrationsPage() {
             >
               {s}{' '}
               <small>
-                {s === 'Tất cả đơn' ? 438 : s === 'Chờ duyệt HĐ' ? 18 : 12}
+                {s === 'Tất cả đơn' ? contracts.length : contracts.filter(c => c.status === s || (s === 'SẮP HẾT HẠN' && c.status === 'ACTIVE' && (c.daysLeft ?? 0) <= 30)).length}
               </small>
             </button>
           ))}
@@ -146,14 +144,15 @@ export default function RegistrationsPage() {
           </select>
           <select value={payment} onChange={(e) => setPayment(e.target.value)}>
             <option value="all">Cổng thanh toán</option>
-            <option>MoMo</option>
-            <option>VietQR</option>
-            <option>VISA</option>
-            <option>Tiền mặt</option>
+            <option value="CHUYEN_KHOAN">CHUYEN_KHOAN</option>
+            <option value="THE">THE</option>
+            <option value="TIEN_MAT">TIEN_MAT</option>
           </select>
           <button>▣ Tháng này</button>
         </div>
       </section>
+      {loading && <div className="empty-state">Đang tải dữ liệu...</div>}
+      {error && <div className="empty-state">{error}</div>}
       <div className="contracts-layout">
         <section>
           <div className="table-caption">
@@ -239,7 +238,7 @@ export default function RegistrationsPage() {
                           : 'Nguyên giá'}
                       </small>
                     </td>
-                    <td>{c.payment}</td>
+                    <td>{c.paymentId ? <>{c.paymentMethod} · {c.paymentStatus}</> : 'Chưa có yêu cầu thanh toán'}</td>
                     <td>
                       <span className={`status ${statusClass(c.status)}`}>
                         ● {c.status}
@@ -255,7 +254,7 @@ export default function RegistrationsPage() {
             <div className="pagination table-page">
               <span>
                 Hiển thị {(page - 1) * 5 + 1} -{' '}
-                {Math.min(page * 5, filtered.length)} trên tổng số <b>438</b>{' '}
+                {Math.min(page * 5, filtered.length)} trên tổng số <b>{filtered.length}</b>{' '}
                 hợp đồng đăng ký
               </span>
               <div>
@@ -280,69 +279,56 @@ export default function RegistrationsPage() {
             </div>
           </div>
         </section>
-        <ContractDetail
+        {detail && <ContractDetail
           contract={detail}
-          onApprove={() => update([detail.id], 'Đã kích hoạt')}
-          onReject={() => setReject(true)}
+          confirming={confirmingPaymentId === detail.paymentId}
+          onConfirm={async () => {
+            if (!detail.paymentId) return
+            try {
+              setConfirmingPaymentId(detail.paymentId)
+              const result = await confirmPayment(detail.paymentId)
+              await load()
+              notify(result.message)
+            } catch (e) { notify(e instanceof Error ? e.message : 'Không thể xác nhận thanh toán') }
+            finally { setConfirmingPaymentId(null) }
+          }}
+          onRenew={async () => {
+            try { const result = await renewRegistration(detail.id); await load(); notify(result.message) }
+            catch (e) { notify(e instanceof Error ? e.message : 'Không thể gia hạn') }
+          }}
+          onReject={() => notify('Hủy đăng ký phải đi qua flow thanh toán hiện tại')}
           onPdf={() => notify('File PDF ký số sẽ kết nối backend sau')}
-        />
+        />}
       </div>
       <footer className="ops-footer">
         ● Hạ tầng NAPAS 24/7: <b>Bình thường (100% Khớp lệnh)</b>　 ● Dịch vụ
         chữ ký số VNPT CA: <b>Sẵn sàng</b>　 ● Đồng bộ cổng Turnstile:{' '}
         <b>4/4 Chi nhánh online</b>
       </footer>
-      {create && (
-        <ContractForm
-          onClose={() => setCreate(false)}
-          onSave={(c) => {
-            setContracts([c, ...contracts])
-            setCreate(false)
-            setSelected(c.id)
-            notify('Đã tạo hợp đồng mock')
-          }}
-        />
-      )}
-      {reject && (
-        <Modal title="XÁC NHẬN TỪ CHỐI" onClose={() => setReject(false)}>
-          <p>
-            Bạn có chắc muốn từ chối {detail.code}? Thao tác chỉ cập nhật dữ
-            liệu local.
-          </p>
-          <footer className="modal-actions">
-            <button onClick={() => setReject(false)}>Hủy</button>
-            <button
-              className="danger"
-              onClick={() => {
-                update([detail.id], 'Đã từ chối')
-                setReject(false)
-              }}
-            >
-              Từ chối duyệt
-            </button>
-          </footer>
-        </Modal>
-      )}
       {toast && <div className="toast">✓ {toast}</div>}
     </div>
   )
 }
 const statusClass = (s: ContractStatus) =>
-  s.includes('kích hoạt')
+  s === 'ACTIVE'
     ? 'ok'
-    : s.includes('duyệt') || s.includes('ký')
+    : s === 'PENDING'
       ? 'pending'
-      : s.includes('từ chối') || s.includes('hủy')
+      : s === 'CANCELLED' || s === 'EXPIRED'
         ? 'bad'
         : 'neutral'
 function ContractDetail({
   contract: c,
-  onApprove,
+  confirming,
+  onConfirm,
+  onRenew,
   onReject,
   onPdf,
 }: {
   contract: Contract
-  onApprove: () => void
+  confirming: boolean
+  onConfirm: () => void
+  onRenew: () => void
   onReject: () => void
   onPdf: () => void
 }) {
@@ -350,7 +336,7 @@ function ContractDetail({
     <aside className="contract-detail">
       <header>
         <h2>♢ CHI TIẾT ĐƠN DUYỆT #{c.id}</h2>
-        <span>{c.payment}</span>
+        <span>{c.paymentId ? <>{c.paymentMethod} · {c.paymentStatus}</> : 'Chưa có yêu cầu thanh toán'}</span>
       </header>
       <div className="detail-member">
         <i>{c.member.charAt(0)}</i>
@@ -397,7 +383,7 @@ function ContractDetail({
         </p>
         <p>
           <strong>Tổng thanh toán:</strong>
-          <strong>{money(c.value)}</strong>
+          <strong>{money(c.paymentAmount)}</strong>
         </p>
       </div>
       <div className="signature">
@@ -419,118 +405,22 @@ function ContractDetail({
           </small>
         </span>
       </div>
-      <button className="approve" onClick={onApprove}>
-        ✓ DUYỆT HỢP ĐỒNG & KÍCH HOẠT THẺ
-      </button>
+      {c.status === 'PENDING' && c.paymentStatus === 'PENDING' && c.paymentId ? (
+        <button className="approve" disabled={confirming} onClick={onConfirm}>
+          {confirming ? 'ĐANG XÁC NHẬN...' : '✓ XÁC NHẬN THANH TOÁN & KÍCH HOẠT'}
+        </button>
+      ) : c.status === 'ACTIVE' && c.paymentStatus === 'SUCCESS' ? (
+        <button className="approve" disabled>✓ ĐÃ THANH TOÁN & KÍCH HOẠT</button>
+      ) : !c.paymentId ? (
+        <button className="approve" disabled>CHƯA CÓ YÊU CẦU THANH TOÁN</button>
+      ) : (
+        <button className="approve" disabled>THANH TOÁN {c.paymentStatus}</button>
+      )}
       <div className="detail-actions">
+        {c.status === 'ACTIVE' && c.paymentStatus === 'SUCCESS' && <button onClick={onRenew}>↻ GIA HẠN GÓI</button>}
         <button onClick={onPdf}>◉ FILE PDF KÝ SỐ</button>
         <button onClick={onReject}>⊗ TỪ CHỐI DUYỆT</button>
       </div>
     </aside>
-  )
-}
-function ContractForm({
-  onClose,
-  onSave,
-}: {
-  onClose: () => void
-  onSave: (c: Contract) => void
-}) {
-  const [member, setMember] = useState('')
-  const [pkg, setPkg] = useState('Diamond All-Access 12T')
-  const [branch, setBranch] = useState('QA-Gym Vincom Q.1')
-  const [value, setValue] = useState(21600000)
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    const id = Date.now()
-    onSave({
-      id,
-      code: `#QA-CTR-${String(id).slice(-4)}`,
-      time: 'Vừa tạo',
-      member,
-      memberId: `HV-${String(id).slice(-5)}`,
-      phone: '09**.***.***',
-      age: 25,
-      cccd: '079*****',
-      packageName: pkg,
-      coach: 'Chưa phân công',
-      branch,
-      value,
-      listPrice: value,
-      discount: 0,
-      payment: 'VietQR',
-      status: 'Chờ duyệt HĐ',
-      term: '18/09/2026 → 18/09/2027',
-      transaction: `LOCAL-${id}`,
-    })
-  }
-  return (
-    <Modal title="TẠO HỢP ĐỒNG MỚI" onClose={onClose}>
-      <form onSubmit={submit}>
-        <div className="form-grid">
-          <label>
-            Hội viên
-            <input
-              required
-              value={member}
-              onChange={(e) => setMember(e.target.value)}
-            />
-          </label>
-          <label>
-            Gói tập
-            <select value={pkg} onChange={(e) => setPkg(e.target.value)}>
-              <option>Diamond All-Access 12T</option>
-              <option>Platinum Pro 06 Tháng</option>
-              <option>Classic 3 Tháng</option>
-            </select>
-          </label>
-          <label>
-            Cơ sở
-            <select value={branch} onChange={(e) => setBranch(e.target.value)}>
-              <option>QA-Gym Vincom Q.1</option>
-              <option>Thảo Điền Hub</option>
-              <option>Crescent Elite Q.7</option>
-            </select>
-          </label>
-          <label>
-            Ngày bắt đầu
-            <input type="date" required />
-          </label>
-          <label>
-            Ngày kết thúc
-            <input type="date" required />
-          </label>
-          <label>
-            Giá trị hợp đồng
-            <input
-              type="number"
-              value={value}
-              onChange={(e) => setValue(+e.target.value)}
-            />
-          </label>
-          <label>
-            Phương thức thanh toán
-            <select>
-              <option>VietQR</option>
-              <option>MoMo AutoPay</option>
-              <option>Tiền mặt POS</option>
-            </select>
-          </label>
-          <label>
-            Trạng thái
-            <select>
-              <option>Chờ duyệt HĐ</option>
-              <option>Chờ thanh toán</option>
-            </select>
-          </label>
-        </div>
-        <footer className="modal-actions">
-          <button type="button" onClick={onClose}>
-            Hủy
-          </button>
-          <button className="primary">Tạo hợp đồng</button>
-        </footer>
-      </form>
-    </Modal>
   )
 }
