@@ -40,6 +40,21 @@ function dateDistanceInDays(from, to) {
 
 const DangkygoitapController = {
 
+  getAdminAll: (_req, res) => {
+    Dangkygoitap.getAdminAll((err, rows) => err
+      ? res.status(500).json({ message: 'Không thể tải danh sách đăng ký' })
+      : res.json(rows));
+  },
+
+  renew: (req, res) => {
+    const id = positiveInteger(req.params.DangKyID);
+    if (!id) return res.status(400).json({ message: 'DangKyID không hợp lệ' });
+    Dangkygoitap.renew(id, (err, result) => {
+      if (err) return res.status(err.status || 500).json({ message: err.message || 'Không thể gia hạn', code: err.code, ...(err.data && { data: err.data }) });
+      res.status(201).json({ message: 'Đã tạo đăng ký gia hạn chờ thanh toán', data: result });
+    });
+  },
+
   getCurrentByAccount: (req, res) => {
     const accountId = positiveInteger(req.params.TaiKhoanID);
 

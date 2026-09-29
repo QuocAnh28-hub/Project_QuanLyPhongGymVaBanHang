@@ -154,6 +154,58 @@ Dangkygoitap.getAll = (callback) => {
   });
 };
 
+Dangkygoitap.getAdminAll = (callback) => {
+  db.query("UPDATE dangkygoitap SET TrangThai='EXPIRED' WHERE TrangThai='ACTIVE' AND NgayKetThuc < CURDATE()", error => {
+    if (error) return callback(error);
+    db.query(`SELECT d.DangKyID,d.HoiVienID,h.HoTen,h.SoDienThoai,d.GoiTapID,g.TenGoi,
+      d.GoiTapThoiHanID,t.SoThang,t.ThangTang,
+      DATE_FORMAT(d.NgayDangKy,'%Y-%m-%d %H:%i:%s') NgayDangKy,
+      DATE_FORMAT(d.NgayBatDau,'%Y-%m-%d') NgayBatDau,DATE_FORMAT(d.NgayKetThuc,'%Y-%m-%d') NgayKetThuc,
+      d.GiaThanhToan,d.TrangThai TrangThaiDangKy,tt.ThanhToanID,tt.SoTien,
+      COALESCE(tt.TrangThai,'UNPAID') TrangThaiThanhToan,tt.PhuongThucThanhToan,
+      GREATEST(DATEDIFF(d.NgayKetThuc,CURDATE()),0) SoNgayConLai
+      FROM dangkygoitap d
+      INNER JOIN hoivien h ON h.HoiVienID=d.HoiVienID
+      INNER JOIN goitap g ON g.GoiTapID=d.GoiTapID
+      INNER JOIN GoiTapThoiHan t ON t.GoiTapThoiHanID=d.GoiTapThoiHanID
+      LEFT JOIN thanhtoan tt ON tt.ThanhToanID=(
+        SELECT tt2.ThanhToanID FROM thanhtoan tt2
+        WHERE tt2.DangKyID=d.DangKyID
+        ORDER BY CASE tt2.TrangThai WHEN 'SUCCESS' THEN 0 WHEN 'PENDING' THEN 1 ELSE 2 END,
+          tt2.ThanhToanID DESC
+        LIMIT 1
+      )
+      ORDER BY d.DangKyID DESC`, callback);
+  });
+};
+
+Dangkygoitap.renew = (registrationId, callback) => {
+  db.getConnection(async (connectionError, connection) => {
+    if (connectionError) return callback(connectionError);
+    const q = connection.promise();
+    try {
+      await q.beginTransaction();
+      const [rows] = await q.query(`SELECT d.*,t.SoThang,t.ThangTang,t.GiaBan,g.TrangThai GoiTapTrangThai,t.TrangThai ThoiHanTrangThai
+        FROM dangkygoitap d INNER JOIN goitap g ON g.GoiTapID=d.GoiTapID
+        INNER JOIN GoiTapThoiHan t ON t.GoiTapThoiHanID=d.GoiTapThoiHanID WHERE d.DangKyID=? FOR UPDATE`, [registrationId]);
+      if (!rows.length) throw appError(404, 'REGISTRATION_NOT_FOUND', 'Không tìm thấy đăng ký');
+      const old = rows[0];
+      if (old.GoiTapTrangThai !== 'ACTIVE' || old.ThoiHanTrangThai !== 'ACTIVE') throw appError(409, 'PACKAGE_INACTIVE', 'Gói hoặc thời hạn đã ngừng hoạt động');
+      const [pending] = await q.query("SELECT DangKyID FROM dangkygoitap WHERE HoiVienID=? AND GoiTapID=? AND GoiTapThoiHanID=? AND TrangThai='PENDING' LIMIT 1", [old.HoiVienID, old.GoiTapID, old.GoiTapThoiHanID]);
+      if (pending.length) throw appError(409, 'PENDING_EXISTS', 'Đã có lần gia hạn đang chờ thanh toán', { DangKyID: pending[0].DangKyID });
+      const today = new Date().toISOString().slice(0, 10);
+      const previousEnd = new Date(old.NgayKetThuc);
+      previousEnd.setUTCDate(previousEnd.getUTCDate() + 1);
+      const start = old.NgayKetThuc && new Date(old.NgayKetThuc) >= new Date(today) ? previousEnd.toISOString().slice(0, 10) : today;
+      const end = addMonthsClamped(start, Number(old.SoThang) + Number(old.ThangTang || 0));
+      const [created] = await q.query("INSERT INTO dangkygoitap (HoiVienID,GoiTapID,GoiTapThoiHanID,NgayDangKy,NgayBatDau,NgayKetThuc,GiaThanhToan,TrangThai) VALUES (?,?,?,NOW(),?,?,?,'PENDING')", [old.HoiVienID,old.GoiTapID,old.GoiTapThoiHanID,start,end,old.GiaBan]);
+      await q.commit();
+      callback(null, { DangKyID: created.insertId, TrangThaiDangKy: 'PENDING', NgayBatDau: start, NgayKetThuc: end });
+    } catch (e) { try { await q.rollback(); } catch (_) {} callback(e); }
+    finally { connection.release(); }
+  });
+};
+
 Dangkygoitap.register = (input, callback) => {
   db.getConnection(async (connectionError, connection) => {
     if (connectionError) return callback(connectionError);

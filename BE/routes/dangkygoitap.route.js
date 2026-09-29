@@ -4,10 +4,12 @@ const router = express.Router();
 const DangkygoitapController = require('../controllers/dangkygoitap.controller');
 
 router.get('/', DangkygoitapController.getAll);
+router.get('/admin', DangkygoitapController.getAdminAll);
 router.get('/current/account/:TaiKhoanID', DangkygoitapController.getCurrentByAccount);
 router.get('/detail/:DangKyID', DangkygoitapController.getDetailById);
 router.get('/:DangKyID', DangkygoitapController.getById);
 router.post('/register', DangkygoitapController.register);
+router.post('/:DangKyID/renew', DangkygoitapController.renew);
 router.post('/', DangkygoitapController.create);
 router.put('/:DangKyID', DangkygoitapController.update);
 router.delete('/:DangKyID', DangkygoitapController.delete);

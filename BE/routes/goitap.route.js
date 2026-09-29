@@ -9,6 +9,7 @@ router.get('/active/:GoiTapID', GoitapController.getActiveById);
 router.get('/:GoiTapID', GoitapController.getById);
 router.post('/', GoitapController.create);
 router.put('/:GoiTapID', GoitapController.update);
+router.patch('/:GoiTapID/status', GoitapController.setStatus);
 router.delete('/:GoiTapID', GoitapController.delete);
 
 module.exports = router;
