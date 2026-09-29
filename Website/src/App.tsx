@@ -25,7 +25,7 @@ import WarehouseInventoryPage from './pages/WarehouseInventoryPage'
 import WarehouseHistoryPage from './pages/WarehouseHistoryPage'
 import RevenueInvoicePage from './pages/RevenueInvoicePage'
 import { metrics, clubs, hours } from './data/dashboard'
-import type { Member } from './data/members'
+import type { Member } from './services/members'
 import './App.css'
 
 function App() {
