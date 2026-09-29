@@ -28,6 +28,34 @@ Maqr.getAll = (callback) => {
   });
 };
 
+Maqr.getAdmin = (callback) => {
+  db.query(`SELECT q.MaQRID,q.MaCode,
+    DATE_FORMAT(q.NgayTao,'%Y-%m-%d %H:%i:%s') NgayTao,
+    DATE_FORMAT(q.NgayHetHan,'%Y-%m-%d %H:%i:%s') NgayHetHan,
+    CASE WHEN q.NgayHetHan < NOW() THEN 'EXPIRED' ELSE q.TrangThai END TrangThai,
+    (SELECT ci.CheckInID FROM checkin ci WHERE ci.MaQRID=q.MaQRID ORDER BY ci.CheckInID DESC LIMIT 1) CheckInID
+    FROM maqr q
+    ORDER BY q.MaQRID DESC`, callback);
+};
+
+Maqr.getMembers = (ids, callback) => {
+  if (!ids.length) return callback(null, []);
+  db.query("SELECT HoiVienID,HoTen,SoDienThoai FROM hoivien WHERE HoiVienID IN (?)", [ids], callback);
+};
+
+Maqr.revoke = (id, callback) => {
+  db.query("UPDATE maqr SET TrangThai='INACTIVE' WHERE MaQRID=? AND TrangThai='ACTIVE' AND (NgayHetHan IS NULL OR NgayHetHan>=NOW())", [id], (error, result) => {
+    if (error) return callback(error);
+    if (result.affectedRows) return callback(null, { MaQRID: id, TrangThai: 'INACTIVE' });
+    db.query("SELECT MaQRID FROM maqr WHERE MaQRID=?", [id], (readError, rows) => {
+      if (readError) return callback(readError);
+      const failure = new Error(rows.length ? 'Chỉ QR ACTIVE còn hạn mới được thu hồi' : 'Không tìm thấy QR');
+      failure.status = rows.length ? 409 : 404;
+      callback(failure);
+    });
+  });
+};
+
 Maqr.insert = (maqr, callback) => {
   const sqlString = "INSERT INTO `maqr` SET ?";
   db.query(sqlString, maqr, (err, res) => {

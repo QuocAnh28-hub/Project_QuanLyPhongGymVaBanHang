@@ -36,6 +36,45 @@ Checkin.getAll = (callback) => {
   });
 };
 
+const adminSelect = `SELECT ci.CheckInID,ci.HoiVienID,hv.HoTen,hv.SoDienThoai,
+  DATE_FORMAT(ci.ThoiGianCheckIn,'%Y-%m-%d %H:%i:%s') ThoiGianCheckIn,
+  DATE_FORMAT(ci.ThoiGianCheckOut,'%Y-%m-%d %H:%i:%s') ThoiGianCheckOut,ci.TrangThai
+  FROM checkin ci INNER JOIN hoivien hv ON hv.HoiVienID=ci.HoiVienID`;
+
+Checkin.getAdminToday = (callback) => {
+  db.query(`${adminSelect} WHERE DATE(ci.ThoiGianCheckIn)=CURDATE() ORDER BY ci.ThoiGianCheckIn DESC,ci.CheckInID DESC`, (error, rows) => {
+    if (error) return callback(error);
+    callback(null, {
+      metrics: {
+        total: rows.length,
+        present: rows.filter(row => row.TrangThai === 'CHECKED_IN' && !row.ThoiGianCheckOut).length,
+        checkedOut: rows.filter(row => row.TrangThai === 'CHECKED_OUT').length,
+      },
+      rows,
+    });
+  });
+};
+
+Checkin.getAdminHistory = (filters, callback) => {
+  const where = [], params = [];
+  if (filters.q) {
+    where.push('(hv.HoTen LIKE ? OR hv.SoDienThoai LIKE ? OR CAST(ci.HoiVienID AS CHAR) LIKE ?)');
+    const term = `%${filters.q}%`;
+    params.push(term, term, term);
+  }
+  if (filters.from) { where.push('ci.ThoiGianCheckIn >= ?'); params.push(`${filters.from} 00:00:00`); }
+  if (filters.to) { where.push('ci.ThoiGianCheckIn < DATE_ADD(?,INTERVAL 1 DAY)'); params.push(filters.to); }
+  if (filters.status) { where.push('ci.TrangThai = ?'); params.push(filters.status); }
+  const clause = where.length ? ` WHERE ${where.join(' AND ')}` : '';
+  db.query(`SELECT COUNT(*) total FROM checkin ci INNER JOIN hoivien hv ON hv.HoiVienID=ci.HoiVienID${clause}`, params, (countError, countRows) => {
+    if (countError) return callback(countError);
+    db.query(`${adminSelect}${clause} ORDER BY ci.ThoiGianCheckIn DESC,ci.CheckInID DESC LIMIT ? OFFSET ?`, [...params, filters.pageSize, (filters.page - 1) * filters.pageSize], (error, rows) => {
+      if (error) return callback(error);
+      callback(null, { rows, total: Number(countRows[0].total), page: filters.page, pageSize: filters.pageSize });
+    });
+  });
+};
+
 Checkin.getEligibilityByAccount = (TaiKhoanID, callback) => {
   const sqlString = `
     SELECT
@@ -102,6 +141,15 @@ Checkin.scan = (input, callback) => {
     try {
       await query.beginTransaction();
 
+      const [codes] = await query.query(
+        "SELECT MaQRID,TrangThai,NgayHetHan FROM maqr WHERE MaCode = ? LIMIT 1 FOR UPDATE",
+        [input.token],
+      );
+      if (!codes.length) throw appError(404, "QR_NOT_ISSUED", "Mã QR chưa được Backend cấp");
+      const qr = codes[0];
+      if (qr.TrangThai !== "ACTIVE") throw appError(409, "QR_NOT_ACTIVE", "Mã QR đã dùng hoặc bị thu hồi");
+      if (new Date(qr.NgayHetHan).getTime() <= Date.now()) throw appError(410, "QR_EXPIRED", "Mã QR đã hết hạn");
+
       const [memberships] = await query.query(
         `SELECT
            dk.DangKyID,
@@ -155,14 +203,6 @@ Checkin.scan = (input, callback) => {
         throw appError(403, dateStatus[0].Status, dateStatus[0].Status === "MEMBERSHIP_NOT_STARTED" ? "Gói tập chưa đến ngày kích hoạt" : "Gói tập đã hết hạn");
       }
 
-      const [usedCodes] = await query.query(
-        "SELECT MaQRID FROM maqr WHERE MaCode = ? LIMIT 1 FOR UPDATE",
-        [input.token],
-      );
-      if (usedCodes.length) {
-        throw appError(409, "QR_ALREADY_USED", "Mã QR đã được sử dụng");
-      }
-
       const [sessions] = await query.query(
         `SELECT CheckInID FROM checkin
          WHERE HoiVienID = ?
@@ -176,20 +216,15 @@ Checkin.scan = (input, callback) => {
         throw appError(409, "ALREADY_CHECKED_IN", "Hội viên đang có phiên check-in chưa kết thúc");
       }
 
-      const [qrResult] = await query.query(
-        `INSERT INTO maqr (MaCode, NgayTao, NgayHetHan, TrangThai)
-         VALUES (?, NOW(), FROM_UNIXTIME(?), 'ACTIVE')`,
-        [input.token, input.exp],
-      );
       const [checkInResult] = await query.query(
         `INSERT INTO checkin
           (HoiVienID, MaQRID, ThoiGianCheckIn, ThoiGianCheckOut, TrangThai)
          VALUES (?, ?, NOW(), NULL, 'CHECKED_IN')`,
-        [input.HoiVienID, qrResult.insertId],
+        [input.HoiVienID, qr.MaQRID],
       );
       await query.query(
         "UPDATE maqr SET TrangThai = 'INACTIVE' WHERE MaQRID = ?",
-        [qrResult.insertId],
+        [qr.MaQRID],
       );
       const [created] = await query.query(
         `SELECT CheckInID, HoiVienID, ThoiGianCheckIn, TrangThai
@@ -213,6 +248,19 @@ Checkin.scan = (input, callback) => {
       connection.release();
     }
   });
+};
+
+Checkin.searchMembers = (term, callback) => {
+  const like = `%${term}%`;
+  db.query(`SELECT hv.HoiVienID,hv.TaiKhoanID,hv.HoTen,hv.SoDienThoai,
+    hv.TrangThai TrangThaiHoiVien,tk.TrangThai TrangThaiTaiKhoan
+    FROM hoivien hv INNER JOIN taikhoan tk ON tk.TaiKhoanID=hv.TaiKhoanID
+    WHERE hv.HoTen LIKE ? OR hv.SoDienThoai LIKE ? OR CAST(hv.HoiVienID AS CHAR)=?
+    ORDER BY hv.HoTen LIMIT 20`, [like, like, term], callback);
+};
+
+Checkin.issueToken = (token, expires, callback) => {
+  db.query("INSERT INTO maqr (MaCode,NgayTao,NgayHetHan,TrangThai) VALUES (?,NOW(),FROM_UNIXTIME(?),'ACTIVE')", [token, expires], (error, result) => callback(error, { MaQRID: result?.insertId }));
 };
 
 Checkin.checkout = (CheckInID, callback) => {

@@ -37,7 +37,7 @@ function sign(payload) {
   return `${unsigned}.${signature}`;
 }
 
-function verify(token) {
+function verify(token, allowExpired = false) {
   if (typeof token !== 'string' || token.length > 255) {
     const error = new Error('Token QR không hợp lệ');
     error.status = 400;
@@ -95,7 +95,7 @@ function verify(token) {
     error.code = 'QR_INVALID';
     throw error;
   }
-  if (payload.exp <= now) {
+  if (!allowExpired && payload.exp <= now) {
     const error = new Error('Mã QR đã hết hạn');
     error.status = 410;
     error.code = 'QR_EXPIRED';
@@ -114,6 +114,24 @@ function requireGateKey(req, res) {
 }
 
 const CheckinController = {
+
+  getAdminToday: (_req, res) => {
+    Checkin.getAdminToday((err, result) => err ? apiError(res, err) : res.json(result));
+  },
+
+  getAdminHistory: (req, res) => {
+    const page = positiveInteger(req.query.page) || 1;
+    const pageSize = Math.min(100, positiveInteger(req.query.pageSize) || 20);
+    const status = req.query.status && ['CHECKED_IN', 'CHECKED_OUT'].includes(req.query.status) ? req.query.status : null;
+    const ymd = value => /^\d{4}-\d{2}-\d{2}$/.test(value || '') ? value : null;
+    Checkin.getAdminHistory({ q: String(req.query.q || '').trim(), from: ymd(req.query.from), to: ymd(req.query.to), status, page, pageSize }, (err, result) => err ? apiError(res, err) : res.json(result));
+  },
+
+  searchAdminMembers: (req, res) => {
+    const query = String(req.query.q || '').trim();
+    if (!query) return res.json([]);
+    Checkin.searchMembers(query, (err, rows) => err ? apiError(res, err) : res.json(rows));
+  },
 
   createToken: (req, res) => {
     const accountId = positiveInteger(req.body?.TaiKhoanID);
@@ -152,13 +170,9 @@ const CheckinController = {
           exp: expires,
           jti: crypto.randomBytes(8).toString('base64url'),
         });
-        res.json({
-          token,
-          issuedAt: new Date(issued * 1000).toISOString(),
-          expiresAt: new Date(expires * 1000).toISOString(),
-          expiresIn: TOKEN_SECONDS,
-          DangKyID: membership.DangKyID,
-          HoiVienID: membership.HoiVienID,
+        Checkin.issueToken(token, expires, (saveError, saved) => {
+          if (saveError) return apiError(res, saveError);
+          res.json({ token, MaQRID: saved.MaQRID, issuedAt: new Date(issued * 1000).toISOString(), expiresAt: new Date(expires * 1000).toISOString(), expiresIn: TOKEN_SECONDS, DangKyID: membership.DangKyID, HoiVienID: membership.HoiVienID });
         });
       } catch (error) {
         apiError(res, error);
