@@ -1,0 +1,9 @@
+.employees-api-page .catalog-table { min-width: 1120px; }
+.employees-api-page .catalog-table th:first-child { width: 23%; }
+.employees-api-page .catalog-table small { display: block; color: #9fb3a7; font-size: 12px; margin-top: 5px; }
+.employees-api-page .catalog-row-actions { flex-wrap: wrap; }
+.employees-api-page .catalog-row-actions button { white-space: nowrap; }
+.employees-api-page .catalog-badge.admin { color: #d2eaa8; background: #344528; }
+.employees-api-page .catalog-badge.blocked { color: #edb3a9; background: #492e2a; }
+.employee-role-info { padding: 20px; border: 1px solid #354638; border-radius: 12px; margin-top: 20px; background: #1d2821; font-size: 14px; line-height: 1.7; color: #b5c8bb; }
+.employee-role-info h2 { margin: 0 0 12px; font-size: 18px; color: #e1eee4; }

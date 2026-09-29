@@ -45,4 +45,20 @@ router.get('/session', (req, res) => {
   });
 });
 router.post('/logout', (req, res) => { sessions.delete(sessionKey(req)); res.sendStatus(204); });
+function requireAdmin(req, res, next) {
+  const session = sessions.get(sessionKey(req));
+  if (!session || session.expiresAt <= Date.now()) return res.status(401).json({ message: 'Phiên đăng nhập đã hết hạn.' });
+  db.query('SELECT TaiKhoanID, VaiTro, TrangThai FROM taikhoan WHERE TaiKhoanID = ?', [session.id], (error, rows) => {
+    if (error) return res.status(503).json({ message: 'Không thể kiểm tra quyền truy cập.' });
+    if (!rows?.[0] || rows[0].TrangThai !== 'ACTIVE' || !isAdmin(rows[0])) return res.status(403).json({ message: 'Bạn không có quyền quản lý nhân viên.' });
+    req.adminAccountId = session.id;
+    res.set('Cache-Control', 'no-store');
+    next();
+  });
+}
+const employees = require('../controllers/admin-employees.controller');
+router.get('/employees', requireAdmin, employees.list);
+router.post('/employees', requireAdmin, employees.create);
+router.put('/employees/:id', requireAdmin, employees.update);
+router.put('/employees/:id/access', requireAdmin, employees.access);
 module.exports = router;

@@ -44,7 +44,32 @@
 .catalog-notice, .catalog-error { padding: 14px 16px; border-radius: 8px; line-height: 1.6; font-size: 14px; }
 .catalog-notice { background: #213b2b; color: #c1e5ba; border: 1px solid #3c6044; }
 .catalog-error { background: #402c29; color: #ffc4bb; border: 1px solid #734b43; }
-.catalog-page .modal { width: min(660px, calc(100vw - 32px)); max-height: 90vh; overflow-y: auto; background: #1b2420; color: #e2ebe7; }
+.catalog-page .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: #000b;
+  backdrop-filter: blur(4px);
+}
+.catalog-page .modal {
+  box-sizing: border-box;
+  width: min(660px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px;
+  border: 1px solid #405046;
+  border-radius: 12px;
+  background: #1b2420;
+  color: #e2ebe7;
+  box-shadow: 0 20px 70px #0009;
+}
+.catalog-page .modal > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.catalog-page .modal > header h2 { margin: 0; }
+.catalog-page .modal > header button { flex-shrink: 0; }
 .catalog-page .modal h2 { font-size: 20px; }
 .catalog-form fieldset { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; border: 0; padding: 0; margin: 0; min-width: 0; }
 .catalog-form label { display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #bbcbbb; }
