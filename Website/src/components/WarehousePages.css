@@ -1,0 +1,12 @@
+.warehouse-api-page .catalog-table th:first-child { width: 24%; }
+.warehouse-api-page .catalog-table small { display: block; margin-top: 6px; color: #9bb0a2; }
+.warehouse-api-page .catalog-filters label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.warehouse-api-page .modal { width: min(1000px, calc(100vw - 32px)); }
+.warehouse-api-page .catalog-badge.completed { color: #85dfad; background: #1c4233; }
+.warehouse-api-page .catalog-badge.pending { color: #e8cd84; background: #493e23; }
+.warehouse-api-page .catalog-badge.cancelled { color: #edb3a9; background: #492e2a; }
+.warehouse-api-page .warehouse-detail .catalog-table { min-width: 560px; }
+.warehouse-note { white-space: pre-wrap; overflow-wrap: anywhere; }
+.warehouse-draft-line { display: grid; grid-template-columns: minmax(160px, 2fr) minmax(80px, 1fr) minmax(110px, 1fr) auto; align-items: end; gap: 12px; margin-bottom: 16px; }
+.warehouse-help { color: #abc0af; font-size: 13px; line-height: 1.6; }
+@media (max-width: 680px) { .warehouse-draft-line { grid-template-columns: 1fr 1fr; } .warehouse-draft-line label:first-child { grid-column: 1 / -1; } }

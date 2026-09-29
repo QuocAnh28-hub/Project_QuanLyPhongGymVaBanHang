@@ -1,429 +1,97 @@
-import { useMemo, useState, type FormEvent } from 'react'
-import { MetricCard, Modal } from '../components/AdminLayout'
-import {
-  shopOrders as seed,
-  type ShopOrder,
-  type OrderStatus,
-} from '../data/shop-orders.mock'
-import { shopProducts } from '../data/shop-products.mock'
-const money = (n: number) => n.toLocaleString('vi-VN') + ' đ',
-  labels: Record<OrderStatus, string> = {
-    pending_payment: 'Chờ xử lý',
-    packing: 'Đang đóng gói',
-    shipping: 'Đang giao 2H',
-    completed: 'Hoàn tất',
-    cancelled: 'Đã hủy',
-    returned: 'Hoàn trả',
-  }
+﻿import { useCallback, useRef, useState, type FormEvent } from 'react'
+import { Modal } from '../components/AdminLayout'
+import { Pagination } from '../components/MemberUi'
+import { catalogRequest, searchText, type Product } from '../services/catalog'
+import { exportCsv, formatDate, money, useMemberData, type Member } from '../services/members'
+import { dateKey } from '../services/trainers'
+import { deliveryPayload, loadOrderDetail, loadOrders, nextStatuses, orderLabel, orderStatuses, validateTransition, type Order } from '../services/orders'
+import '../components/CatalogPage.css'
+import './ShopOrdersPage.css'
+
 export default function ShopOrdersPage() {
-  const [items, setItems] = useState(seed),
-    [selected, setSelected] = useState<ShopOrder>(seed[0]),
-    [tab, setTab] = useState<'all' | OrderStatus>('all'),
-    [search, setSearch] = useState(''),
-    [branch, setBranch] = useState('all'),
-    [fulfill, setFulfill] = useState('all'),
-    [modal, setModal] = useState<'pos' | 'statement' | null>(null),
-    [toast, setToast] = useState('')
-  const notify = (x: string) => {
-      setToast(x)
-      setTimeout(() => setToast(''), 1600)
-    },
-    shown = useMemo(
-      () =>
-        items.filter(
-          (o) =>
-            (tab === 'all' || o.status === tab) &&
-            (branch === 'all' || o.branch === branch) &&
-            (fulfill === 'all' || o.fulfillmentType === fulfill) &&
-            `${o.id} ${o.member.name} ${o.member.phone}`
-              .toLowerCase()
-              .includes(search.toLowerCase())
-        ),
-      [items, tab, branch, fulfill, search]
-    )
-  const update = (status: OrderStatus) => {
-    setItems(items.map((o) => (o.id === selected.id ? { ...o, status } : o)))
-    setSelected({ ...selected, status })
-    notify(`Đã cập nhật: ${labels[status]}`)
-  }
-  const create = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const d = new FormData(e.currentTarget),
-      p = shopProducts.find((x) => x.id === Number(d.get('product')))!,
-      qty = Number(d.get('qty')),
-      discount = Number(d.get('discount')),
-      id = `QA-ORD-${Date.now().toString().slice(-5)}`,
-      o: ShopOrder = {
-        id,
-        createdAt: 'Vừa tạo',
-        member: {
-          id: 'WALK-IN',
-          name: String(d.get('customer')),
-          phone: String(d.get('phone')),
-          email: '—',
-          tier: 'Khách POS',
-          address: 'Nhận tại quầy',
-        },
-        items: [
-          { productId: p.id, sku: p.sku, name: p.name, qty, price: p.price },
-        ],
-        total: p.price * qty - discount,
-        paymentMethod: String(d.get('payment')),
-        paymentStatus: 'Đã thanh toán',
-        branch: String(d.get('branch')),
-        fulfillmentType: String(d.get('fulfillment')),
-        status: 'packing',
-        shipper: 'Chưa phân công',
-        tracking: 'POS-LOCAL',
-        vat: Math.round(p.price * qty * 0.08),
+  const { data, loading, error, reload } = useMemberData(loadOrders)
+  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState('')
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const [page, setPage] = useState(1)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [notice, setNotice] = useState('')
+  const members = data?.members || []
+  const orders = data?.orders || []
+  const customer = (id: number) => members.find(m => Number(m.HoiVienID) === Number(id))
+  const invalidRange = !!from && !!to && from > to
+  const filtered = orders.filter(o => {
+    const member = customer(o.HoiVienID)
+    return !invalidRange && (!status || o.TrangThai === status) && (!from || dateKey(o.NgayDat) >= from) && (!to || dateKey(o.NgayDat) <= to) && searchText(`${o.DonHangID} ${member?.HoTen || ''} ${member?.SoDienThoai || ''} ${o.DiaChiGiaoHang || ''}`).includes(searchText(search))
+  }).sort((a, b) => b.DonHangID - a.DonHangID)
+  const currentPage = Math.min(page, Math.max(1, Math.ceil(filtered.length / 10)))
+  return <div className="catalog-page orders-api-page member-api-page">
+    <header className="catalog-heading"><div><p className="catalog-eyebrow">QA PRO SHOP / ĐƠN HÀNG</p><h1>Quản lý đơn hàng & điều phối vận chuyển</h1><p>Theo dõi đơn hàng, thông tin giao nhận và tiến độ xử lý.</p></div><div className="catalog-actions"><button disabled={loading} onClick={reload}>↻ Làm mới</button><button disabled={loading || !!error || !filtered.length} onClick={() => exportCsv('don-hang.csv', [['Mã đơn', 'Hội viên', 'Điện thoại hội viên', 'Ngày đặt', 'Tổng tiền', 'Trạng thái', 'Địa chỉ', 'Ghi chú'], ...filtered.map(o => [o.DonHangID, customer(o.HoiVienID)?.HoTen || '', customer(o.HoiVienID)?.SoDienThoai || '', formatDate(o.NgayDat, true), o.TongTien, orderLabel(o.TrangThai), o.DiaChiGiaoHang || '', o.GhiChu || ''])])}>↓ Xuất CSV</button></div></header>
+    {notice && <p className="catalog-notice" role="status">{notice}</p>}
+    {loading && <p className="catalog-state" role="status">Đang tải đơn hàng…</p>}
+    {error && <div className="catalog-error" role="alert"><p>{error}</p><button onClick={reload}>Thử lại</button></div>}
+    {!loading && !error && data && <>
+      <section className="catalog-stats">{orderStatuses.map(s => <article key={s}><span>{orderLabel(s)}</span><strong>{orders.filter(o => o.TrangThai === s).length}</strong></article>)}</section>
+      <section className="catalog-filters"><input aria-label="Tìm đơn hàng" placeholder="Mã đơn, tên hội viên, điện thoại, địa chỉ…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} /><select aria-label="Trạng thái đơn" value={status} onChange={e => { setStatus(e.target.value); setPage(1) }}><option value="">Tất cả trạng thái</option>{orderStatuses.map(s => <option key={s} value={s}>{orderLabel(s)}</option>)}</select><label>Từ ngày<input type="date" value={from} onChange={e => { setFrom(e.target.value); setPage(1) }} /></label><label>Đến ngày<input type="date" value={to} onChange={e => { setTo(e.target.value); setPage(1) }} /></label><button onClick={() => { setSearch(''); setStatus(''); setFrom(''); setTo(''); setPage(1) }}>Xóa bộ lọc</button></section>
+      {invalidRange && <p className="catalog-error" role="alert">Ngày kết thúc phải bằng hoặc sau ngày bắt đầu.</p>}
+      <section className="catalog-table-card"><div className="catalog-table-scroll"><table className="catalog-table"><thead><tr><th>Đơn hàng / Hội viên</th><th>Ngày đặt</th><th>Địa chỉ giao hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{filtered.slice((currentPage - 1) * 10, currentPage * 10).map(o => <tr key={o.DonHangID}><td><strong>ĐH #{o.DonHangID}</strong><small className="orders-sub">{customer(o.HoiVienID)?.HoTen || `Hội viên #${o.HoiVienID}`}</small><small className="orders-sub">{customer(o.HoiVienID)?.SoDienThoai || 'Chưa có điện thoại'}</small></td><td>{formatDate(o.NgayDat, true)}</td><td>{o.DiaChiGiaoHang || 'Chưa có địa chỉ'}</td><td>{money(Number(o.TongTien))}</td><td><OrderBadge status={o.TrangThai} /></td><td><button onClick={() => setSelectedId(o.DonHangID)}>Chi tiết →</button></td></tr>)}</tbody></table></div>{!filtered.length && <p className="catalog-state">Không có đơn hàng phù hợp.</p>}<Pagination page={currentPage} total={filtered.length} size={10} onChange={setPage} /></section>
+    </>}
+    {selectedId !== null && <OrderDetail key={selectedId} id={selectedId} products={data?.products || []} members={members} onClose={() => setSelectedId(null)} onSaved={() => { setNotice('Đã cập nhật đơn hàng.'); reload() }} />}
+  </div>
+}
+
+function OrderBadge({ status }: { status: string }) {
+  return <span className={`catalog-badge ${status.toLowerCase()}`}>{orderLabel(status)}</span>
+}
+function OrderDetail({ id, products, members, onClose, onSaved }: { id: number; products: Product[]; members: Member[]; onClose: () => void; onSaved: () => void }) {
+  const loader = useCallback((signal: AbortSignal) => loadOrderDetail(id, signal), [id])
+  const { data, loading, error, reload } = useMemberData(loader)
+  const [action, setAction] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const lock = useRef(false)
+  const [saveError, setSaveError] = useState('')
+  const order = data?.order
+  const checkout = data?.checkout
+  const member = members.find(m => Number(m.HoiVienID) === Number(order?.HoiVienID))
+  const terminal = order?.TrangThai === 'COMPLETED' || order?.TrangThai === 'CANCELLED'
+  async function save(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault()
+    if (!data || lock.current) return
+    const form = event ? new FormData(event.currentTarget) : null
+    lock.current = true; setBusy(true); setSaveError('')
+    try {
+      const fresh = await loadOrderDetail(id, new AbortController().signal)
+      let payload: Partial<Order>
+      if (form) {
+        if (['COMPLETED', 'CANCELLED'].includes(fresh.order.TrangThai)) throw new Error('Đơn đã kết thúc, không thể sửa thông tin giao hàng.')
+        payload = deliveryPayload(form)
+      } else {
+        if (!action) return
+        validateTransition(fresh.order, action, fresh.checkoutState, fresh.checkout)
+        payload = { TrangThai: action }
       }
-    setItems([o, ...items])
-    setSelected(o)
-    setModal(null)
-    notify('Đã tạo đơn POS')
+      await catalogRequest(`donhang/${id}`, { method: 'PUT', body: JSON.stringify(payload) })
+      setEditing(false); setAction(null); reload(); onSaved()
+    } catch (e) { setSaveError(e instanceof Error ? e.message : 'Không thể cập nhật đơn hàng.') }
+    finally { lock.current = false; setBusy(false) }
   }
-  return (
-    <div className="admin-page shop-page">
-      <header className="page-heading">
-        <div>
-          <p>
-            KINH DOANH & THƯƠNG MẠI　›　QA PRO SHOP　›　<b>QUẢN LÝ ĐƠN HÀNG</b>
-          </p>
-          <h1>QUẢN LÝ ĐƠN HÀNG & ĐIỀU PHỐI VẬN CHUYỂN</h1>
-        </div>
-        <div className="heading-actions">
-          <button onClick={() => notify('Đã xuất HĐĐT / Excel mock')}>
-            ⇩ Xuất HĐĐT / Báo cáo Excel
-          </button>
-          <button className="primary" onClick={() => setModal('pos')}>
-            ＋ Tạo đơn hàng tại quầy POS
-          </button>
-        </div>
-      </header>
-      <section className="order-metrics">
-        <MetricCard
-          label="TỔNG ĐƠN HÔM NAY"
-          value="38"
-          note="+14.2% doanh thu"
-        />
-        <MetricCard
-          label="CHỜ KHỚP LỆNH"
-          value="02"
-          note="VietQR / Chuyển khoản"
-        />
-        <MetricCard label="ĐANG CHUẨN BỊ" value="08" note="Kho xuất" />
-        <MetricCard
-          label="GIAO HỎA TỐC 2H"
-          value="12"
-          note="Trên đường"
-          tone="mint"
-        />
-        <MetricCard label="HOÀN TẤT HÔM NAY" value="16" note="100% On-time" />
-      </section>
-      <section className="order-filters">
-        <div className="chips">
-          {(
-            [
-              'all',
-              'pending_payment',
-              'packing',
-              'shipping',
-              'completed',
-              'cancelled',
-            ] as const
-          ).map((k) => (
-            <button
-              className={tab === k ? 'selected' : ''}
-              onClick={() => setTab(k)}
-              key={k}
-            >
-              {k === 'all' ? 'TẤT CẢ ĐƠN' : labels[k]}
-            </button>
-          ))}
-        </div>
-        <div>
-          <label>
-            ⌕
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Mã đơn, tên hội viên, SĐT nhận..."
-            />
-          </label>
-          <select value={branch} onChange={(e) => setBranch(e.target.value)}>
-            <option value="all">Điểm xuất kho: Tất cả</option>
-            {[...new Set(items.map((x) => x.branch))].map((x) => (
-              <option key={x}>{x}</option>
-            ))}
-          </select>
-          <select value={fulfill} onChange={(e) => setFulfill(e.target.value)}>
-            <option value="all">Phương thức nhận hàng</option>
-            {[...new Set(items.map((x) => x.fulfillmentType))].map((x) => (
-              <option key={x}>{x}</option>
-            ))}
-          </select>
-          <button onClick={() => notify('Bộ lọc nâng cao đã mở')}>☰</button>
-        </div>
-      </section>
-      <div className="orders-layout">
-        <section>
-          <h2>Danh sách đơn Pro Shop</h2>
-          <div className="order-list">
-            {shown.map((o) => (
-              <article
-                className={selected.id === o.id ? 'selected' : ''}
-                onClick={() => setSelected(o)}
-                key={o.id}
-              >
-                <header>
-                  <b>#{o.id}</b>
-                  <span className={`order-status ${o.status}`}>
-                    {labels[o.status]}
-                  </span>
-                  <strong>{money(o.total)}</strong>
-                </header>
-                <p>
-                  {o.createdAt} · Kho: {o.branch}
-                </p>
-                <div>
-                  <span>
-                    <b>{o.member.name}</b>
-                    <small>
-                      {o.member.tier} · {o.member.phone}
-                      <br />
-                      {o.member.address}
-                    </small>
-                  </span>
-                  <span>
-                    {o.items.map((x) => (
-                      <small key={x.sku}>
-                        {x.name} (x{x.qty})
-                      </small>
-                    ))}
-                  </span>
-                </div>
-                <footer>
-                  <small>
-                    {o.paymentStatus} · {o.paymentMethod}
-                  </small>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      notify('Đã tạo Bill & Vận đơn')
-                    }}
-                  >
-                    In Bill & Vận đơn
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      notify('Đã gọi shipper mock')
-                    }}
-                  >
-                    Gọi Shipper
-                  </button>
-                </footer>
-              </article>
-            ))}
-          </div>
-          <div className="pagination">
-            <span>Hiển thị {shown.length} đơn</span>
-            <div>
-              <button className="current">1</button>
-              <button>2</button>
-              <button>3</button>
-            </div>
-          </div>
-        </section>
-        <aside className="order-detail pt-panel">
-          <header>
-            <div>
-              <h2>CHI TIẾT ĐƠN HÀNG</h2>
-              <b>#{selected.id}</b>
-            </div>
-            <small>Vận đơn: {selected.tracking}</small>
-          </header>
-          <section>
-            <h3>KHÁCH HÀNG / NGƯỜI NHẬN</h3>
-            <b>{selected.member.name}</b>
-            <p>
-              {selected.member.id} · {selected.member.phone}
-              <br />
-              {selected.member.email}
-              <br />
-              {selected.member.address}
-            </p>
-          </section>
-          <section>
-            <h3>SẢN PHẨM ĐÃ MUA</h3>
-            {selected.items.map((x) => (
-              <div className="detail-product" key={x.sku}>
-                <i>▣</i>
-                <span>
-                  <b>{x.name}</b>
-                  <small>
-                    {x.sku} · SL x{x.qty}
-                  </small>
-                </span>
-                <strong>{money(x.price * x.qty)}</strong>
-              </div>
-            ))}
-          </section>
-          <section>
-            <h3>HÀNH TRÌNH VẬN CHUYỂN</h3>
-            {[
-              'Đặt hàng',
-              'Khớp thanh toán',
-              'Xuất kho',
-              'Đóng gói',
-              'Shipper nhận hàng',
-              'Đang giao',
-              'Hoàn tất',
-            ].map((x, i) => (
-              <p
-                className={
-                  i <
-                  {
-                    pending_payment: 1,
-                    packing: 4,
-                    shipping: 6,
-                    completed: 7,
-                    cancelled: 1,
-                    returned: 7,
-                  }[selected.status]
-                    ? 'done'
-                    : ''
-                }
-                key={x}
-              >
-                ● {x}
-              </p>
-            ))}
-          </section>
-          <section className="finance">
-            <span>
-              Tạm tính <b>{money(selected.total - selected.vat)}</b>
-            </span>
-            <span>
-              Thuế GTGT <b>{money(selected.vat)}</b>
-            </span>
-            <strong>TỔNG THANH TOÁN {money(selected.total)}</strong>
-          </section>
-          <section>
-            <h3>SHIPPER & OTP GIAO HÀNG</h3>
-            <p>
-              {selected.shipper} · OTP <b>8849</b>
-            </p>
-            <div className="signature">〰〰／＼〰</div>
-          </section>
-          <footer>
-            <button onClick={() => notify('Đã xác nhận bàn giao')}>
-              Xác nhận bàn giao
-            </button>
-            <button onClick={() => setModal('statement')}>
-              Kiểm tra sao kê
-            </button>
-            <button
-              onClick={() => {
-                update('packing')
-                notify('Đã khớp tay thủ công')
-              }}
-            >
-              Khớp tay thủ công
-            </button>
-            <button className="primary" onClick={() => update('shipping')}>
-              Cập nhật Đã Xuất Kho
-            </button>
-          </footer>
-        </aside>
-      </div>
-      {modal === 'pos' && (
-        <Modal title="TẠO ĐƠN HÀNG TẠI QUẦY POS" onClose={() => setModal(null)}>
-          <form onSubmit={create}>
-            <div className="form-grid">
-              <label>
-                Khách hàng
-                <input name="customer" required />
-              </label>
-              <label>
-                SĐT
-                <input name="phone" required />
-              </label>
-              <label>
-                Sản phẩm
-                <select name="product">
-                  {shopProducts.map((p) => (
-                    <option value={p.id} key={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Số lượng
-                <input
-                  name="qty"
-                  type="number"
-                  min="1"
-                  defaultValue="1"
-                  required
-                />
-              </label>
-              <label>
-                Giảm giá
-                <input name="discount" type="number" defaultValue="0" />
-              </label>
-              <label>
-                Thanh toán
-                <select name="payment">
-                  <option>Tiền mặt POS</option>
-                  <option>VietQR</option>
-                </select>
-              </label>
-              <label>
-                Nhận hàng
-                <select name="fulfillment">
-                  <option>Nhận tại quầy</option>
-                  <option>Giao Hỏa tốc 2H</option>
-                </select>
-              </label>
-              <label>
-                Cơ sở
-                <select name="branch">
-                  <option>Landmark Center HQ</option>
-                  <option>Thảo Điền Hub</option>
-                </select>
-              </label>
-            </div>
-            <footer className="modal-actions">
-              <button type="button" onClick={() => setModal(null)}>
-                Hủy
-              </button>
-              <button className="primary">Tạo đơn POS</button>
-            </footer>
-          </form>
-        </Modal>
-      )}
-      {modal === 'statement' && (
-        <Modal title="KIỂM TRA SAO KÊ" onClose={() => setModal(null)}>
-          <p>
-            Giao dịch mock: {selected.paymentMethod} · {money(selected.total)}
-          </p>
-          <footer className="modal-actions">
-            <button onClick={() => setModal(null)}>Đóng</button>
-            <button
-              className="primary"
-              onClick={() => {
-                setModal(null)
-                update('packing')
-              }}
-            >
-              Khớp tay thủ công
-            </button>
-          </footer>
-        </Modal>
-      )}
-      {toast && <div className="toast">✓ {toast}</div>}
-    </div>
-  )
+  return <Modal title={`Chi tiết đơn hàng #${id}`} onClose={() => { if (!lock.current) onClose() }}>
+    {loading && <p className="catalog-state" role="status">Đang tải chi tiết…</p>}
+    {error && <div className="catalog-error" role="alert"><p>{error}</p><button onClick={reload}>Thử lại</button></div>}
+    {!loading && data && order && <div className="orders-detail">
+      <div className="orders-detail-heading"><OrderBadge status={order.TrangThai} /><span>Đặt lúc {formatDate(order.NgayDat, true)}</span></div>
+      <section className="orders-info"><div><h3>Hội viên</h3><strong>{member?.HoTen || `Hội viên #${order.HoiVienID}`}</strong><p>Điện thoại hội viên: {member?.SoDienThoai || 'Chưa cập nhật'}</p></div><div><h3>Giao nhận</h3>{checkout && <><strong>{checkout.TenNguoiNhan}</strong><p>{checkout.SoDienThoai}</p><p>{checkout.CachNhan === 'DELIVERY' ? 'Giao tận nơi' : checkout.CachNhan === 'PICKUP' ? 'Nhận tại quầy' : checkout.CachNhan}</p></>}<p>{order.DiaChiGiaoHang || 'Chưa có địa chỉ giao hàng'}</p></div></section>
+      <h3>Sản phẩm trong đơn</h3><div className="catalog-table-scroll"><table className="catalog-table orders-items"><thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead><tbody>{data.items.map(item => <tr key={item.ChiTietDonHangID}><td>{products.find(p => Number(p.SanPhamID) === Number(item.SanPhamID))?.TenSanPham || `Sản phẩm #${item.SanPhamID}`}</td><td>{item.SoLuong}</td><td>{money(Number(item.DonGia))}</td><td>{money(Number(item.ThanhTien))}</td></tr>)}</tbody></table></div>{!data.items.length && <p>Chưa có chi tiết sản phẩm.</p>}
+      <div className="orders-totals"><span>Tổng tiền đơn hàng</span><strong>{money(Number(order.TongTien))}</strong></div>
+      {checkout ? <section className="orders-payment"><h3>Thanh toán</h3><p>Phương thức: {checkout.PhuongThucThanhToan}</p><p>Trạng thái: {({ SUCCESS: 'Thành công', PENDING: 'Chờ thanh toán', FAILED: 'Thất bại', CANCELLED: 'Đã hủy' }[checkout.TrangThaiThanhToan] || checkout.TrangThaiThanhToan)}</p><p>Phí vận chuyển: {money(Number(checkout.PhiVanChuyen))}</p>{checkout.HoaDonID && <p>Hóa đơn #{checkout.HoaDonID}</p>}</section> : <p className="catalog-notice">{data.checkoutState === 'unlinked' ? 'Đơn chưa có thông tin thanh toán checkout liên kết.' : 'Chưa tải được thông tin thanh toán checkout.'} {data.checkoutState === 'unavailable' && <button onClick={reload}>Thử lại</button>}</p>}
+      <h3>Ghi chú giao nhận</h3><p className="orders-note">{order.GhiChu || 'Chưa có ghi chú.'}</p>
+      {editing ? <form className="catalog-form" onSubmit={save}><fieldset disabled={busy}><label className="catalog-full">Địa chỉ giao hàng<textarea name="address" rows={2} maxLength={255} defaultValue={order.DiaChiGiaoHang || ''} /></label><label className="catalog-full">Ghi chú<textarea name="note" rows={3} maxLength={500} defaultValue={order.GhiChu || ''} /></label></fieldset><footer><button type="button" disabled={busy} onClick={() => setEditing(false)}>Hủy sửa</button><button className="catalog-primary" disabled={busy}>{busy ? 'Đang lưu…' : 'Lưu thông tin'}</button></footer></form> : <div className="catalog-actions"><button disabled={terminal || busy || !!action} onClick={() => { setEditing(true); setSaveError('') }}>Sửa giao nhận</button>{nextStatuses(order.TrangThai).map(s => <button key={s} disabled={busy || data.checkoutState === 'unavailable' || !!action || (!!checkout && (s === 'CANCELLED' ? checkout.TrangThaiThanhToan === 'SUCCESS' : checkout.TrangThaiThanhToan !== 'SUCCESS'))} className={s === 'CANCELLED' ? 'catalog-danger' : ''} onClick={() => { setAction(s); setSaveError('') }}>{s === 'CONFIRMED' ? 'Xác nhận đơn' : s === 'PROCESSING' ? 'Bắt đầu xử lý' : s === 'COMPLETED' ? 'Hoàn tất đơn' : 'Hủy đơn'}</button>)}</div>}
+      {checkout?.TrangThaiThanhToan === 'PENDING' && !terminal && <p className="orders-sub">Đơn checkout cần được xác nhận thu tiền qua luồng thanh toán trước khi xử lý.</p>}
+      {checkout?.TrangThaiThanhToan === 'SUCCESS' && !terminal && <p className="orders-sub">Đơn đã thu tiền; việc hủy cần được xử lý cùng hoàn tiền.</p>}
+      {action && <section className="orders-confirm"><p>Chuyển đơn #{id} sang “{orderLabel(action)}”? {action === 'COMPLETED' && 'Chỉ xác nhận khi đã hoàn tất giao/nhận hàng.'}{action === 'CANCELLED' && 'Thao tác này không tự hoàn tiền hoặc điều chỉnh tồn kho.'}</p><div className="catalog-actions"><button disabled={busy} onClick={() => setAction(null)}>Quay lại</button><button className="catalog-primary" disabled={busy} onClick={() => void save()}>{busy ? 'Đang lưu…' : 'Xác nhận'}</button></div></section>}
+      {saveError && <p className="catalog-error" role="alert">{saveError}</p>}
+    </div>}
+  </Modal>
 }
