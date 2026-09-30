@@ -15,8 +15,15 @@ export default defineConfig(({ mode }) => {
           configure(proxy) {
             proxy.on('error', (_error, _request, response) => {
               if ('writeHead' in response && !response.headersSent) {
-                response.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' })
-                response.end(JSON.stringify({ message: 'Không thể kết nối backend. Vui lòng khởi động BE và kiểm tra cổng API.' }))
+                response.writeHead(502, {
+                  'Content-Type': 'application/json; charset=utf-8',
+                })
+                response.end(
+                  JSON.stringify({
+                    message:
+                      'Không thể kết nối backend. Vui lòng khởi động BE và kiểm tra cổng API.',
+                  })
+                )
               }
             })
           },

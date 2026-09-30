@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { MetricCard, Modal } from '../components/AdminLayout'
 import { money } from '../data/admin-utils'
-import { deletePackage, getPackages, savePackage, setPackageStatus, type GymPackage } from '../services/packages'
+import {
+  deletePackage,
+  getPackages,
+  savePackage,
+  setPackageStatus,
+  type GymPackage,
+} from '../services/packages'
 
 const categories = [
   ['all', 'TẤT CẢ GÓI'],
@@ -63,15 +69,27 @@ export default function PackagesPage() {
     Math.min(page, pages) * pageSize
   )
   const load = async () => {
-    try { setPackages(await getPackages()); setError('') }
-    catch (e) { setError(e instanceof Error ? e.message : 'Không thể tải gói tập') }
-    finally { setLoading(false) }
+    try {
+      setPackages(await getPackages())
+      setError('')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Không thể tải gói tập')
+    } finally {
+      setLoading(false)
+    }
   }
-  // oxlint-disable-next-line react/set-state-in-effect -- fetch result initializes server state
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- fetch result initializes server state
+    void load()
+  }, [])
   const save = async (value: GymPackage) => {
-    try { await savePackage(value); await load() }
-    catch (e) { notify(e instanceof Error ? e.message : 'Không thể lưu gói tập'); return }
+    try {
+      await savePackage(value)
+      await load()
+    } catch (e) {
+      notify(e instanceof Error ? e.message : 'Không thể lưu gói tập')
+      return
+    }
     setEditing(null)
     notify(value.id ? 'Đã cập nhật gói tập' : 'Đã thêm gói tập mới')
   }
@@ -85,12 +103,17 @@ export default function PackagesPage() {
       <section className="metrics-grid">
         <MetricCard
           label="TỔNG GÓI ĐANG KÍCH HOẠT"
-          value={`${packages.filter(p => p.active).length} Gói`}
-          note={`${packages.filter(p => !p.active).length} gói ngừng hoạt động`}
+          value={`${packages.filter((p) => p.active).length} Gói`}
+          note={`${packages.filter((p) => !p.active).length} gói ngừng hoạt động`}
         />
         <MetricCard
           label="GÓI BÁN CHẠY NHẤT"
-          value={packages.reduce((best, p) => p.members > (best?.members ?? -1) ? p : best, packages[0])?.name || '—'}
+          value={
+            packages.reduce(
+              (best, p) => (p.members > (best?.members ?? -1) ? p : best),
+              packages[0]
+            )?.name || '—'
+          }
           note="Theo số hội viên ACTIVE thực tế"
           tone="mint"
         />
@@ -163,11 +186,17 @@ export default function PackagesPage() {
             item={item}
             onEdit={() => setEditing(item)}
             onDuplicate={() => {
-              void deletePackage(item.id).then(result => load().then(() => notify(result.message))).catch(e => notify(e.message))
+              void deletePackage(item.id)
+                .then((result) => load().then(() => notify(result.message)))
+                .catch((e) => notify(e.message))
             }}
-            onReport={() => notify(`Gói ${item.name} có ${item.members} hội viên ACTIVE`)}
+            onReport={() =>
+              notify(`Gói ${item.name} có ${item.members} hội viên ACTIVE`)
+            }
             onToggle={() => {
-              void setPackageStatus(item.id, !item.active).then(load).catch(e => notify(e.message))
+              void setPackageStatus(item.id, !item.active)
+                .then(load)
+                .catch((e) => notify(e.message))
             }}
           />
         ))}

@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { MetricCard } from '../components/AdminLayout'
 import { money } from '../data/admin-utils'
-import { confirmPayment, getRegistrations, renewRegistration, type Contract, type ContractStatus } from '../services/registrations'
+import {
+  confirmPayment,
+  getRegistrations,
+  renewRegistration,
+  type Contract,
+  type ContractStatus,
+} from '../services/registrations'
 
 const statusFilters = [
   'Tất cả đơn',
@@ -23,7 +29,9 @@ export default function RegistrationsPage() {
   const [payment, setPayment] = useState('all')
   const [page, setPage] = useState(1)
   const [toast, setToast] = useState('')
-  const [confirmingPaymentId, setConfirmingPaymentId] = useState<number | null>(null)
+  const [confirmingPaymentId, setConfirmingPaymentId] = useState<number | null>(
+    null
+  )
   const notify = (m: string) => {
     setToast(m)
     window.setTimeout(() => setToast(''), 2200)
@@ -34,17 +42,25 @@ export default function RegistrationsPage() {
       setContracts(rows)
       setSelected((current) => current || rows[0]?.id || 0)
       setError('')
-    } catch (e) { setError(e instanceof Error ? e.message : 'Không thể tải đăng ký') }
-    finally { setLoading(false) }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Không thể tải đăng ký')
+    } finally {
+      setLoading(false)
+    }
   }
-  // oxlint-disable-next-line react/set-state-in-effect -- fetch result initializes server state
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- fetch result initializes server state
+    void load()
+  }, [])
   const filtered = useMemo(
     () =>
       contracts.filter(
         (c) =>
-          (filter === 'Tất cả đơn' || c.status === filter ||
-            (filter === 'SẮP HẾT HẠN' && c.status === 'ACTIVE' && (c.daysLeft ?? 0) <= 30)) &&
+          (filter === 'Tất cả đơn' ||
+            c.status === filter ||
+            (filter === 'SẮP HẾT HẠN' &&
+              c.status === 'ACTIVE' &&
+              (c.daysLeft ?? 0) <= 30)) &&
           (!search ||
             `${c.code} ${c.member} ${c.phone} ${c.coach}`
               .toLowerCase()
@@ -70,16 +86,22 @@ export default function RegistrationsPage() {
             VẬN HÀNH CHÍNH　›　GÓI TẬP & HĐ　›　<b>QUẢN LÝ ĐĂNG KÝ GÓI TẬP</b>
           </p>
           <h1>QUẢN LÝ ĐĂNG KÝ GÓI TẬP & HỢP ĐỒNG</h1>
-          <span className="pending-badge">● {contracts.filter(c => c.status === 'PENDING').length} đơn chờ thanh toán</span>
+          <span className="pending-badge">
+            ● {contracts.filter((c) => c.status === 'PENDING').length} đơn chờ
+            thanh toán
+          </span>
         </div>
         <div className="heading-actions">
           <button onClick={() => notify('Chức năng sẽ kết nối backend sau')}>
             ◉ Xuất báo cáo hợp đồng
           </button>
-          <button disabled>
-            ✓ Duyệt nhanh hàng loạt ({ids.length})
-          </button>
-          <button className="primary" onClick={() => notify('Đăng ký mới được tạo từ flow mua gói của hội viên')}>
+          <button disabled>✓ Duyệt nhanh hàng loạt ({ids.length})</button>
+          <button
+            className="primary"
+            onClick={() =>
+              notify('Đăng ký mới được tạo từ flow mua gói của hội viên')
+            }
+          >
             ⊕ Tạo hợp đồng mới
           </button>
         </div>
@@ -87,19 +109,23 @@ export default function RegistrationsPage() {
       <section className="metrics-grid">
         <MetricCard
           label="ĐĂNG KÝ MỚI HÔM NAY"
-          value={String(contracts.filter(c => c.time.startsWith(new Date().toISOString().slice(0, 10))).length)}
+          value={String(
+            contracts.filter((c) =>
+              c.time.startsWith(new Date().toISOString().slice(0, 10))
+            ).length
+          )}
           note="Dữ liệu đăng ký thực từ hệ thống"
         />
         <MetricCard
           label="ĐANG CHỜ DUYỆT / KÝ SỐ"
-          value={String(contracts.filter(c => c.status === 'PENDING').length)}
+          value={String(contracts.filter((c) => c.status === 'PENDING').length)}
           note="Chưa được kích hoạt khi thanh toán chưa SUCCESS"
           tone="error"
         />
         <MetricCard
           label="ĐÃ KÍCH HOẠT"
-          value={String(contracts.filter(c => c.status === 'ACTIVE').length)}
-          note={`${contracts.filter(c => c.status === 'ACTIVE' && (c.daysLeft ?? 0) <= 30).length} gói sắp hết hạn`}
+          value={String(contracts.filter((c) => c.status === 'ACTIVE').length)}
+          note={`${contracts.filter((c) => c.status === 'ACTIVE' && (c.daysLeft ?? 0) <= 30).length} gói sắp hết hạn`}
           tone="mint"
         />
         <MetricCard
@@ -121,7 +147,15 @@ export default function RegistrationsPage() {
             >
               {s}{' '}
               <small>
-                {s === 'Tất cả đơn' ? contracts.length : contracts.filter(c => c.status === s || (s === 'SẮP HẾT HẠN' && c.status === 'ACTIVE' && (c.daysLeft ?? 0) <= 30)).length}
+                {s === 'Tất cả đơn'
+                  ? contracts.length
+                  : contracts.filter(
+                      (c) =>
+                        c.status === s ||
+                        (s === 'SẮP HẾT HẠN' &&
+                          c.status === 'ACTIVE' &&
+                          (c.daysLeft ?? 0) <= 30)
+                    ).length}
               </small>
             </button>
           ))}
@@ -238,7 +272,15 @@ export default function RegistrationsPage() {
                           : 'Nguyên giá'}
                       </small>
                     </td>
-                    <td>{c.paymentId ? <>{c.paymentMethod} · {c.paymentStatus}</> : 'Chưa có yêu cầu thanh toán'}</td>
+                    <td>
+                      {c.paymentId ? (
+                        <>
+                          {c.paymentMethod} · {c.paymentStatus}
+                        </>
+                      ) : (
+                        'Chưa có yêu cầu thanh toán'
+                      )}
+                    </td>
                     <td>
                       <span className={`status ${statusClass(c.status)}`}>
                         ● {c.status}
@@ -254,8 +296,8 @@ export default function RegistrationsPage() {
             <div className="pagination table-page">
               <span>
                 Hiển thị {(page - 1) * 5 + 1} -{' '}
-                {Math.min(page * 5, filtered.length)} trên tổng số <b>{filtered.length}</b>{' '}
-                hợp đồng đăng ký
+                {Math.min(page * 5, filtered.length)} trên tổng số{' '}
+                <b>{filtered.length}</b> hợp đồng đăng ký
               </span>
               <div>
                 <button onClick={() => setPage(Math.max(1, page - 1))}>
@@ -279,26 +321,42 @@ export default function RegistrationsPage() {
             </div>
           </div>
         </section>
-        {detail && <ContractDetail
-          contract={detail}
-          confirming={confirmingPaymentId === detail.paymentId}
-          onConfirm={async () => {
-            if (!detail.paymentId) return
-            try {
-              setConfirmingPaymentId(detail.paymentId)
-              const result = await confirmPayment(detail.paymentId)
-              await load()
-              notify(result.message)
-            } catch (e) { notify(e instanceof Error ? e.message : 'Không thể xác nhận thanh toán') }
-            finally { setConfirmingPaymentId(null) }
-          }}
-          onRenew={async () => {
-            try { const result = await renewRegistration(detail.id); await load(); notify(result.message) }
-            catch (e) { notify(e instanceof Error ? e.message : 'Không thể gia hạn') }
-          }}
-          onReject={() => notify('Hủy đăng ký phải đi qua flow thanh toán hiện tại')}
-          onPdf={() => notify('File PDF ký số sẽ kết nối backend sau')}
-        />}
+        {detail && (
+          <ContractDetail
+            contract={detail}
+            confirming={confirmingPaymentId === detail.paymentId}
+            onConfirm={async () => {
+              if (!detail.paymentId) return
+              try {
+                setConfirmingPaymentId(detail.paymentId)
+                const result = await confirmPayment(detail.paymentId)
+                await load()
+                notify(result.message)
+              } catch (e) {
+                notify(
+                  e instanceof Error
+                    ? e.message
+                    : 'Không thể xác nhận thanh toán'
+                )
+              } finally {
+                setConfirmingPaymentId(null)
+              }
+            }}
+            onRenew={async () => {
+              try {
+                const result = await renewRegistration(detail.id)
+                await load()
+                notify(result.message)
+              } catch (e) {
+                notify(e instanceof Error ? e.message : 'Không thể gia hạn')
+              }
+            }}
+            onReject={() =>
+              notify('Hủy đăng ký phải đi qua flow thanh toán hiện tại')
+            }
+            onPdf={() => notify('File PDF ký số sẽ kết nối backend sau')}
+          />
+        )}
       </div>
       <footer className="ops-footer">
         ● Hạ tầng NAPAS 24/7: <b>Bình thường (100% Khớp lệnh)</b>　 ● Dịch vụ
@@ -336,7 +394,15 @@ function ContractDetail({
     <aside className="contract-detail">
       <header>
         <h2>♢ CHI TIẾT ĐƠN DUYỆT #{c.id}</h2>
-        <span>{c.paymentId ? <>{c.paymentMethod} · {c.paymentStatus}</> : 'Chưa có yêu cầu thanh toán'}</span>
+        <span>
+          {c.paymentId ? (
+            <>
+              {c.paymentMethod} · {c.paymentStatus}
+            </>
+          ) : (
+            'Chưa có yêu cầu thanh toán'
+          )}
+        </span>
       </header>
       <div className="detail-member">
         <i>{c.member.charAt(0)}</i>
@@ -405,19 +471,31 @@ function ContractDetail({
           </small>
         </span>
       </div>
-      {c.status === 'PENDING' && c.paymentStatus === 'PENDING' && c.paymentId ? (
+      {c.status === 'PENDING' &&
+      c.paymentStatus === 'PENDING' &&
+      c.paymentId ? (
         <button className="approve" disabled={confirming} onClick={onConfirm}>
-          {confirming ? 'ĐANG XÁC NHẬN...' : '✓ XÁC NHẬN THANH TOÁN & KÍCH HOẠT'}
+          {confirming
+            ? 'ĐANG XÁC NHẬN...'
+            : '✓ XÁC NHẬN THANH TOÁN & KÍCH HOẠT'}
         </button>
       ) : c.status === 'ACTIVE' && c.paymentStatus === 'SUCCESS' ? (
-        <button className="approve" disabled>✓ ĐÃ THANH TOÁN & KÍCH HOẠT</button>
+        <button className="approve" disabled>
+          ✓ ĐÃ THANH TOÁN & KÍCH HOẠT
+        </button>
       ) : !c.paymentId ? (
-        <button className="approve" disabled>CHƯA CÓ YÊU CẦU THANH TOÁN</button>
+        <button className="approve" disabled>
+          CHƯA CÓ YÊU CẦU THANH TOÁN
+        </button>
       ) : (
-        <button className="approve" disabled>THANH TOÁN {c.paymentStatus}</button>
+        <button className="approve" disabled>
+          THANH TOÁN {c.paymentStatus}
+        </button>
       )}
       <div className="detail-actions">
-        {c.status === 'ACTIVE' && c.paymentStatus === 'SUCCESS' && <button onClick={onRenew}>↻ GIA HẠN GÓI</button>}
+        {c.status === 'ACTIVE' && c.paymentStatus === 'SUCCESS' && (
+          <button onClick={onRenew}>↻ GIA HẠN GÓI</button>
+        )}
         <button onClick={onPdf}>◉ FILE PDF KÝ SỐ</button>
         <button onClick={onReject}>⊗ TỪ CHỐI DUYỆT</button>
       </div>

@@ -1,5 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { clearSession, logout, restoreSession, type AdminSession } from './services/auth'
+import {
+  clearSession,
+  logout,
+  restoreSession,
+  type AdminSession,
+} from './services/auth'
 import Header from './components/Header'
 import Navigation from './components/Navigation'
 import Login from './pages/Login'
@@ -37,14 +42,25 @@ function App() {
   const [checkingSession, setCheckingSession] = useState(true)
   useEffect(() => {
     let active = true
-    void restoreSession().then(value => {
-      if (active) { setSession(value); setCheckingSession(false) }
+    void restoreSession().then((value) => {
+      if (active) {
+        setSession(value)
+        setCheckingSession(false)
+      }
     })
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [])
   useEffect(() => {
     if (!session) return
-    const timer = window.setTimeout(() => { clearSession(); setSession(null) }, Math.max(0, session.expiresAt - Date.now()))
+    const timer = window.setTimeout(
+      () => {
+        clearSession()
+        setSession(null)
+      },
+      Math.max(0, session.expiresAt - Date.now())
+    )
     return () => window.clearTimeout(timer)
   }, [session])
 
@@ -90,14 +106,24 @@ function App() {
   }
   const activeModule = moduleViews[activePage]
 
-  if (checkingSession) return <main className="admin-session-loading" role="status">Đang kiểm tra phiên đăng nhập…</main>
-  if (!session) return <Login onLogin={value => {
-    setActivePage('Dashboard')
-    setModuleTab(0)
-    setSelectedMember(null)
-    setShowActivityHistory(false)
-    setSession(value)
-  }} />
+  if (checkingSession)
+    return (
+      <main className="admin-session-loading" role="status">
+        Đang kiểm tra phiên đăng nhập…
+      </main>
+    )
+  if (!session)
+    return (
+      <Login
+        onLogin={(value) => {
+          setActivePage('Dashboard')
+          setModuleTab(0)
+          setSelectedMember(null)
+          setShowActivityHistory(false)
+          setSession(value)
+        }}
+      />
+    )
 
   return (
     <main className="app-shell">
@@ -109,7 +135,10 @@ function App() {
           setSelectedMember(null)
           setShowActivityHistory(false)
         }}
-        onLogout={() => { void logout(session.token); setSession(null) }}
+        onLogout={() => {
+          void logout(session.token)
+          setSession(null)
+        }}
       />
       <section className="workspace">
         <Header />
