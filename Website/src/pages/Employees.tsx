@@ -5,8 +5,6 @@ import { searchText } from '../services/catalog'
 import { exportCsv, formatDate, useMemberData } from '../services/members'
 import { dateKey } from '../services/trainers'
 import { employeeRequest, employeeSession, employeeStatus, loadEmployees, type Employee } from '../services/employees'
-import '../components/CatalogPage.css'
-import './Employees.css'
 
 type Editor = { type: 'profile' | 'access'; row: Employee | null }
 export default function Employees() {

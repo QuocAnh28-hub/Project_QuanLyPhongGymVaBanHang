@@ -4,8 +4,6 @@ import { Pagination } from './MemberUi'
 import { catalogRequest, searchText } from '../services/catalog'
 import { exportCsv, formatDate, money, useMemberData } from '../services/members'
 import { dateKey, loadTrainerData, ptStatus, shiftEnd, shiftLocked, shiftPayload, shiftStart, trainerPayload, type Booking, type Shift, type Trainer } from '../services/trainers'
-import './CatalogPage.css'
-import './TrainerPages.css'
 
 type Mode = 'trainers' | 'bookings' | 'roster'
 type Editor = { kind: 'trainer'; row?: Trainer } | { kind: 'shift'; row?: Shift } | { kind: 'book' } | { kind: 'action'; action: 'confirm' | 'cancel' | 'complete'; row: Booking } | { kind: 'deleteTrainer'; row: Trainer } | { kind: 'deleteShift'; row: Shift }

@@ -3,7 +3,6 @@ import { Modal } from './AdminLayout'
 import { Pagination } from './MemberUi'
 import { exportCsv, money, useMemberData } from '../services/members'
 import { catalogPayload, catalogRequest, catalogStatus, loadCatalog, searchText, type Category, type Product } from '../services/catalog'
-import './CatalogPage.css'
 
 type Row = Product | Category
 type Editor = { action: 'edit' | 'delete'; row: Row | null }

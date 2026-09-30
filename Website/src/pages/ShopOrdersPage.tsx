@@ -5,8 +5,6 @@ import { catalogRequest, searchText, type Product } from '../services/catalog'
 import { exportCsv, formatDate, money, useMemberData, type Member } from '../services/members'
 import { dateKey } from '../services/trainers'
 import { deliveryPayload, loadOrderDetail, loadOrders, nextStatuses, orderLabel, orderStatuses, validateTransition, type Order } from '../services/orders'
-import '../components/CatalogPage.css'
-import './ShopOrdersPage.css'
 
 export default function ShopOrdersPage() {
   const { data, loading, error, reload } = useMemberData(loadOrders)

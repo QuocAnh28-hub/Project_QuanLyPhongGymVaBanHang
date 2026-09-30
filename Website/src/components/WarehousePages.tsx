@@ -5,8 +5,6 @@ import { catalogRequest, searchText } from '../services/catalog'
 import { exportCsv, formatDate, money, useMemberData } from '../services/members'
 import { dateKey } from '../services/trainers'
 import { loadWarehouse, receiptLabel, summarizeInbound, type Receipt } from '../services/warehouse'
-import './CatalogPage.css'
-import './WarehousePages.css'
 
 type DraftLine = { key: number; product: string; quantity: string; price: string }
 export default function WarehousePages({ mode }: { mode: 'inbound' | 'inventory' | 'history' }) {
