@@ -1,5 +1,5 @@
-import { Modal } from './AdminLayout'
-import { Pagination } from './MemberUi'
+import { Modal } from '../components/AdminLayout'
+import { Pagination } from '../components/MemberUi'
 import { formatDate, money } from '../services/members'
 import { dateKey, ptStatus } from '../services/trainers'
 import { useTrainerPage, type Mode } from '../services/useTrainerPage'

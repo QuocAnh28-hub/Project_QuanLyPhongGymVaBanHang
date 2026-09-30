@@ -1,5 +1,5 @@
-import { Modal } from './AdminLayout'
-import { Pagination } from './MemberUi'
+import { Modal } from '../components/AdminLayout'
+import { Pagination } from '../components/MemberUi'
 import { money } from '../services/members'
 import { catalogStatus } from '../services/catalog'
 import {

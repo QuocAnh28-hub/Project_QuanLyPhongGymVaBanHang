@@ -1,4 +1,4 @@
-import WarehousePages from '../components/WarehousePages'
+import WarehousePages from './WarehousePages'
 
 export default function WarehouseInventoryPage() {
   return <WarehousePages mode="inventory" />

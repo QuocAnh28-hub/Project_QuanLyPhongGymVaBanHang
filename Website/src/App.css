@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0');
 
-/* CatalogPage component styles. */
+/* CatalogPage page styles. */
 .catalog-page {
   padding: 24px;
   color: #e2ebe7;
@@ -357,7 +357,7 @@
   }
 }
 
-/* TrainerPages component styles. */
+/* TrainerPages page styles. */
 .trainer-api-page .catalog-stats {
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 }
@@ -406,7 +406,7 @@
   color: #edb3a9;
 }
 
-/* WarehousePages component styles. */
+/* WarehousePages page styles. */
 .warehouse-api-page .catalog-table th:first-child {
   width: 24%;
 }

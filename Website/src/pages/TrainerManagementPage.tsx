@@ -1,4 +1,4 @@
-﻿import TrainerPages from '../components/TrainerPages'
+﻿import TrainerPages from './TrainerPages'
 
 export default function TrainerManagementPage({
   onOpenRoster,
