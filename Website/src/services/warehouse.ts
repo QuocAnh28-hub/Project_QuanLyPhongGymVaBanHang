@@ -27,3 +27,18 @@ export function summarizeInbound(data: WarehouseData) {
   }
   return [...rows.values()]
 }
+
+export type ReceiptDraftLine = { product: string; quantity: string; price: string }
+
+export async function createReceipt(form: FormData, lines: ReceiptDraftLine[]) {
+  if (!lines.length || new Set(lines.map(l => l.product)).size !== lines.length) throw new Error('Cần ít nhất một sản phẩm và không được chọn trùng.')
+  const items = lines.map(l => {
+    if (!l.product || !l.quantity.trim() || !l.price.trim() || !Number.isInteger(Number(l.quantity)) || Number(l.quantity) <= 0 || !Number.isFinite(Number(l.price)) || Number(l.price) < 0) throw new Error('Vui lòng kiểm tra sản phẩm, số lượng và đơn giá.')
+    return { SanPhamID: Number(l.product), SoLuong: Number(l.quantity), DonGia: Number(l.price) }
+  })
+  await catalogRequest('phieunhap/with-items', { method: 'POST', body: JSON.stringify({ KhoID: Number(form.get('warehouse')), NhanVienID: Number(form.get('employee')), GhiChu: String(form.get('note') || '').trim(), items }) })
+}
+
+export function setReceiptStatus(id: number, status: string) {
+  return catalogRequest(`phieunhap/${id}/status`, { method: 'POST', body: JSON.stringify({ TrangThai: status }) })
+}

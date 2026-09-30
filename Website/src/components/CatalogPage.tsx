@@ -1,73 +1,18 @@
-import { useRef, useState, type FormEvent } from 'react'
 import { Modal } from './AdminLayout'
 import { Pagination } from './MemberUi'
-import { exportCsv, money, useMemberData } from '../services/members'
-import { catalogPayload, catalogRequest, catalogStatus, loadCatalog, searchText, type Category, type Product } from '../services/catalog'
-
-type Row = Product | Category
-type Editor = { action: 'edit' | 'delete'; row: Row | null }
-const isProduct = (row: Row): row is Product => 'SanPhamID' in row
-const rowId = (row: Row) => isProduct(row) ? row.SanPhamID : row.DanhMucID
-const rowName = (row: Row) => isProduct(row) ? row.TenSanPham : row.TenDanhMuc
+import { money } from '../services/members'
+import { catalogStatus } from '../services/catalog'
+import { useCatalogPage, useProductImage, isProduct, rowId, rowName } from '../services/useCatalogPage'
 
 export default function CatalogPage({ products }: { products: boolean }) {
-  const { data, loading, error, reload } = useMemberData(loadCatalog)
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('')
-  const [category, setCategory] = useState('')
-  const [page, setPage] = useState(1)
-  const [editor, setEditor] = useState<Editor | null>(null)
-  const [saving, setSaving] = useState(false)
-  const savingRef = useRef(false)
-  const [saveError, setSaveError] = useState('')
-  const [notice, setNotice] = useState('')
-  const noun = products ? 'sản phẩm' : 'danh mục'
-  const endpoint = products ? 'sanpham' : 'danhmuc'
-  const categories = data?.categories || []
-  const items: Row[] = products ? data?.products || [] : categories
-  const categoryName = (id: number) => categories.find(c => Number(c.DanhMucID) === Number(id))?.TenDanhMuc || `Danh mục #${id}`
-  const countProducts = (id: number) => data?.products.filter(p => Number(p.DanhMucID) === Number(id)).length || 0
-  const filtered = items.filter(row =>
-    searchText(`${rowName(row)} ${rowId(row)} ${row.MoTa || ''}`).includes(searchText(search)) &&
-    (!status || row.TrangThai === status) &&
-    (!category || (isProduct(row) && Number(row.DanhMucID) === Number(category))),
-  ).sort((a, b) => rowId(b) - rowId(a))
-  const currentPage = Math.min(page, Math.max(1, Math.ceil(filtered.length / 10)))
-  const open = (action: Editor['action'], row: Row | null) => { setSaveError(''); setEditor({ action, row }) }
-  const close = () => { if (!savingRef.current) setEditor(null) }
-
-  async function mutate(body?: ReturnType<typeof catalogPayload>) {
-    if (!editor || savingRef.current) return
-    savingRef.current = true
-    setSaving(true); setSaveError(''); setNotice('')
-    try {
-      const id = editor.row ? `/${rowId(editor.row)}` : ''
-      await catalogRequest(`${endpoint}${id}`, {
-        method: editor.action === 'delete' ? 'DELETE' : editor.row ? 'PUT' : 'POST',
-        ...(body ? { body: JSON.stringify(body) } : {}),
-      })
-      setEditor(null)
-      setNotice(editor.action === 'delete' ? `Đã xóa ${noun}.` : `Đã lưu ${noun}.`)
-      reload()
-    } catch (e) { setSaveError(e instanceof Error ? e.message : 'Không thể lưu thay đổi.') }
-    finally { savingRef.current = false; setSaving(false) }
-  }
-  function save(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    try { void mutate(catalogPayload(new FormData(event.currentTarget), products)) }
-    catch (e) { setSaveError(e instanceof Error ? e.message : 'Vui lòng kiểm tra thông tin.') }
-  }
-  function download() {
-    const rows = filtered.map(row => isProduct(row)
-      ? [row.SanPhamID, row.TenSanPham, categoryName(row.DanhMucID), row.GiaBan, row.DonViTinh, catalogStatus(row.TrangThai)]
-      : [row.DanhMucID, row.TenDanhMuc, row.MoTa || '', countProducts(row.DanhMucID), catalogStatus(row.TrangThai)])
-    exportCsv(products ? 'san-pham.csv' : 'danh-muc.csv', [products
-      ? ['Mã', 'Tên sản phẩm', 'Danh mục', 'Giá bán', 'Đơn vị tính', 'Trạng thái']
-      : ['Mã', 'Tên danh mục', 'Mô tả', 'Số sản phẩm', 'Trạng thái'], ...rows])
-  }
-  const selected = editor?.row
-  const product = selected && isProduct(selected) ? selected : null
-
+  const {
+    changeSearch, changeStatus, changeCategory, resetFilters, stats, visibleRows,
+    data, loading, error, reload, search, status,
+    category, setPage, editor, saving, saveError, notice,
+    noun, categories, items, categoryName, countProducts, filtered,
+    currentPage, open, close, mutate, save, download,
+    selected, product, canDeleteRow
+  } = useCatalogPage(products)
   return <div className="catalog-page member-api-page">
     <header className="catalog-heading">
       <div><p className="catalog-eyebrow">QA PRO SHOP / QUẢN LÝ KINH DOANH</p><h1>{products ? 'Danh sách sản phẩm' : 'Danh mục sản phẩm'}</h1><p>{products ? 'Quản lý thông tin, giá bán và trạng thái kinh doanh.' : 'Sắp xếp sản phẩm theo danh mục và quản lý trạng thái hoạt động.'}</p></div>
@@ -82,25 +27,25 @@ export default function CatalogPage({ products }: { products: boolean }) {
     {error && <div className="catalog-error" role="alert"><p>{error}</p><button onClick={reload}>Thử lại</button></div>}
     {!loading && !error && data && <>
       <section className="catalog-stats">
-        {[[`Tổng ${noun}`, items.length], ['Đang hoạt động', items.filter(r => r.TrangThai === 'ACTIVE').length], ['Ngừng hoạt động', items.filter(r => r.TrangThai === 'INACTIVE').length], [products ? 'Hết hàng' : 'Sản phẩm đã phân loại', products ? items.filter(r => r.TrangThai === 'OUT_OF_STOCK').length : data.products.length]].map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}
+        {stats.map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}
       </section>
       {products && !categories.length && <p className="catalog-notice">Hãy tạo danh mục tại mục “Danh mục” trước khi thêm sản phẩm.</p>}
       <section className="catalog-filters" aria-label="Bộ lọc">
-        <input aria-label={`Tìm ${noun}`} placeholder={`Tìm tên, mã hoặc mô tả ${noun}…`} value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} />
-        {products && <select aria-label="Danh mục" value={category} onChange={e => { setCategory(e.target.value); setPage(1) }}><option value="">Tất cả danh mục</option>{categories.map(c => <option key={c.DanhMucID} value={c.DanhMucID}>{c.TenDanhMuc}</option>)}</select>}
-        <select aria-label="Trạng thái" value={status} onChange={e => { setStatus(e.target.value); setPage(1) }}><option value="">Tất cả trạng thái</option><option value="ACTIVE">Đang hoạt động</option><option value="INACTIVE">Ngừng hoạt động</option>{products && <option value="OUT_OF_STOCK">Hết hàng</option>}</select>
-        <button onClick={() => { setSearch(''); setStatus(''); setCategory(''); setPage(1) }}>Xóa bộ lọc</button>
+        <input aria-label={`Tìm ${noun}`} placeholder={`Tìm tên, mã hoặc mô tả ${noun}…`} value={search} onChange={e => changeSearch(e.target.value)} />
+        {products && <select aria-label="Danh mục" value={category} onChange={e => changeCategory(e.target.value)}><option value="">Tất cả danh mục</option>{categories.map(c => <option key={c.DanhMucID} value={c.DanhMucID}>{c.TenDanhMuc}</option>)}</select>}
+        <select aria-label="Trạng thái" value={status} onChange={e => changeStatus(e.target.value)}><option value="">Tất cả trạng thái</option><option value="ACTIVE">Đang hoạt động</option><option value="INACTIVE">Ngừng hoạt động</option>{products && <option value="OUT_OF_STOCK">Hết hàng</option>}</select>
+        <button onClick={resetFilters}>Xóa bộ lọc</button>
       </section>
       <section className="catalog-table-card">
         <div className="catalog-table-scroll"><table className="catalog-table">
           <thead><tr><th>{products ? 'Sản phẩm' : 'Danh mục'}</th><th>{products ? 'Danh mục' : 'Mô tả'}</th><th>{products ? 'Giá bán' : 'Số sản phẩm'}</th>{products && <th>Đơn vị</th>}<th>Trạng thái</th><th>Thao tác</th></tr></thead>
-          <tbody>{filtered.slice((currentPage - 1) * 10, currentPage * 10).map(row => <tr key={rowId(row)}>
+          <tbody>{visibleRows.map(row => <tr key={rowId(row)}>
             <td><div className="catalog-identity">{isProduct(row) && <ProductImage key={row.HinhAnh} source={row.HinhAnh} />}<div><strong>{rowName(row)}</strong><small>{products ? 'SP' : 'DM'}{String(rowId(row)).padStart(4, '0')}</small>{isProduct(row) && row.MoTa && <p className="catalog-description" title={row.MoTa}>{row.MoTa}</p>}</div></div></td>
             <td>{isProduct(row) ? categoryName(row.DanhMucID) : row.MoTa || 'Chưa có mô tả'}</td>
             <td>{isProduct(row) ? money(Number(row.GiaBan)) : countProducts(row.DanhMucID)}</td>
             {isProduct(row) && <td>{row.DonViTinh}</td>}
             <td><span className={`catalog-badge ${row.TrangThai.toLowerCase()}`}>{catalogStatus(row.TrangThai)}</span></td>
-            <td><div className="catalog-row-actions"><button onClick={() => open('edit', row)} aria-label={`Sửa ${rowName(row)}`}>Sửa</button><button className="catalog-danger" disabled={!isProduct(row) && countProducts(row.DanhMucID) > 0} title={!isProduct(row) && countProducts(row.DanhMucID) > 0 ? 'Danh mục đang có sản phẩm' : undefined} onClick={() => open('delete', row)} aria-label={`Xóa ${rowName(row)}`}>Xóa</button></div></td>
+            <td><div className="catalog-row-actions"><button onClick={() => open('edit', row)} aria-label={`Sửa ${rowName(row)}`}>Sửa</button><button className="catalog-danger" disabled={!canDeleteRow(row)} title={!canDeleteRow(row) ? 'Danh mục đang có sản phẩm' : undefined} onClick={() => open('delete', row)} aria-label={`Xóa ${rowName(row)}`}>Xóa</button></div></td>
           </tr>)}</tbody>
         </table></div>
         {!filtered.length && <p className="catalog-state">{items.length ? 'Không có kết quả phù hợp với bộ lọc.' : `Chưa có ${noun}.`}</p>}
@@ -132,7 +77,7 @@ export default function CatalogPage({ products }: { products: boolean }) {
 }
 
 function ProductImage({ source }: { source: string | null }) {
-  const [failed, setFailed] = useState(false)
-  if (!source || failed || !/^https?:\/\//i.test(source)) return <span className="catalog-image-placeholder" aria-label="Chưa có ảnh">▧</span>
-  return <img className="catalog-image" src={source} alt="" loading="lazy" onError={() => setFailed(true)} />
+  const { showImage, onError } = useProductImage(source)
+  if (!showImage) return <span className="catalog-image-placeholder" aria-label="Chưa có ảnh">▧</span>
+  return <img className="catalog-image" src={source || undefined} alt="" loading="lazy" onError={onError} />
 }

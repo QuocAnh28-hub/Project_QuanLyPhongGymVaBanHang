@@ -49,3 +49,15 @@ export function catalogPayload(form: FormData, products: boolean) {
   if (image.length > 255 || (image && !/^https?:\/\//i.test(image))) throw new Error('Ảnh phải là URL HTTP/HTTPS, tối đa 255 ký tự.')
   return { ...common, TenSanPham: name, DanhMucID: category, GiaBan: price, DonViTinh: text('unit'), HinhAnh: image || null }
 }
+
+export function saveCatalogItem(products: boolean, form: FormData, id?: number) {
+  const endpoint = products ? 'sanpham' : 'danhmuc'
+  return catalogRequest(id === undefined ? endpoint : `${endpoint}/${id}`, {
+    method: id === undefined ? 'POST' : 'PUT',
+    body: JSON.stringify(catalogPayload(form, products)),
+  })
+}
+
+export function deleteCatalogItem(products: boolean, id: number) {
+  return catalogRequest(`${products ? 'sanpham' : 'danhmuc'}/${id}`, { method: 'DELETE' })
+}

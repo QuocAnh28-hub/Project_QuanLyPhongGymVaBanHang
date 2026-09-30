@@ -56,3 +56,46 @@ export function shiftPayload(form: FormData, data: TrainerData, editing?: Shift)
   if (data.shifts.some(s => Number(s.PTID) === PTID && s.LichPTID !== editing?.LichPTID && dateKey(s.NgayLam) === NgayLam && GioBatDau < s.GioKetThuc.slice(0, 5) && GioKetThuc > s.GioBatDau.slice(0, 5))) throw new Error('Huấn luyện viên đã có ca trùng khung giờ này.')
   return { PTID, NgayLam, GioBatDau, GioKetThuc, TrangThai }
 }
+
+export function saveTrainer(form: FormData, id?: number) {
+  return catalogRequest(id === undefined ? 'pt' : `pt/${id}`, { method: id === undefined ? 'POST' : 'PUT', body: JSON.stringify(trainerPayload(form)) })
+}
+
+export async function saveTrainerShift(form: FormData, editing?: Shift) {
+  const fresh = await loadTrainerData(new AbortController().signal)
+  const current = editing ? fresh.shifts.find(s => Number(s.LichPTID) === Number(editing?.LichPTID)) : undefined
+  if (editing && !current) throw new Error('Ca không còn tồn tại. Vui lòng làm mới danh sách.')
+  await catalogRequest(`lichpt${current ? `/${current.LichPTID}` : ''}`, { method: current ? 'PUT' : 'POST', body: JSON.stringify(shiftPayload(form, fresh, current)) })
+}
+
+export async function bookTrainer(form: FormData) {
+  const TaiKhoanID = Number(form.get('TaiKhoanID')), LichPTID = Number(form.get('LichPTID'))
+  if (!TaiKhoanID || !LichPTID) throw new Error('Vui lòng chọn hội viên và ca làm việc.')
+  await catalogRequest('thuept/book', { method: 'POST', body: JSON.stringify({ TaiKhoanID, LichPTID, GhiChu: String(form.get('GhiChu') || '').trim() || null }) })
+}
+
+export async function updateBooking(b: Booking, action: 'confirm' | 'cancel' | 'complete', accountId?: number | null) {
+  if (action === 'complete') {
+    const fresh = await catalogRequest<Booking>(`thuept/${b.ThuePTID}`)
+    const s = await catalogRequest<Shift>(`lichpt/${fresh.LichPTID}`)
+    if (fresh.TrangThai !== 'CONFIRMED' || shiftEnd(s) > Date.now()) throw new Error('Chỉ hoàn thành lịch đã xác nhận và đã kết thúc.')
+    await catalogRequest(`thuept/${b.ThuePTID}`, { method: 'PUT', body: JSON.stringify({ TrangThai: 'COMPLETED' }) })
+  } else {
+    const TaiKhoanID = accountId
+    if (action === 'cancel' && !TaiKhoanID) throw new Error('Hội viên chưa có tài khoản liên kết.')
+    await catalogRequest(`thuept/${b.ThuePTID}/${action}`, { method: 'POST', body: JSON.stringify(action === 'cancel' ? { TaiKhoanID } : {}) })
+  }
+}
+
+export async function deleteTrainer(id: number) {
+  const fresh = await loadTrainerData(new AbortController().signal)
+  if (fresh.shifts.some(s => Number(s.PTID) === Number(id)) || fresh.bookings.some(b => Number(b.PTID) === Number(id))) throw new Error('Huấn luyện viên đã có lịch. Hãy chuyển sang ngừng hoạt động thay vì xóa.')
+  await catalogRequest(`pt/${id}`, { method: 'DELETE' })
+}
+
+export async function deleteTrainerShift(id: number) {
+  const fresh = await loadTrainerData(new AbortController().signal)
+  const s = fresh.shifts.find(s => Number(s.LichPTID) === Number(id))
+  if (!s || shiftLocked(s, fresh.bookings)) throw new Error('Ca đã có lịch thuê hoặc không còn tồn tại, không thể xóa.')
+  await catalogRequest(`lichpt/${s.LichPTID}`, { method: 'DELETE' })
+}
