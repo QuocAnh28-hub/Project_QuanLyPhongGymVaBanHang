@@ -1,32 +1,32 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useAuth } from "@/context/AuthContext";
-import { getCheckInHistory, type CheckInRecord } from "@/lib/check-in";
+import { useAuth } from '@/context/AuthContext';
+import { getCheckInHistory, type CheckInRecord } from '@/lib/check-in';
 import {
   getCurrentMembership,
   type CurrentMembership,
-} from "@/lib/membership-api";
+} from '@/lib/membership-api';
 import {
   getActivePackageDetail,
   packageFromApiDetail,
-} from "@/lib/package-api";
-import type { GymPackage } from "@/lib/packages";
-import { formatVND, parseLocalDate } from "@/lib/package-logic";
-import { backendPaymentMethodNames } from "@/lib/payment-api";
+} from '@/lib/package-api';
+import type { GymPackage } from '@/lib/packages';
+import { formatVND, parseLocalDate } from '@/lib/package-logic';
+import { backendPaymentMethodNames } from '@/lib/payment-api';
 
 const C = {
-  bg: "#111316",
-  card: "#1e2023",
-  high: "#282a2d",
-  text: "#e2e2e6",
-  muted: "#aeb59e",
-  lime: "#c3f400",
-  mint: "#4edea3",
-  ink: "#161e00",
+  bg: '#111316',
+  card: '#1e2023',
+  high: '#282a2d',
+  text: '#e2e2e6',
+  muted: '#aeb59e',
+  lime: '#c3f400',
+  mint: '#4edea3',
+  ink: '#161e00',
 };
 const daysBetween = (from: Date, to: Date) =>
   Math.max(0, Math.ceil((to.getTime() - from.getTime()) / 86400000));
@@ -43,28 +43,30 @@ export default function MembershipDetailScreen() {
         Promise.all([
           getCurrentMembership(user.accountId),
           getCheckInHistory(user.email).catch(() => []),
-        ]).then(async ([current, history]) => {
-          const packageDetail = current
-            ? await getActivePackageDetail(current.GoiTapID)
-                .then(packageFromApiDetail)
-                .catch(() => null)
-            : null;
-          if (mounted) {
-            setMembership(current);
-            setGymPackage(packageDetail);
-            setRecords(history);
-          }
-        }).catch(() => {
-          if (mounted) {
-            setMembership(null);
-            setGymPackage(null);
-            setRecords([]);
-          }
-        });
+        ])
+          .then(async ([current, history]) => {
+            const packageDetail = current
+              ? await getActivePackageDetail(current.GoiTapID)
+                  .then(packageFromApiDetail)
+                  .catch(() => null)
+              : null;
+            if (mounted) {
+              setMembership(current);
+              setGymPackage(packageDetail);
+              setRecords(history);
+            }
+          })
+          .catch(() => {
+            if (mounted) {
+              setMembership(null);
+              setGymPackage(null);
+              setRecords([]);
+            }
+          });
       return () => {
         mounted = false;
       };
-    }, [user]),
+    }, [user])
   );
   const data = useMemo(() => {
     if (!membership) return null;
@@ -80,9 +82,9 @@ export default function MembershipDetailScreen() {
     };
   }, [gymPackage, membership]);
   const back = () =>
-    router.canGoBack() ? router.back() : router.replace("/profile");
+    router.canGoBack() ? router.back() : router.replace('/profile');
   return (
-    <SafeAreaView style={s.safe} edges={["top"]}>
+    <SafeAreaView style={s.safe} edges={['top']}>
       <View style={s.top}>
         <View style={s.brand}>
           <Ionicons name="flash" color={C.lime} size={19} />
@@ -118,7 +120,7 @@ export default function MembershipDetailScreen() {
             </Text>
             <Pressable
               style={s.primary}
-              onPress={() => router.push("/packages")}
+              onPress={() => router.push('/packages')}
             >
               <Text style={s.primaryText}>KHÁM PHÁ GÓI TẬP</Text>
             </Pressable>
@@ -135,13 +137,14 @@ export default function MembershipDetailScreen() {
                     {membership.TenGoi.toUpperCase()}
                   </Text>
                   <Text style={s.label}>
-                    {data.package?.tier ?? "QA-GYM MEMBERSHIP"}
+                    {data.package?.tier ?? 'QA-GYM MEMBERSHIP'}
                   </Text>
                 </View>
                 <Text style={s.active}>
-                  ● {membership.TinhTrangSuDung === "ACTIVE"
-                    ? "ĐANG HOẠT ĐỘNG"
-                    : "CHỜ KÍCH HOẠT"}
+                  ●{' '}
+                  {membership.TinhTrangSuDung === 'ACTIVE'
+                    ? 'ĐANG HOẠT ĐỘNG'
+                    : 'CHỜ KÍCH HOẠT'}
                 </Text>
               </View>
               <Text style={s.label}>HỘI VIÊN SỞ HỮU</Text>
@@ -154,34 +157,65 @@ export default function MembershipDetailScreen() {
               </View>
               <View style={s.remaining}>
                 <Text style={s.remainingText}>
-                  ◉ {membership.TinhTrangSuDung === "ACTIVE"
+                  ◉{' '}
+                  {membership.TinhTrangSuDung === 'ACTIVE'
                     ? `Còn lại ${data.remaining} ngày`
                     : `Bắt đầu sau ${daysBetween(new Date(), parseLocalDate(membership.NgayBatDau) ?? new Date())} ngày`}
                 </Text>
                 <Text style={s.muted}>
-                  Hết hạn:{" "}
+                  Hết hạn:{' '}
                   {new Date(
-                    `${membership.NgayKetThuc}T00:00:00`,
-                  ).toLocaleDateString("vi-VN")}
+                    `${membership.NgayKetThuc}T00:00:00`
+                  ).toLocaleDateString('vi-VN')}
                 </Text>
               </View>
               <View style={s.track}>
                 <View style={[s.progress, { width: `${data.progress}%` }]} />
               </View>
               <View style={s.details}>
-                <DetailRow label="Mã đăng ký" value={String(membership.DangKyID)} />
-                <DetailRow label="Mã thanh toán" value={String(membership.ThanhToanID)} />
-                <DetailRow label="Thời hạn" value={`${membership.SoThang} tháng`} />
-                <DetailRow label="Tháng tặng" value={`${membership.ThangTang} tháng`} />
-                <DetailRow label="Ngày bắt đầu" value={new Date(`${membership.NgayBatDau}T00:00:00`).toLocaleDateString("vi-VN")} />
-                <DetailRow label="Ngày hết hạn" value={new Date(`${membership.NgayKetThuc}T00:00:00`).toLocaleDateString("vi-VN")} />
-                <DetailRow label="Đã thanh toán" value={formatVND(Number(membership.SoTien))} />
-                <DetailRow label="Phương thức" value={backendPaymentMethodNames[membership.PhuongThucThanhToan]} />
+                <DetailRow
+                  label="Mã đăng ký"
+                  value={String(membership.DangKyID)}
+                />
+                <DetailRow
+                  label="Mã thanh toán"
+                  value={String(membership.ThanhToanID)}
+                />
+                <DetailRow
+                  label="Thời hạn"
+                  value={`${membership.SoThang} tháng`}
+                />
+                <DetailRow
+                  label="Tháng tặng"
+                  value={`${membership.ThangTang} tháng`}
+                />
+                <DetailRow
+                  label="Ngày bắt đầu"
+                  value={new Date(
+                    `${membership.NgayBatDau}T00:00:00`
+                  ).toLocaleDateString('vi-VN')}
+                />
+                <DetailRow
+                  label="Ngày hết hạn"
+                  value={new Date(
+                    `${membership.NgayKetThuc}T00:00:00`
+                  ).toLocaleDateString('vi-VN')}
+                />
+                <DetailRow
+                  label="Đã thanh toán"
+                  value={formatVND(Number(membership.SoTien))}
+                />
+                <DetailRow
+                  label="Phương thức"
+                  value={
+                    backendPaymentMethodNames[membership.PhuongThucThanhToan]
+                  }
+                />
               </View>
               <View style={s.actions}>
                 <Pressable
                   style={s.qrButton}
-                  onPress={() => router.push("/check-in-pass")}
+                  onPress={() => router.push('/check-in-pass')}
                 >
                   <Ionicons name="qr-code-outline" color={C.ink} size={18} />
                   <Text style={s.primaryText}>MÃ CHECK-IN QR</Text>
@@ -190,7 +224,7 @@ export default function MembershipDetailScreen() {
                   style={s.renew}
                   onPress={() =>
                     router.push({
-                      pathname: "/package-detail",
+                      pathname: '/package-detail',
                       params: {
                         id: String(membership.GoiTapID),
                         renewal: String(membership.DangKyID),
@@ -218,10 +252,10 @@ export default function MembershipDetailScreen() {
                 label="DẪN BẠN"
                 value={
                   data.package?.privileges.some(
-                    (item) => item.id === "companion",
+                    (item) => item.id === 'companion'
                   )
-                    ? "1"
-                    : "0"
+                    ? '1'
+                    : '0'
                 }
                 detail="Quyền guest pass"
               />
@@ -233,17 +267,19 @@ export default function MembershipDetailScreen() {
               </Text>
             </View>
             <View style={s.privileges}>
-              {data.package?.privileges.length ? data.package.privileges.map((item) => (
-                <View style={s.privilege} key={item.id}>
-                  <View style={s.check}>
-                    <Ionicons name="checkmark" color={C.lime} size={15} />
+              {data.package?.privileges.length ? (
+                data.package.privileges.map((item) => (
+                  <View style={s.privilege} key={item.id}>
+                    <View style={s.check}>
+                      <Ionicons name="checkmark" color={C.lime} size={15} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.privilegeTitle}>{item.title}</Text>
+                      <Text style={s.muted}>{item.description}</Text>
+                    </View>
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={s.privilegeTitle}>{item.title}</Text>
-                    <Text style={s.muted}>{item.description}</Text>
-                  </View>
-                </View>
-              )) : (
+                ))
+              ) : (
                 <Text style={s.muted}>
                   Chưa có dữ liệu quyền lợi cho gói này.
                 </Text>
@@ -309,49 +345,49 @@ const s = StyleSheet.create({
   top: {
     height: 52,
     paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderBottomWidth: 1,
-    borderBottomColor: "#24272a",
+    borderBottomColor: '#24272a',
   },
-  brand: { flexDirection: "row", alignItems: "center", gap: 9 },
-  brandText: { color: C.text, fontSize: 17, fontWeight: "900" },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  brandText: { color: C.text, fontSize: 17, fontWeight: '900' },
   content: {
-    width: "100%",
+    width: '100%',
     maxWidth: 540,
-    alignSelf: "center",
+    alignSelf: 'center',
     padding: 15,
     gap: 12,
     paddingBottom: 40,
   },
-  heading: { flexDirection: "row", alignItems: "center", gap: 11 },
-  headingCopy: { flex: 1, alignItems: "center" },
+  heading: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  headingCopy: { flex: 1, alignItems: 'center' },
   icon: {
     width: 40,
     height: 40,
     borderRadius: 12,
     backgroundColor: C.card,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  kicker: { color: C.lime, fontSize: 10, fontWeight: "900" },
-  title: { color: C.text, fontSize: 19, fontWeight: "900" },
-  center: { color: C.muted, textAlign: "center", padding: 30 },
+  kicker: { color: C.lime, fontSize: 10, fontWeight: '900' },
+  title: { color: C.text, fontSize: 19, fontWeight: '900' },
+  center: { color: C.muted, textAlign: 'center', padding: 30 },
   empty: {
     minHeight: 240,
     backgroundColor: C.card,
     borderRadius: 16,
     padding: 25,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 10,
   },
   cardTitle: {
     color: C.text,
     fontSize: 17,
-    fontWeight: "900",
-    textAlign: "center",
+    fontWeight: '900',
+    textAlign: 'center',
   },
   muted: { color: C.muted, fontSize: 11, lineHeight: 15 },
   primary: {
@@ -359,65 +395,70 @@ const s = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: C.lime,
     paddingHorizontal: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  primaryText: { color: C.ink, fontSize: 11, fontWeight: "900" },
+  primaryText: { color: C.ink, fontSize: 11, fontWeight: '900' },
   memberCard: {
     backgroundColor: C.card,
     borderRadius: 17,
     padding: 18,
     gap: 11,
   },
-  packageHead: { flexDirection: "row", alignItems: "center", gap: 9 },
+  packageHead: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   diamond: {
     width: 44,
     height: 44,
     borderRadius: 11,
     backgroundColor: C.high,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  packageName: { color: C.text, fontSize: 18, fontWeight: "900" },
-  label: { color: C.muted, fontSize: 9, fontWeight: "900" },
+  packageName: { color: C.text, fontSize: 18, fontWeight: '900' },
+  label: { color: C.muted, fontSize: 9, fontWeight: '900' },
   active: {
     color: C.lime,
-    backgroundColor: "#303719",
+    backgroundColor: '#303719',
     borderRadius: 13,
     paddingHorizontal: 8,
     paddingVertical: 5,
     fontSize: 8,
-    fontWeight: "900",
+    fontWeight: '900',
   },
-  owner: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
-  ownerName: { color: C.text, fontSize: 21, fontWeight: "900", flex: 1 },
+  owner: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
+  ownerName: { color: C.text, fontSize: 21, fontWeight: '900', flex: 1 },
   cardCode: {
     color: C.text,
     fontSize: 9,
-    fontWeight: "900",
-    textAlign: "right",
+    fontWeight: '900',
+    textAlign: 'right',
   },
-  remaining: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
-  remainingText: { color: C.text, fontSize: 12, fontWeight: "800" },
+  remaining: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
+  remainingText: { color: C.text, fontSize: 12, fontWeight: '800' },
   track: {
     height: 5,
     borderRadius: 3,
     backgroundColor: C.high,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   progress: { height: 5, backgroundColor: C.lime },
   details: { gap: 7, marginTop: 4 },
-  detailRow: { flexDirection: "row", justifyContent: "space-between", gap: 10 },
-  detailValue: { color: C.text, fontSize: 11, fontWeight: "700", textAlign: "right" },
-  actions: { flexDirection: "row", gap: 8, marginTop: 8 },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
+  detailValue: {
+    color: C.text,
+    fontSize: 11,
+    fontWeight: '700',
+    textAlign: 'right',
+  },
+  actions: { flexDirection: 'row', gap: 8, marginTop: 8 },
   qrButton: {
     flex: 1,
     minHeight: 45,
     borderRadius: 10,
     backgroundColor: C.lime,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
   },
   renew: {
@@ -425,30 +466,30 @@ const s = StyleSheet.create({
     minHeight: 45,
     borderRadius: 10,
     backgroundColor: C.high,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
   },
-  renewText: { color: C.text, fontSize: 11, fontWeight: "900" },
+  renewText: { color: C.text, fontSize: 11, fontWeight: '900' },
   sectionHead: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: 6,
   },
-  section: { color: C.text, fontSize: 10, fontWeight: "900", marginTop: 7 },
+  section: { color: C.text, fontSize: 10, fontWeight: '900', marginTop: 7 },
   mint: { color: C.mint, fontSize: 9 },
-  stats: { flexDirection: "row", gap: 7 },
+  stats: { flexDirection: 'row', gap: 7 },
   stat: {
     flex: 1,
     minHeight: 100,
     borderRadius: 12,
     backgroundColor: C.card,
     padding: 11,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
-  statValue: { color: C.text, fontSize: 24, fontWeight: "900" },
+  statValue: { color: C.text, fontSize: 24, fontWeight: '900' },
   limePill: {
     color: C.ink,
     backgroundColor: C.lime,
@@ -456,7 +497,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     fontSize: 8,
-    fontWeight: "900",
+    fontWeight: '900',
   },
   privileges: {
     backgroundColor: C.card,
@@ -464,27 +505,27 @@ const s = StyleSheet.create({
     padding: 14,
     gap: 14,
   },
-  privilege: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
+  privilege: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   check: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "#3c4a12",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#3c4a12',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   privilegeTitle: {
     color: C.text,
     fontSize: 13,
-    fontWeight: "800",
+    fontWeight: '800',
     marginBottom: 2,
   },
   policy: {
     backgroundColor: C.card,
     borderRadius: 12,
     padding: 13,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
   },
   disabledButton: {
@@ -494,5 +535,5 @@ const s = StyleSheet.create({
     paddingVertical: 7,
     opacity: 0.5,
   },
-  disabledText: { color: C.muted, fontSize: 9, fontWeight: "900" },
+  disabledText: { color: C.muted, fontSize: 9, fontWeight: '900' },
 });

@@ -12,7 +12,8 @@ export default function AppTabs() {
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundElement}
       labelVisibilityMode="labeled"
-      labelStyle={{ selected: { color: colors.text } }}>
+      labelStyle={{ selected: { color: colors.text } }}
+    >
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Tổng quan</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
@@ -43,7 +44,6 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>Cá nhân</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon md="account_circle" />
       </NativeTabs.Trigger>
-
     </NativeTabs>
   );
 }

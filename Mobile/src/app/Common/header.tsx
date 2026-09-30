@@ -1,9 +1,9 @@
-import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-import { router, useFocusEffect } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useCallback, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { getNotifications } from "@/lib/notification-api";
+import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import { router, useFocusEffect } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { getNotifications } from '@/lib/notification-api';
 
 export default function Header() {
   const { user } = useAuth();
@@ -15,7 +15,7 @@ export default function Header() {
       const refresh = () => {
         getNotifications(user.accountId!)
           .then((rows) => {
-            if (live) setUnread(rows.filter(row => !row.NgayDoc).length);
+            if (live) setUnread(rows.filter((row) => !row.NgayDoc).length);
           })
           .catch(() => {
             if (live) setUnread(0);
@@ -25,7 +25,7 @@ export default function Header() {
       return () => {
         live = false;
       };
-    }, [user]),
+    }, [user])
   );
   return (
     <View style={styles.header}>
@@ -42,18 +42,18 @@ export default function Header() {
       <View style={styles.headerActions}>
         <Pressable
           style={styles.bell}
-          onPress={() => router.push("/notifications" as never)}
+          onPress={() => router.push('/notifications' as never)}
           accessibilityRole="button"
           accessibilityLabel={`Thông báo, ${user ? unread : 0} chưa đọc`}
         >
           <FontAwesome name="bell" size={22} color="#cfcfcf" />
           {user && unread > 0 ? (
-            <Text style={styles.badge}>{unread > 9 ? "9+" : unread}</Text>
+            <Text style={styles.badge}>{unread > 9 ? '9+' : unread}</Text>
           ) : null}
         </Pressable>
         <Pressable
           style={styles.shoppingCart}
-          onPress={() => router.push("/cart")}
+          onPress={() => router.push('/cart')}
           accessibilityLabel="Mở giỏ hàng"
         >
           <FontAwesome name="shopping-cart" size={24} color="#f5f9ed" />
@@ -65,52 +65,52 @@ export default function Header() {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingTop: 12,
     paddingBottom: 24,
   },
   brandBlock: { flexShrink: 1, paddingRight: 76 },
   brand: {
-    color: "#f3f5ec",
+    color: '#f3f5ec',
     fontSize: 22,
-    fontWeight: "900",
+    fontWeight: '900',
     letterSpacing: 1.2,
   },
-  brandDot: { color: "#d9ff00" },
-  location: { color: "#899083", fontSize: 11, marginTop: 5 },
+  brandDot: { color: '#d9ff00' },
+  location: { color: '#899083', fontSize: 11, marginTop: 5 },
   headerActions: {
-    position: "absolute",
+    position: 'absolute',
     top: 20.5,
     right: 0,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 14,
   },
   shoppingCart: {
     width: 30,
     height: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   bell: {
     width: 44,
     height: 44,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   badge: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     right: 0,
     minWidth: 17,
     height: 17,
     borderRadius: 9,
-    overflow: "hidden",
-    backgroundColor: "#c3f400",
-    color: "#161e00",
-    textAlign: "center",
+    overflow: 'hidden',
+    backgroundColor: '#c3f400',
+    color: '#161e00',
+    textAlign: 'center',
     fontSize: 11,
-    fontWeight: "900",
+    fontWeight: '900',
   },
 });

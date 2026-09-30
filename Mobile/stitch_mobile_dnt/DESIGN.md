@@ -151,7 +151,7 @@ spacing:
 
 ## Brand & Style
 
-This design system expresses high-performance luxury, athletic precision, and relentless forward momentum. Targeted at dedicated fitness enthusiasts and high-tier gym members, the interface establishes an atmosphere of exclusive, performance-driven training. 
+This design system expresses high-performance luxury, athletic precision, and relentless forward momentum. Targeted at dedicated fitness enthusiasts and high-tier gym members, the interface establishes an atmosphere of exclusive, performance-driven training.
 
 The aesthetic is built on high-contrast technical modernism: deep obsidian and graphite surfaces punctuated by an electric hyper-lime accent that signals energy, metrics, and achievement. Visual motifs merge the precision of biometric monitors with the refined finishes of premium studio equipment. Interfaces feel architectural, crisp, and tactically engineered—prioritizing fast visual scanning, immediate motivational cues, and unambiguous data delivery.
 
@@ -195,6 +195,7 @@ This system avoids heavy physical drop shadows, adopting an architectural stacki
 ## Shapes
 
 The design uses balanced, athletic curvature (roundedness level 2):
+
 - Standard components (chips, cards, inputs) carry an 8px (`0.5rem`) corner radius.
 - Larger structural elements (workout cards, bottom sheets, workout log sections) utilize 16px (`1rem`) to 24px (`1.5rem`) corner radii.
 - Micro tags, workout badges, and floating status pills use complete circular caps (`9999px` radius) to contrast structurally against square metric containers.
@@ -202,34 +203,41 @@ The design uses balanced, athletic curvature (roundedness level 2):
 ## Components
 
 ### Buttons
+
 - **Primary Athletic CTA:** Full-bleed background in `#CCFF00`, bold `#0B0D0E` typography (`label-lg`), 16px height-padding, rounded to 12px. Active press scales down slightly (`scale(0.98)`). Glow effect activates on hover/focus.
 - **Secondary (Ghost Outline):** `1px solid rgba(255, 255, 255, 0.16)`, transparent ground, `#F8FAFC` label. On tap, switches to `rgba(255, 255, 255, 0.08)`.
 - **Destructive/Cancel:** Monochromatic `#242932` with `#F87171` text to avoid high-chroma competition with the primary lime accent.
 
 ### Chips & Filters
+
 - Compact 32px height, 9999px radius (pill), Space Grotesk text (`label-sm`).
 - Inactive: `#121417` ground, `1px solid rgba(255, 255, 255, 0.08)`, `#94A3B8` text.
 - Active: `#CCFF00` ground, `#0B0D0E` text, `0 0 12px rgba(204, 255, 0, 0.3)` outer aura.
 
 ### Metric & Workout Cards
+
 - Background `#121417`, corner radius 16px, border `1px solid rgba(255, 255, 255, 0.07)`.
 - Card layout splits into a metadata header (exercise type, target heart rate zone) and a prominent focal metric area (`metric-display`).
 - Top-right corner includes an activity pill badge indicating set progression or completion status.
 
 ### Lists & Row Items
+
 - Exercises and set rows use separated island-style row items with `#1A1D23` fill rather than hairline divider rules.
 - 12px horizontal padding, 14px vertical padding, 8px border radius.
 - Swipe gestures reveal quick actions (re-order, delete set, add weight) rendered with high-contrast icon indicators.
 
 ### Inputs & Number Steppers
+
 - Height 48px to support rapid thumb taps in motion.
 - Stepper buttons for weight adjustments (+/-) feature large hit targets (48x48px minimum) set in `#242932` with `#CCFF00` iconography.
 - Text input utilizes inset background `#0B0D0E` with 1px border shifting to `#CCFF00` on focus.
 
 ### Checkboxes & Toggle Controls
+
 - Checkboxes: 20x20px square with 4px border radius. Checked state fills with `#CCFF00` displaying an obsidian SVG checkmark.
 - Switch/Toggles: Track size 48x28px, deep graphite track with an energetic spring animation moving the pure white or electric lime thumb knob.
 
 ### Specialized Fitness Components
+
 - **Heart Rate Zone Meter:** Segmented horizontal bar consisting of five 4px-thick rounded pill segments, dynamically colored from cool slate up to `#CCFF00` and peak crimson.
 - **Live Workout Bar:** Persistent docked bottom sheet displaying elapsed time, active set, and instantaneous pause/play controls using high-contrast typography.

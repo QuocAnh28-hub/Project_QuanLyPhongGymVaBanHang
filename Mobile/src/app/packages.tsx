@@ -1,52 +1,53 @@
-import { useCallback, useState } from "react";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { router, useFocusEffect } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Header from "@/app/Common/header";
-import { AuthColors as C } from "@/constants/theme";
-import { useAuth } from "@/context/AuthContext";
+import { useCallback, useState } from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { router, useFocusEffect } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '@/app/Common/header';
+import { AuthColors as C } from '@/constants/theme';
+import { useAuth } from '@/context/AuthContext';
 import {
   getActiveMembership,
   getFavorite,
   setFavorite,
   type MembershipEnrollment,
-} from "@/lib/membership";
+} from '@/lib/membership';
 import {
   getActivePackageDetail,
   getActivePackages,
   packageFromApi,
   packageFromApiDetail,
-} from "@/lib/package-api";
-import { formatVND } from "@/lib/package-logic";
-import { type GymPackage, type PrivilegeCode } from "@/lib/packages";
+} from '@/lib/package-api';
+import { formatVND } from '@/lib/package-logic';
+import { type GymPackage, type PrivilegeCode } from '@/lib/packages';
 
 const months = [1, 3, 6, 12];
 const comparison: { label: string; code?: PrivilegeCode; hours?: true }[] = [
-  { label: "Khung giờ tập", hours: true },
-  { label: "Yoga", code: "YOGA" },
-  { label: "Group-X", code: "GROUP_X" },
-  { label: "Sauna", code: "SAUNA" },
-  { label: "PT 1-1", code: "PT_SESSION" },
-  { label: "Lounge & Detox", code: "DETOX" },
-  { label: "InBody", code: "INBODY" },
-  { label: "Guest pass", code: "GUEST_PASS" },
-  { label: "Smart Locker", code: "SMART_LOCKER" },
+  { label: 'Khung giờ tập', hours: true },
+  { label: 'Yoga', code: 'YOGA' },
+  { label: 'Group-X', code: 'GROUP_X' },
+  { label: 'Sauna', code: 'SAUNA' },
+  { label: 'PT 1-1', code: 'PT_SESSION' },
+  { label: 'Lounge & Detox', code: 'DETOX' },
+  { label: 'InBody', code: 'INBODY' },
+  { label: 'Guest pass', code: 'GUEST_PASS' },
+  { label: 'Smart Locker', code: 'SMART_LOCKER' },
 ];
 export default function PackagesScreen() {
   const { user } = useAuth();
   const [selectedDuration, setSelectedDuration] = useState(12);
-  const [displayPackages, setDisplayPackages] =
-    useState<readonly GymPackage[]>([]);
+  const [displayPackages, setDisplayPackages] = useState<readonly GymPackage[]>(
+    []
+  );
   const [favorites, setFavorites] = useState<string[]>([]);
   const [membership, setMembership] = useState<MembershipEnrollment | null>(
-    null,
+    null
   );
-  const [error, setError] = useState("");
-  
-  const [apiError, setApiError] = useState("");
+  const [error, setError] = useState('');
+
+  const [apiError, setApiError] = useState('');
   const comparePackages = displayPackages.filter((item) =>
-    [1, 2, 3].includes(item.apiId),
+    [1, 2, 3].includes(item.apiId)
   );
 
   useFocusEffect(
@@ -56,23 +57,23 @@ export default function PackagesScreen() {
       getActivePackages()
         .then(async (rows) => {
           const details = await Promise.allSettled(
-            rows.map((row) => getActivePackageDetail(row.GoiTapID)),
+            rows.map((row) => getActivePackageDetail(row.GoiTapID))
           );
           if (!live) return;
 
           const packagesFromApi = rows.map((row, index) => {
             const detail = details[index];
-            return detail.status === "fulfilled"
+            return detail.status === 'fulfilled'
               ? packageFromApiDetail(detail.value)
               : { ...packageFromApi(row), durations: [], privileges: [] };
           });
           setDisplayPackages(packagesFromApi);
           setApiError(
             !packagesFromApi.length
-              ? "Hiện chưa có gói tập đang mở."
-              : details.some((detail) => detail.status === "rejected")
-                ? "Một số gói chưa tải được thời hạn. Vui lòng mở lại màn hình."
-                : "",
+              ? 'Hiện chưa có gói tập đang mở.'
+              : details.some((detail) => detail.status === 'rejected')
+                ? 'Một số gói chưa tải được thời hạn. Vui lòng mở lại màn hình.'
+                : ''
           );
         })
         .catch((apiError) => {
@@ -83,17 +84,17 @@ export default function PackagesScreen() {
             `${
               apiError instanceof Error
                 ? apiError.message
-                : "Không kết nối được API gói tập"
-            }.`,
+                : 'Không kết nối được API gói tập'
+            }.`
           );
         });
 
       return () => {
         live = false;
       };
-    }, []),
+    }, [])
   );
-useFocusEffect(
+  useFocusEffect(
     useCallback(() => {
       let live = true;
       if (!user) {
@@ -107,8 +108,8 @@ useFocusEffect(
           displayPackages.map(async (item) =>
             (await getFavorite(user.email, String(item.apiId)))
               ? String(item.apiId)
-              : null,
-          ),
+              : null
+          )
         ),
       ])
         .then(([active, ids]) => {
@@ -118,35 +119,37 @@ useFocusEffect(
           }
         })
         .catch(() => {
-          if (live) setError("Không thể tải thông tin hội viên.");
+          if (live) setError('Không thể tải thông tin hội viên.');
         });
       return () => {
         live = false;
       };
-    }, [user, displayPackages]),
+    }, [user, displayPackages])
   );
   const open = (item: GymPackage) =>
-    item.availability === "active" &&
+    item.availability === 'active' &&
     router.push({
-      pathname: "/package-detail",
+      pathname: '/package-detail',
       params: { id: String(item.apiId), duration: String(selectedDuration) },
     });
   async function toggle(item: GymPackage) {
-    if (!user) return router.push("/login");
+    if (!user) return router.push('/login');
     const favoriteId = String(item.apiId);
     const next = !favorites.includes(favoriteId);
     try {
       await setFavorite(user.email, favoriteId, next);
       setFavorites((current) =>
-        next ? [...current, favoriteId] : current.filter((id) => id !== favoriteId),
+        next
+          ? [...current, favoriteId]
+          : current.filter((id) => id !== favoriteId)
       );
     } catch {
-      setError("Không thể lưu yêu thích.");
+      setError('Không thể lưu yêu thích.');
     }
   }
   return (
     <View style={s.background}>
-      <SafeAreaView edges={["top"]} style={s.safe}>
+      <SafeAreaView edges={['top']} style={s.safe}>
         <ScrollView
           contentContainerStyle={s.content}
           showsVerticalScrollIndicator={false}
@@ -154,7 +157,7 @@ useFocusEffect(
           <Header />
           <View style={s.intro}>
             <Text style={s.eyebrow}>✦ ĐĂNG KÝ TẬP THỂ HÌNH 5 SAO</Text>
-            <Text style={s.title}>Các Gói Tập & Thẻ Hội Viên{"\n"}QA-Gym</Text>
+            <Text style={s.title}>Các Gói Tập & Thẻ Hội Viên{'\n'}QA-Gym</Text>
             <Text style={s.subtitle}>
               Lựa chọn gói tập phù hợp với mục tiêu của bạn
             </Text>
@@ -181,17 +184,18 @@ useFocusEffect(
           {apiError ? <Text style={s.error}>{apiError}</Text> : null}
           {displayPackages.map((item) => {
             const option = item.durations.find(
-              (row) => row.months === selectedDuration,
+              (row) => row.months === selectedDuration
             );
             const visiblePrivileges = item.privileges.slice(0, 4);
-            const remainingPrivileges = item.privileges.length - visiblePrivileges.length;
+            const remainingPrivileges =
+              item.privileges.length - visiblePrivileges.length;
             const owned = membership?.packageId === item.id;
             return (
               <Pressable
                 key={item.apiId}
                 style={[s.card, item.apiId === 4 && s.student]}
                 onPress={() =>
-                  owned ? router.push("/membership-detail") : open(item)
+                  owned ? router.push('/membership-detail') : open(item)
                 }
                 accessibilityRole="button"
               >
@@ -203,7 +207,7 @@ useFocusEffect(
                       item.apiId === 4 && s.green,
                     ]}
                   >
-                    {item.popular ? "✦ BÁN CHẠY NHẤT" : item.tier}
+                    {item.popular ? '✦ BÁN CHẠY NHẤT' : item.tier}
                   </Text>
                   <Pressable
                     hitSlop={12}
@@ -214,7 +218,7 @@ useFocusEffect(
                     accessibilityLabel={`Yêu thích ${item.name}`}
                   >
                     <Text style={s.star}>
-                      {favorites.includes(String(item.apiId)) ? "★" : "☆"}
+                      {favorites.includes(String(item.apiId)) ? '★' : '☆'}
                     </Text>
                   </Pressable>
                 </View>
@@ -267,11 +271,13 @@ useFocusEffect(
                     {visiblePrivileges.map((privilege) => (
                       <View style={s.benefit} key={privilege.id}>
                         <Ionicons
-                          name={privilege.icon as keyof typeof Ionicons.glyphMap}
+                          name={
+                            privilege.icon as keyof typeof Ionicons.glyphMap
+                          }
                           color={
-                            privilege.accent === "cyan"
+                            privilege.accent === 'cyan'
                               ? C.cyan
-                              : privilege.accent === "mint"
+                              : privilege.accent === 'mint'
                                 ? C.mint
                                 : C.lime
                           }
@@ -297,18 +303,18 @@ useFocusEffect(
                 <View style={[s.button, !item.popular && s.mutedButton]}>
                   <Text style={[s.buttonText, !item.popular && s.mutedText]}>
                     {owned
-                      ? "XEM GÓI ĐANG DÙNG"
-                      : item.availability !== "active"
-                        ? "CHƯA MỞ BÁN"
+                      ? 'XEM GÓI ĐANG DÙNG'
+                      : item.availability !== 'active'
+                        ? 'CHƯA MỞ BÁN'
                         : item.apiId === 1
-                          ? "CHỌN SILVER PASS"
+                          ? 'CHỌN SILVER PASS'
                           : item.apiId === 2
-                            ? "ĐĂNG KÝ GÓI GOLD VIP"
+                            ? 'ĐĂNG KÝ GÓI GOLD VIP'
                             : item.apiId === 4
-                              ? "ĐĂNG KÝ HSSV"
+                              ? 'ĐĂNG KÝ HSSV'
                               : item.apiId === 3
-                                ? "XEM CHI TIẾT DIAMOND"
-                                : "XEM CHI TIẾT GÓI"}
+                                ? 'XEM CHI TIẾT DIAMOND'
+                                : 'XEM CHI TIẾT GÓI'}
                   </Text>
                   <Text style={s.arrow}>↗</Text>
                 </View>
@@ -338,10 +344,10 @@ useFocusEffect(
                     {row.hours
                       ? item.accessHours
                         ? `${item.accessHours.from}–${item.accessHours.to}`
-                        : "24/7"
+                        : '24/7'
                       : item.privileges.some((p) => p.code === row.code)
-                        ? "✓"
-                        : "—"}
+                        ? '✓'
+                        : '—'}
                   </Text>
                 ))}
               </View>
@@ -353,35 +359,35 @@ useFocusEffect(
   );
 }
 const s = StyleSheet.create({
-  background: { flex: 1, backgroundColor: "#0c0f10" },
-  safe: { flex: 1, width: "100%", maxWidth: 540, alignSelf: "center" },
+  background: { flex: 1, backgroundColor: '#0c0f10' },
+  safe: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' },
   content: { paddingHorizontal: 16, paddingBottom: 32 },
-  intro: { alignItems: "center", paddingTop: 22, paddingBottom: 17 },
+  intro: { alignItems: 'center', paddingTop: 22, paddingBottom: 17 },
   eyebrow: {
-    color: "#cbed00",
-    backgroundColor: "#253500",
+    color: '#cbed00',
+    backgroundColor: '#253500',
     borderRadius: 7,
     padding: 6,
     fontSize: 9,
-    fontWeight: "900",
+    fontWeight: '900',
   },
   title: {
-    color: "#e5e9e3",
-    textAlign: "center",
+    color: '#e5e9e3',
+    textAlign: 'center',
     fontSize: 19,
     lineHeight: 22,
-    fontWeight: "900",
+    fontWeight: '900',
     marginTop: 10,
   },
   subtitle: {
-    color: "#879087",
-    textAlign: "center",
+    color: '#879087',
+    textAlign: 'center',
     fontSize: 11,
     marginTop: 8,
   },
   durationBar: {
-    flexDirection: "row",
-    backgroundColor: "#1a1e20",
+    flexDirection: 'row',
+    backgroundColor: '#1a1e20',
     borderRadius: 7,
     padding: 3,
     marginBottom: 18,
@@ -389,46 +395,46 @@ const s = StyleSheet.create({
   duration: {
     flex: 1,
     minHeight: 38,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 5,
   },
-  selected: { backgroundColor: "#d9ff00" },
-  durationText: { color: "#c3c9c0", fontSize: 10, fontWeight: "800" },
-  selectedText: { color: "#1d2700" },
-  error: { color: "#ff6b6b", marginBottom: 10 },
+  selected: { backgroundColor: '#d9ff00' },
+  durationText: { color: '#c3c9c0', fontSize: 10, fontWeight: '800' },
+  selectedText: { color: '#1d2700' },
+  error: { color: '#ff6b6b', marginBottom: 10 },
   card: {
-    backgroundColor: "#202427",
+    backgroundColor: '#202427',
     borderRadius: 8,
     padding: 11,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#2c3133",
+    borderColor: '#2c3133',
   },
-  student: { backgroundColor: "#1c2022" },
+  student: { backgroundColor: '#1c2022' },
   cardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   tag: {
-    color: "#263100",
-    backgroundColor: "#c9f000",
+    color: '#263100',
+    backgroundColor: '#c9f000',
     fontSize: 9,
-    fontWeight: "900",
+    fontWeight: '900',
     paddingHorizontal: 7,
     paddingVertical: 4,
     borderRadius: 5,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
-  blue: { color: "#59c8f1", backgroundColor: "#182e3b" },
-  green: { color: "#071c17", backgroundColor: "#0ba879" },
-  star: { color: "#d9ff00", fontSize: 26 },
-  name: { color: "#e5e8e3", fontSize: 15, fontWeight: "900", marginTop: 8 },
-  priceRow: { flexDirection: "row", alignItems: "baseline", marginTop: 2 },
-  price: { color: "#e0e4df", fontSize: 28, fontWeight: "900" },
-  lime: { color: "#d9ff00" },
-  perMonth: { color: "#88908b", fontSize: 10, marginLeft: 3 },
+  blue: { color: '#59c8f1', backgroundColor: '#182e3b' },
+  green: { color: '#071c17', backgroundColor: '#0ba879' },
+  star: { color: '#d9ff00', fontSize: 26 },
+  name: { color: '#e5e8e3', fontSize: 15, fontWeight: '900', marginTop: 8 },
+  priceRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 2 },
+  price: { color: '#e0e4df', fontSize: 28, fontWeight: '900' },
+  lime: { color: '#d9ff00' },
+  perMonth: { color: '#88908b', fontSize: 10, marginLeft: 3 },
   priceSummary: {
     backgroundColor: C.surfaceLowest,
     borderRadius: 8,
@@ -437,17 +443,17 @@ const s = StyleSheet.create({
     gap: 8,
   },
   priceSummaryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 10,
   },
   priceTotal: { flex: 1, minWidth: 0 },
-  priceMetaLabel: { color: C.muted, fontSize: 9, fontWeight: "800" },
+  priceMetaLabel: { color: C.muted, fontSize: 9, fontWeight: '800' },
   priceMetaValue: {
     color: C.text,
     fontSize: 14,
-    fontWeight: "900",
+    fontWeight: '900',
     marginTop: 2,
     flexShrink: 1,
   },
@@ -455,32 +461,32 @@ const s = StyleSheet.create({
     color: C.lime,
     backgroundColor: C.surfaceHigh,
     borderRadius: 12,
-    overflow: "hidden",
+    overflow: 'hidden',
     paddingHorizontal: 9,
     paddingVertical: 5,
     fontSize: 9,
-    fontWeight: "900",
+    fontWeight: '900',
   },
-  offerRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  offerRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   savingPill: {
     color: C.surfaceLowest,
     backgroundColor: C.lime,
     borderRadius: 5,
-    overflow: "hidden",
+    overflow: 'hidden',
     paddingHorizontal: 7,
     paddingVertical: 4,
     fontSize: 9,
-    fontWeight: "900",
+    fontWeight: '900',
   },
   bonusPill: {
     color: C.mint,
     backgroundColor: C.surfaceHigh,
     borderRadius: 5,
-    overflow: "hidden",
+    overflow: 'hidden',
     paddingHorizontal: 7,
     paddingVertical: 4,
     fontSize: 9,
-    fontWeight: "900",
+    fontWeight: '900',
   },
   unavailableDuration: {
     backgroundColor: C.surfaceLowest,
@@ -492,12 +498,12 @@ const s = StyleSheet.create({
   unavailableDurationText: {
     color: C.muted,
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   benefits: { marginTop: 8, gap: 5 },
   benefit: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     backgroundColor: C.surfaceLowest,
     borderRadius: 8,
@@ -509,59 +515,58 @@ const s = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     fontSize: 11,
-    fontWeight: "600",
+    fontWeight: '600',
     lineHeight: 15,
   },
   moreBenefits: {
     color: C.lime,
     fontSize: 10,
-    fontWeight: "700",
+    fontWeight: '700',
     paddingHorizontal: 3,
     paddingTop: 2,
   },
-  restriction: { color: "#50d9a9", fontSize: 10, marginTop: 9 },
+  restriction: { color: '#50d9a9', fontSize: 10, marginTop: 9 },
   button: {
-    backgroundColor: "#caff00",
+    backgroundColor: '#caff00',
     minHeight: 34,
     borderRadius: 5,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 10,
-    flexDirection: "row",
+    flexDirection: 'row',
   },
-  buttonText: { color: "#1b2600", fontSize: 11, fontWeight: "900" },
-  arrow: { color: "#1b2600", marginLeft: 6 },
-  mutedButton: { backgroundColor: "#3b3e42" },
-  mutedText: { color: "#e1e4df" },
+  buttonText: { color: '#1b2600', fontSize: 11, fontWeight: '900' },
+  arrow: { color: '#1b2600', marginLeft: 6 },
+  mutedButton: { backgroundColor: '#3b3e42' },
+  mutedText: { color: '#e1e4df' },
   tableKicker: {
-    color: "#cbed00",
-    textAlign: "center",
+    color: '#cbed00',
+    textAlign: 'center',
     fontSize: 9,
-    fontWeight: "900",
+    fontWeight: '900',
     marginTop: 10,
   },
   tableTitle: {
-    color: "#e5e9e4",
-    textAlign: "center",
+    color: '#e5e9e4',
+    textAlign: 'center',
     fontSize: 15,
-    fontWeight: "900",
+    fontWeight: '900',
     marginBottom: 9,
   },
-  table: { backgroundColor: "#1c2022", borderRadius: 7, overflow: "hidden" },
+  table: { backgroundColor: '#1c2022', borderRadius: 7, overflow: 'hidden' },
   row: {
-    flexDirection: "row",
+    flexDirection: 'row',
     minHeight: 34,
-    alignItems: "center",
+    alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: "#2d3234",
+    borderBottomColor: '#2d3234',
   },
-  cell: { color: "#cbed00", fontSize: 9, flex: 1, textAlign: "center" },
-  label: { color: "#d7dbd6", textAlign: "left", paddingLeft: 6, flex: 1.3 },
+  cell: { color: '#cbed00', fontSize: 9, flex: 1, textAlign: 'center' },
+  label: { color: '#d7dbd6', textAlign: 'left', paddingLeft: 6, flex: 1.3 },
   headingCell: {
-    color: "#cbed00",
+    color: '#cbed00',
     fontSize: 9,
-    fontWeight: "800",
-    textAlign: "center",
+    fontWeight: '800',
+    textAlign: 'center',
   },
 });
-

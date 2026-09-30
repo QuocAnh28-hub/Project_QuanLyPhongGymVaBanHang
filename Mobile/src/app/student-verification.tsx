@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
 import {
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuth } from "@/context/AuthContext";
-import { requestStudentVerification } from "@/lib/student-verification";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '@/context/AuthContext';
+import { requestStudentVerification } from '@/lib/student-verification';
 
 export default function StudentVerificationScreen() {
   const { user } = useAuth();
@@ -18,12 +18,12 @@ export default function StudentVerificationScreen() {
     durationId?: string;
     duration?: string;
   }>();
-  const [schoolName, setSchoolName] = useState("");
-  const [studentId, setStudentId] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [message, setMessage] = useState("");
+  const [schoolName, setSchoolName] = useState('');
+  const [studentId, setStudentId] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [message, setMessage] = useState('');
   async function submit() {
-    if (!user) return setMessage("Vui lòng đăng nhập.");
+    if (!user) return setMessage('Vui lòng đăng nhập.');
     try {
       await requestStudentVerification({
         userId: user.email,
@@ -32,11 +32,11 @@ export default function StudentVerificationScreen() {
         expiryDate,
       });
       setMessage(
-        "Đã lưu yêu cầu chờ xác minh. Gói HSSV chỉ đăng ký được sau khi được duyệt.",
+        'Đã lưu yêu cầu chờ xác minh. Gói HSSV chỉ đăng ký được sau khi được duyệt.'
       );
     } catch (error) {
       setMessage(
-        error instanceof Error ? error.message : "Không thể lưu yêu cầu.",
+        error instanceof Error ? error.message : 'Không thể lưu yêu cầu.'
       );
     }
   }
@@ -76,7 +76,7 @@ export default function StudentVerificationScreen() {
         <Pressable
           onPress={() =>
             router.replace({
-              pathname: "/package-detail",
+              pathname: '/package-detail',
               params: { id: packageId, durationId, duration },
             })
           }
@@ -88,22 +88,22 @@ export default function StudentVerificationScreen() {
   );
 }
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#0c0f10" },
+  safe: { flex: 1, backgroundColor: '#0c0f10' },
   content: { padding: 20, gap: 14 },
-  title: { color: "#e5e9e3", fontSize: 25, fontWeight: "900" },
-  note: { color: "#aeb59e", fontSize: 13, lineHeight: 18 },
+  title: { color: '#e5e9e3', fontSize: 25, fontWeight: '900' },
+  note: { color: '#aeb59e', fontSize: 13, lineHeight: 18 },
   input: {
-    backgroundColor: "#202427",
-    color: "#e5e9e3",
+    backgroundColor: '#202427',
+    color: '#e5e9e3',
     borderRadius: 9,
     padding: 14,
   },
   button: {
-    backgroundColor: "#caff00",
+    backgroundColor: '#caff00',
     borderRadius: 9,
     padding: 15,
-    alignItems: "center",
+    alignItems: 'center',
   },
-  buttonText: { color: "#1b2600", fontWeight: "900" },
-  link: { color: "#caff00", textAlign: "center", marginTop: 12 },
+  buttonText: { color: '#1b2600', fontWeight: '900' },
+  link: { color: '#caff00', textAlign: 'center', marginTop: 12 },
 });

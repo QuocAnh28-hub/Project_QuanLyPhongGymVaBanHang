@@ -1,17 +1,17 @@
-import { baseUrl } from "@/lib/account-api";
+import { baseUrl } from '@/lib/account-api';
 
 export type ApiPT = {
   PTID: number;
   HoTen: string;
   NgaySinh: string | null;
-  GioiTinh: "NAM" | "NU" | "KHAC" | null;
+  GioiTinh: 'NAM' | 'NU' | 'KHAC' | null;
   SoDienThoai: string | null;
   Email: string | null;
   ChuyenMon: string | null;
   KinhNghiem: string | null;
   GiaThue: string | number;
   AnhDaiDien: string | null;
-  TrangThai: "ACTIVE" | "INACTIVE";
+  TrangThai: 'ACTIVE' | 'INACTIVE';
 };
 
 export type ApiPTSchedule = {
@@ -20,7 +20,7 @@ export type ApiPTSchedule = {
   NgayLam: string;
   GioBatDau: string;
   GioKetThuc: string;
-  TrangThai: "AVAILABLE" | "BOOKED" | "OFF";
+  TrangThai: 'AVAILABLE' | 'BOOKED' | 'OFF';
 };
 
 export type ApiPTBooking = {
@@ -36,12 +36,15 @@ export type ApiPTBooking = {
   GioBatDau: string;
   GioKetThuc: string;
   GiaThue: string | number;
-  TrangThai: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+  TrangThai: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
   GhiChu: string | null;
 };
 
 export class PTApiError extends Error {
-  constructor(message: string, readonly code?: string) {
+  constructor(
+    message: string,
+    readonly code?: string
+  ) {
     super(message);
   }
 }
@@ -51,7 +54,10 @@ async function read<T>(response: Response): Promise<T> {
     | (T & { message?: string; code?: string })
     | null;
   if (!response.ok) {
-    throw new PTApiError(payload?.message || `HTTP ${response.status}`, payload?.code);
+    throw new PTApiError(
+      payload?.message || `HTTP ${response.status}`,
+      payload?.code
+    );
   }
   return payload as T;
 }
@@ -64,7 +70,9 @@ export async function getPTDetail(ptId: number): Promise<ApiPT> {
   return read(await fetch(`${baseUrl}/pt/active/${ptId}`));
 }
 
-export async function getAvailablePTSchedules(ptId: number): Promise<ApiPTSchedule[]> {
+export async function getAvailablePTSchedules(
+  ptId: number
+): Promise<ApiPTSchedule[]> {
   return read(await fetch(`${baseUrl}/lichpt/available/${ptId}`));
 }
 
@@ -74,8 +82,8 @@ export async function bookPT(input: {
   note?: string;
 }): Promise<ApiPTBooking> {
   const response = await fetch(`${baseUrl}/thuept/book`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       TaiKhoanID: input.accountId,
       LichPTID: input.scheduleId,
@@ -86,7 +94,9 @@ export async function bookPT(input: {
   return result.data;
 }
 
-export async function getMyPTBookings(accountId: number): Promise<ApiPTBooking[]> {
+export async function getMyPTBookings(
+  accountId: number
+): Promise<ApiPTBooking[]> {
   return read(await fetch(`${baseUrl}/thuept/account/${accountId}`));
 }
 
@@ -95,8 +105,8 @@ export async function cancelPTBooking(input: {
   bookingId: number;
 }): Promise<ApiPTBooking> {
   const response = await fetch(`${baseUrl}/thuept/${input.bookingId}/cancel`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ TaiKhoanID: input.accountId }),
   });
   const result = await read<{ data: ApiPTBooking }>(response);

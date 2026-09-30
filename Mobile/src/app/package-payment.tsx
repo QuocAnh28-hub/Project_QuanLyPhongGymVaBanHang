@@ -1,7 +1,7 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import * as Clipboard from "expo-clipboard";
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Clipboard from 'expo-clipboard';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Image,
@@ -11,15 +11,15 @@ import {
   Text,
   useWindowDimensions,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { AuthColors as C } from "@/constants/theme";
-import { formatVND } from "@/lib/package-logic";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthColors as C } from '@/constants/theme';
+import { formatVND } from '@/lib/package-logic';
 import {
   backendPaymentMethodNames,
   getPackagePaymentDetail,
   type PackagePayment,
-} from "@/lib/payment-api";
+} from '@/lib/payment-api';
 
 export default function PackagePaymentScreen() {
   const { width: screenWidth } = useWindowDimensions();
@@ -27,23 +27,23 @@ export default function PackagePaymentScreen() {
   const id = Number(paymentId);
   const validId = Number.isInteger(id) && id > 0;
   const [loadedPayment, setPayment] = useState<PackagePayment | null>();
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
   const [reportedPaid, setReportedPaid] = useState(false);
   const order = loadedPayment?.ThanhToanID === id ? loadedPayment : undefined;
   const success =
-    order?.TrangThaiThanhToan === "SUCCESS" &&
-    order.TrangThaiDangKy === "ACTIVE";
-  const failed = order?.TrangThaiThanhToan === "FAILED";
-  const cancelled = order?.TrangThaiThanhToan === "CANCELLED";
-  const pending = order?.TrangThaiThanhToan === "PENDING";
+    order?.TrangThaiThanhToan === 'SUCCESS' &&
+    order.TrangThaiDangKy === 'ACTIVE';
+  const failed = order?.TrangThaiThanhToan === 'FAILED';
+  const cancelled = order?.TrangThaiThanhToan === 'CANCELLED';
+  const pending = order?.TrangThaiThanhToan === 'PENDING';
 
   async function copy(value: string, message: string) {
     try {
       await Clipboard.setStringAsync(value);
       Alert.alert(message);
     } catch {
-      Alert.alert("Không thể sao chép", "Vui lòng thử lại.");
+      Alert.alert('Không thể sao chép', 'Vui lòng thử lại.');
     }
   }
 
@@ -55,7 +55,7 @@ export default function PackagePaymentScreen() {
       .then((row) => {
         if (active) {
           setPayment(row);
-          setError("");
+          setError('');
         }
       })
       .catch((loadError) => {
@@ -64,7 +64,7 @@ export default function PackagePaymentScreen() {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Không tải được thanh toán gói tập.",
+              : 'Không tải được thanh toán gói tập.'
           );
         }
       });
@@ -77,11 +77,11 @@ export default function PackagePaymentScreen() {
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
-        <Pressable onPress={() => router.replace("/packages")}>
+        <Pressable onPress={() => router.replace('/packages')}>
           <Ionicons name="close" color={C.text} size={22} />
         </Pressable>
         <Text style={s.headerTitle}>THANH TOÁN GÓI TẬP</Text>
-        <Pressable onPress={() => router.push("/profile")}>
+        <Pressable onPress={() => router.push('/profile')}>
           <Ionicons name="person-circle-outline" color={C.text} size={25} />
         </Pressable>
       </View>
@@ -106,12 +106,12 @@ export default function PackagePaymentScreen() {
               <Ionicons
                 name={
                   success
-                    ? "checkmark-circle-outline"
+                    ? 'checkmark-circle-outline'
                     : failed
-                      ? "close-circle-outline"
+                      ? 'close-circle-outline'
                       : cancelled
-                        ? "ban-outline"
-                    : "time-outline"
+                        ? 'ban-outline'
+                        : 'time-outline'
                 }
                 color={failed || cancelled ? C.error : C.lime}
                 size={38}
@@ -119,26 +119,23 @@ export default function PackagePaymentScreen() {
             </View>
             <Text style={[s.status, (failed || cancelled) && s.statusError]}>
               {success
-                ? "THANH TOÁN THÀNH CÔNG"
+                ? 'THANH TOÁN THÀNH CÔNG'
                 : failed
-                  ? "THANH TOÁN THẤT BẠI"
+                  ? 'THANH TOÁN THẤT BẠI'
                   : cancelled
-                    ? "THANH TOÁN ĐÃ HỦY"
-                    : "CHỜ THANH TOÁN"}
+                    ? 'THANH TOÁN ĐÃ HỦY'
+                    : 'CHỜ THANH TOÁN'}
             </Text>
             <Text style={s.intro}>
               {success
-                ? "Gói tập đã được kích hoạt."
-                : "Gói tập chưa được kích hoạt."}
+                ? 'Gói tập đã được kích hoạt.'
+                : 'Gói tập chưa được kích hoạt.'}
             </Text>
 
             <View style={s.card}>
               <Row label="Mã thanh toán" value={String(order.ThanhToanID)} />
               <Row label="Mã đăng ký" value={String(order.DangKyID)} />
-              <Row
-                label="Gói tập"
-                value={order.TenGoi}
-              />
+              <Row label="Gói tập" value={order.TenGoi} />
               <Row label="Thời hạn" value={`${order.SoThang} tháng`} />
               <Row label="Tháng tặng" value={`${order.ThangTang} tháng`} />
               <Row
@@ -156,11 +153,11 @@ export default function PackagePaymentScreen() {
               <Row label="Đăng ký" value={order.TrangThaiDangKy} />
             </View>
 
-            {order.PhuongThucThanhToan === "CHUYEN_KHOAN" && pending ? (
+            {order.PhuongThucThanhToan === 'CHUYEN_KHOAN' && pending ? (
               <View style={s.qrCard}>
                 <Text style={s.qrTitle}>QUÉT MÃ VIETQR ĐỂ THANH TOÁN</Text>
                 <Image
-                  source={require("../../assets/payment/techcombank-vietqr.png")}
+                  source={require('../../assets/payment/techcombank-vietqr.png')}
                   style={[
                     s.qrImage,
                     {
@@ -173,12 +170,19 @@ export default function PackagePaymentScreen() {
                 <View style={s.transferRow}>
                   <View style={s.transferValue}>
                     <Text style={s.transferLabel}>SỐ TIỀN</Text>
-                    <Text style={s.transferText}>{formatVND(Number(order.SoTien))}</Text>
+                    <Text style={s.transferText}>
+                      {formatVND(Number(order.SoTien))}
+                    </Text>
                   </View>
                   <Pressable
                     style={s.copyButton}
                     accessibilityLabel="Sao chép số tiền"
-                    onPress={() => copy(String(Math.round(Number(order.SoTien))), "Đã sao chép số tiền")}
+                    onPress={() =>
+                      copy(
+                        String(Math.round(Number(order.SoTien))),
+                        'Đã sao chép số tiền'
+                      )
+                    }
                   >
                     <Ionicons name="copy-outline" color={C.lime} size={18} />
                     <Text style={s.copyText}>SAO CHÉP</Text>
@@ -187,19 +191,27 @@ export default function PackagePaymentScreen() {
                 <View style={s.transferRow}>
                   <View style={s.transferValue}>
                     <Text style={s.transferLabel}>NỘI DUNG CHUYỂN KHOẢN</Text>
-                    <Text style={s.transferText}>QAGYM TT{order.ThanhToanID}</Text>
+                    <Text style={s.transferText}>
+                      QAGYM TT{order.ThanhToanID}
+                    </Text>
                   </View>
                   <Pressable
                     style={s.copyButton}
                     accessibilityLabel="Sao chép nội dung chuyển khoản"
-                    onPress={() => copy(`QAGYM TT${order.ThanhToanID}`, "Đã sao chép nội dung chuyển khoản")}
+                    onPress={() =>
+                      copy(
+                        `QAGYM TT${order.ThanhToanID}`,
+                        'Đã sao chép nội dung chuyển khoản'
+                      )
+                    }
                   >
                     <Ionicons name="copy-outline" color={C.lime} size={18} />
                     <Text style={s.copyText}>SAO CHÉP</Text>
                   </Pressable>
                 </View>
                 <Text style={s.qrNote}>
-                  Vui lòng nhập đúng số tiền và nội dung để phòng gym đối soát thanh toán.
+                  Vui lòng nhập đúng số tiền và nội dung để phòng gym đối soát
+                  thanh toán.
                 </Text>
               </View>
             ) : null}
@@ -207,9 +219,9 @@ export default function PackagePaymentScreen() {
             <View style={s.notice}>
               <Ionicons
                 name={
-                  order.PhuongThucThanhToan === "TIEN_MAT"
-                    ? "storefront-outline"
-                    : "information-circle-outline"
+                  order.PhuongThucThanhToan === 'TIEN_MAT'
+                    ? 'storefront-outline'
+                    : 'information-circle-outline'
                 }
                 color={C.lime}
                 size={23}
@@ -217,32 +229,32 @@ export default function PackagePaymentScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={s.noticeTitle}>
                   {failed
-                    ? "Thanh toán thất bại"
+                    ? 'Thanh toán thất bại'
                     : cancelled
-                      ? "Thanh toán đã hủy"
-                      : order.PhuongThucThanhToan === "TIEN_MAT"
-                    ? "Thanh toán tại lễ tân QA-Gym"
-                    : success
-                      ? "Đã xác nhận thanh toán"
-                      : "Chưa xác nhận thanh toán"}
+                      ? 'Thanh toán đã hủy'
+                      : order.PhuongThucThanhToan === 'TIEN_MAT'
+                        ? 'Thanh toán tại lễ tân QA-Gym'
+                        : success
+                          ? 'Đã xác nhận thanh toán'
+                          : 'Chưa xác nhận thanh toán'}
                 </Text>
                 <Text style={s.muted}>
                   {success
-                    ? "Thanh toán đã được backend xác nhận."
+                    ? 'Thanh toán đã được backend xác nhận.'
                     : failed
-                      ? "Giao dịch không thành công. Vui lòng thử lại hoặc chọn phương thức khác."
+                      ? 'Giao dịch không thành công. Vui lòng thử lại hoặc chọn phương thức khác.'
                       : cancelled
-                        ? "Giao dịch này đã bị hủy và gói tập chưa được kích hoạt."
-                        : order.PhuongThucThanhToan === "TIEN_MAT"
-                      ? "Vui lòng cung cấp mã thanh toán tại quầy."
-                      : order.PhuongThucThanhToan === "THE"
-                        ? "Phương thức này chưa kết nối gateway thật."
-                        : "Yêu cầu chuyển khoản đã được tạo. Cổng tự động chưa được kết nối."}
+                        ? 'Giao dịch này đã bị hủy và gói tập chưa được kích hoạt.'
+                        : order.PhuongThucThanhToan === 'TIEN_MAT'
+                          ? 'Vui lòng cung cấp mã thanh toán tại quầy.'
+                          : order.PhuongThucThanhToan === 'THE'
+                            ? 'Phương thức này chưa kết nối gateway thật.'
+                            : 'Yêu cầu chuyển khoản đã được tạo. Cổng tự động chưa được kết nối.'}
                 </Text>
               </View>
             </View>
 
-            {order.PhuongThucThanhToan === "CHUYEN_KHOAN" && pending ? (
+            {order.PhuongThucThanhToan === 'CHUYEN_KHOAN' && pending ? (
               <>
                 <Pressable
                   style={[s.primary, reportedPaid && s.disabled]}
@@ -250,7 +262,9 @@ export default function PackagePaymentScreen() {
                   onPress={() => setReportedPaid(true)}
                 >
                   <Text style={s.primaryText}>
-                    {reportedPaid ? "ĐÃ BÁO CHUYỂN KHOẢN" : "TÔI ĐÃ CHUYỂN KHOẢN"}
+                    {reportedPaid
+                      ? 'ĐÃ BÁO CHUYỂN KHOẢN'
+                      : 'TÔI ĐÃ CHUYỂN KHOẢN'}
                   </Text>
                   <Ionicons name="checkmark" color={C.surfaceLowest} />
                 </Pressable>
@@ -262,14 +276,17 @@ export default function PackagePaymentScreen() {
               </>
             ) : null}
 
-            <Pressable style={s.secondary} onPress={() => setReload((x) => x + 1)}>
+            <Pressable
+              style={s.secondary}
+              onPress={() => setReload((x) => x + 1)}
+            >
               <Text style={s.secondaryText}>TẢI LẠI TRẠNG THÁI</Text>
               <Ionicons name="refresh" color={C.text} />
             </Pressable>
             {success ? (
               <Pressable
                 style={s.primary}
-                onPress={() => router.replace("/membership-detail")}
+                onPress={() => router.replace('/membership-detail')}
               >
                 <Text style={s.primaryText}>XEM GÓI TẬP CỦA TÔI</Text>
                 <Ionicons name="card-outline" color={C.surfaceLowest} />
@@ -277,7 +294,7 @@ export default function PackagePaymentScreen() {
             ) : null}
             <Pressable
               style={s.primary}
-              onPress={() => router.replace("/packages")}
+              onPress={() => router.replace('/packages')}
             >
               <Text style={s.primaryText}>VỀ DANH SÁCH GÓI</Text>
               <Ionicons name="arrow-forward" color={C.surfaceLowest} />
@@ -292,7 +309,7 @@ export default function PackagePaymentScreen() {
 function Stepper() {
   return (
     <View style={s.stepper}>
-      {["CHỌN GÓI", "THÔNG TIN", "THANH TOÁN"].map((label, index) => (
+      {['CHỌN GÓI', 'THÔNG TIN', 'THANH TOÁN'].map((label, index) => (
         <View style={s.step} key={label}>
           <View style={s.stepCircle}>
             {index < 2 ? (
@@ -330,44 +347,44 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.background },
   header: {
     height: 52,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 13,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: C.surfaceLow,
   },
-  headerTitle: { flex: 1, color: C.text, fontSize: 14, fontWeight: "800" },
+  headerTitle: { flex: 1, color: C.text, fontSize: 14, fontWeight: '800' },
   content: {
-    width: "100%",
+    width: '100%',
     maxWidth: 540,
-    alignSelf: "center",
+    alignSelf: 'center',
     padding: 14,
     gap: 12,
   },
   stepper: {
-    flexDirection: "row",
+    flexDirection: 'row',
     backgroundColor: C.surfaceLow,
     borderRadius: 12,
     padding: 12,
   },
-  step: { flex: 1, alignItems: "center", position: "relative" },
+  step: { flex: 1, alignItems: 'center', position: 'relative' },
   stepCircle: {
     width: 25,
     height: 25,
     borderRadius: 13,
     backgroundColor: C.lime,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 2,
   },
-  stepNumber: { color: C.surfaceLowest, fontSize: 10, fontWeight: "900" },
-  stepLabel: { color: C.lime, fontSize: 9, fontWeight: "800", marginTop: 5 },
+  stepNumber: { color: C.surfaceLowest, fontSize: 10, fontWeight: '900' },
+  stepLabel: { color: C.lime, fontSize: 9, fontWeight: '800', marginTop: 5 },
   track: {
-    position: "absolute",
+    position: 'absolute',
     top: 12,
-    left: "62%",
-    width: "76%",
+    left: '62%',
+    width: '76%',
     height: 2,
     backgroundColor: C.lime,
   },
@@ -376,23 +393,23 @@ const s = StyleSheet.create({
     height: 70,
     borderRadius: 35,
     backgroundColor: C.surfaceHigh,
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
     marginTop: 8,
   },
   status: {
     color: C.lime,
     fontSize: 25,
-    fontWeight: "900",
-    textAlign: "center",
+    fontWeight: '900',
+    textAlign: 'center',
   },
   statusError: { color: C.error },
   intro: {
     color: C.muted,
     fontSize: 13,
     lineHeight: 18,
-    textAlign: "center",
+    textAlign: 'center',
   },
   card: {
     backgroundColor: C.surface,
@@ -400,11 +417,11 @@ const s = StyleSheet.create({
     padding: 12,
     gap: 8,
   },
-  title: { color: C.text, fontSize: 17, fontWeight: "800" },
+  title: { color: C.text, fontSize: 17, fontWeight: '800' },
   error: { color: C.error, fontSize: 12, lineHeight: 17 },
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 14,
     borderBottomWidth: 1,
     borderBottomColor: C.surfaceHigh,
@@ -414,48 +431,58 @@ const s = StyleSheet.create({
   value: {
     color: C.text,
     fontSize: 12,
-    fontWeight: "700",
-    textAlign: "right",
+    fontWeight: '700',
+    textAlign: 'right',
     flex: 1.5,
   },
-  accent: { color: C.lime, fontSize: 17, fontWeight: "900" },
+  accent: { color: C.lime, fontSize: 17, fontWeight: '900' },
   qrCard: {
     backgroundColor: C.surface,
     borderRadius: 13,
     padding: 12,
     gap: 10,
-    alignItems: "center",
+    alignItems: 'center',
   },
-  qrTitle: { color: C.text, fontSize: 15, fontWeight: "900", textAlign: "center" },
-  qrImage: { alignSelf: "center" },
+  qrTitle: {
+    color: C.text,
+    fontSize: 15,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  qrImage: { alignSelf: 'center' },
   transferRow: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
     backgroundColor: C.surfaceHigh,
     borderRadius: 10,
     padding: 12,
   },
   transferValue: { flex: 1, gap: 4 },
-  transferLabel: { color: C.muted, fontSize: 10, fontWeight: "800" },
-  transferText: { color: C.text, fontSize: 17, fontWeight: "900" },
+  transferLabel: { color: C.muted, fontSize: 10, fontWeight: '800' },
+  transferText: { color: C.text, fontSize: 17, fontWeight: '900' },
   copyButton: {
     minWidth: 74,
     height: 42,
     borderRadius: 9,
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 4,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: C.surface,
   },
-  copyText: { color: C.lime, fontSize: 9, fontWeight: "900" },
-  qrNote: { color: C.muted, fontSize: 12, lineHeight: 17, textAlign: "center" },
-  reportedText: { color: C.lime, fontSize: 12, lineHeight: 17, textAlign: "center" },
+  copyText: { color: C.lime, fontSize: 9, fontWeight: '900' },
+  qrNote: { color: C.muted, fontSize: 12, lineHeight: 17, textAlign: 'center' },
+  reportedText: {
+    color: C.lime,
+    fontSize: 12,
+    lineHeight: 17,
+    textAlign: 'center',
+  },
   disabled: { opacity: 0.6 },
   notice: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 10,
     backgroundColor: C.surface,
     borderRadius: 13,
@@ -464,31 +491,31 @@ const s = StyleSheet.create({
   noticeTitle: {
     color: C.text,
     fontSize: 14,
-    fontWeight: "800",
+    fontWeight: '800',
     marginBottom: 5,
   },
   primary: {
     minHeight: 52,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 7,
     backgroundColor: C.lime,
     borderRadius: 11,
   },
   secondary: {
     minHeight: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 7,
     backgroundColor: C.surfaceHigh,
     borderRadius: 11,
   },
-  secondaryText: { color: C.text, fontSize: 12, fontWeight: "900" },
+  secondaryText: { color: C.text, fontSize: 12, fontWeight: '900' },
   primaryText: {
     color: C.surfaceLowest,
     fontSize: 12,
-    fontWeight: "900",
+    fontWeight: '900',
   },
 });

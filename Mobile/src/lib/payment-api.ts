@@ -1,8 +1,8 @@
-import { baseUrl } from "@/lib/account-api";
-import type { PaymentMethod } from "@/lib/membership";
+import { baseUrl } from '@/lib/account-api';
+import type { PaymentMethod } from '@/lib/membership';
 
-export type BackendPaymentMethod = "TIEN_MAT" | "CHUYEN_KHOAN" | "THE";
-export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "CANCELLED";
+export type BackendPaymentMethod = 'TIEN_MAT' | 'CHUYEN_KHOAN' | 'THE';
+export type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'CANCELLED';
 
 export type PackagePayment = {
   ThanhToanID: number;
@@ -19,23 +19,19 @@ export type PackagePayment = {
   SoTien: string | number;
   PhuongThucThanhToan: BackendPaymentMethod;
   TrangThaiThanhToan: PaymentStatus;
-  TrangThaiDangKy: "PENDING" | "ACTIVE" | "EXPIRED" | "CANCELLED";
+  TrangThaiDangKy: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
 };
 
 type PackagePaymentSummary = Pick<
   PackagePayment,
-  | "ThanhToanID"
-  | "DangKyID"
-  | "HoiVienID"
-  | "SoTien"
-  | "PhuongThucThanhToan"
+  'ThanhToanID' | 'DangKyID' | 'HoiVienID' | 'SoTien' | 'PhuongThucThanhToan'
 > & { TrangThai: PaymentStatus };
 
 const methodMap: Record<PaymentMethod, BackendPaymentMethod> = {
-  vietqr: "CHUYEN_KHOAN",
-  card: "THE",
-  wallet: "CHUYEN_KHOAN",
-  pos: "TIEN_MAT",
+  vietqr: 'CHUYEN_KHOAN',
+  card: 'THE',
+  wallet: 'CHUYEN_KHOAN',
+  pos: 'TIEN_MAT',
 };
 
 async function readError(response: Response): Promise<string> {
@@ -52,8 +48,8 @@ export async function createPackagePayment(input: {
   paymentMethod: PaymentMethod;
 }): Promise<PackagePaymentSummary> {
   const response = await fetch(`${baseUrl}/thanhtoan/package`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       DangKyID: input.registrationId,
       PhuongThucThanhToan: methodMap[input.paymentMethod],
@@ -61,12 +57,13 @@ export async function createPackagePayment(input: {
   });
   if (!response.ok) throw new Error(await readError(response));
   const payload = (await response.json()) as { data: PackagePaymentSummary };
-  if (!payload?.data?.ThanhToanID) throw new Error("Backend không trả về ThanhToanID");
+  if (!payload?.data?.ThanhToanID)
+    throw new Error('Backend không trả về ThanhToanID');
   return payload.data;
 }
 
 export async function getPackagePaymentDetail(
-  paymentId: number,
+  paymentId: number
 ): Promise<PackagePayment> {
   const response = await fetch(`${baseUrl}/thanhtoan/package/${paymentId}`);
   if (!response.ok) throw new Error(await readError(response));
@@ -74,10 +71,10 @@ export async function getPackagePaymentDetail(
 }
 
 export async function getPaymentByRegistration(
-  registrationId: number,
+  registrationId: number
 ): Promise<PackagePayment | null> {
   const response = await fetch(
-    `${baseUrl}/thanhtoan/registration/${registrationId}`,
+    `${baseUrl}/thanhtoan/registration/${registrationId}`
   );
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(await readError(response));
@@ -85,7 +82,7 @@ export async function getPaymentByRegistration(
 }
 
 export const backendPaymentMethodNames: Record<BackendPaymentMethod, string> = {
-  TIEN_MAT: "Thanh toán trực tiếp tại quầy",
-  CHUYEN_KHOAN: "Chuyển khoản",
-  THE: "Thẻ tín dụng / Ghi nợ quốc tế",
+  TIEN_MAT: 'Thanh toán trực tiếp tại quầy',
+  CHUYEN_KHOAN: 'Chuyển khoản',
+  THE: 'Thẻ tín dụng / Ghi nợ quốc tế',
 };

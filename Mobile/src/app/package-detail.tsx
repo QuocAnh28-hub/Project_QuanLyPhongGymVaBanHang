@@ -1,6 +1,6 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Image,
   Modal,
@@ -10,19 +10,19 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import type { PackageClass } from "@/constants/package-detail";
-import { type GymPackage } from "@/lib/packages";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import type { PackageClass } from '@/constants/package-detail';
+import { type GymPackage } from '@/lib/packages';
 import {
   getActivePackageDetail,
   packageFromApiDetail,
-} from "@/lib/package-api";
-import { useAuth } from "@/context/AuthContext";
-import { AuthColors as C } from "@/constants/theme";
-import { formatVND, periodLabel } from "@/lib/package-logic";
-import { getFavorite, setFavorite } from "@/lib/membership";
-import { getStudentVerification } from "@/lib/student-verification";
+} from '@/lib/package-api';
+import { useAuth } from '@/context/AuthContext';
+import { AuthColors as C } from '@/constants/theme';
+import { formatVND, periodLabel } from '@/lib/package-logic';
+import { getFavorite, setFavorite } from '@/lib/membership';
+import { getStudentVerification } from '@/lib/student-verification';
 
 function Icon({
   name,
@@ -61,7 +61,7 @@ function Action({
       style={[s.action, muted && s.actionMuted, disabled && { opacity: 0.55 }]}
     >
       <Text style={[s.actionText, muted && { color: C.text }]}>{title}</Text>
-      <Icon name="arrow-forward" color={muted ? C.text : "#283500"} size={19} />
+      <Icon name="arrow-forward" color={muted ? C.text : '#283500'} size={19} />
     </Pressable>
   );
 }
@@ -76,11 +76,11 @@ export default function PackageDetailScreen() {
   const packageId = Number(id);
   const validPackageId = Number.isInteger(packageId) && packageId > 0;
   const [loadedItem, setItem] = useState<GymPackage | null>(null);
-  const [detailError, setDetailError] = useState("");
+  const [detailError, setDetailError] = useState('');
   const item = loadedItem?.apiId === packageId ? loadedItem : null;
   const visibleDetailError = validPackageId
     ? detailError
-    : "Mã gói tập không hợp lệ.";
+    : 'Mã gói tập không hợp lệ.';
 
   useEffect(() => {
     if (!validPackageId) return;
@@ -90,7 +90,7 @@ export default function PackageDetailScreen() {
       .then((apiPackage) => {
         if (active) {
           setItem(packageFromApiDetail(apiPackage));
-          setDetailError("");
+          setDetailError('');
         }
       })
       .catch((error) => {
@@ -98,7 +98,7 @@ export default function PackageDetailScreen() {
         setDetailError(
           error instanceof Error
             ? error.message
-            : "Không tải được chi tiết gói tập từ API.",
+            : 'Không tải được chi tiết gói tập từ API.'
         );
       });
 
@@ -109,10 +109,10 @@ export default function PackageDetailScreen() {
   const [selectedMonths, setSelectedMonths] = useState(Number(duration) || 12);
   const [favorite, setFavoriteState] = useState(false);
   const [studentVerified, setStudentVerified] = useState(false);
-  const [toast, setToast] = useState("");
+  const [toast, setToast] = useState('');
   const [selectedClass, setSelectedClass] = useState<PackageClass | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const favoriteId = item ? String(item.apiId) : "";
+  const favoriteId = item ? String(item.apiId) : '';
   useEffect(() => {
     if (!favoriteId || !user) return;
     let active = true;
@@ -121,7 +121,7 @@ export default function PackageDetailScreen() {
         if (active) setFavoriteState(value);
       })
       .catch(() => {
-        if (active) setToast("Không thể tải mục yêu thích.");
+        if (active) setToast('Không thể tải mục yêu thích.');
       });
     return () => {
       active = false;
@@ -133,8 +133,8 @@ export default function PackageDetailScreen() {
     getStudentVerification(user.email).then((value) => {
       if (active)
         setStudentVerified(
-          value?.status === "verified" &&
-            value.expiryDate >= new Date().toISOString().slice(0, 10),
+          value?.status === 'verified' &&
+            value.expiryDate >= new Date().toISOString().slice(0, 10)
         );
     });
     return () => {
@@ -145,15 +145,15 @@ export default function PackageDetailScreen() {
     () => () => {
       if (toastTimer.current) clearTimeout(toastTimer.current);
     },
-    [],
+    []
   );
   const showToast = useCallback((message: string) => {
     setToast(message);
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(""), 2500);
+    toastTimer.current = setTimeout(() => setToast(''), 2500);
   }, []);
   const back = () =>
-    router.canGoBack() ? router.back() : router.replace("/packages");
+    router.canGoBack() ? router.back() : router.replace('/packages');
   if (!item)
     return (
       <SafeAreaView style={s.safe}>
@@ -165,11 +165,11 @@ export default function PackageDetailScreen() {
         </View>
         <View style={s.notFound}>
           <Text style={s.title}>
-            {visibleDetailError || "Đang tải gói tập..."}
+            {visibleDetailError || 'Đang tải gói tập...'}
           </Text>
           <Action
             title="VỀ GÓI TẬP"
-            onPress={() => router.replace("/packages")}
+            onPress={() => router.replace('/packages')}
           />
         </View>
       </SafeAreaView>
@@ -180,27 +180,27 @@ export default function PackageDetailScreen() {
   async function toggleFavorite() {
     const next = !favorite;
     try {
-      if (!user) return showToast("Vui lòng đăng nhập.");
+      if (!user) return showToast('Vui lòng đăng nhập.');
       await setFavorite(user.email, String(item!.apiId), next);
       setFavoriteState(next);
-      showToast(next ? "Đã lưu gói yêu thích." : "Đã bỏ lưu gói tập.");
+      showToast(next ? 'Đã lưu gói yêu thích.' : 'Đã bỏ lưu gói tập.');
     } catch {
-      showToast("Không thể lưu mục yêu thích.");
+      showToast('Không thể lưu mục yêu thích.');
     }
   }
   async function sharePackage() {
-    if (!option) return showToast("Gói tập chưa cấu hình thời hạn đăng ký.");
+    if (!option) return showToast('Gói tập chưa cấu hình thời hạn đăng ký.');
     try {
       await Share.share({
         title: `${item!.name} | QA-Gym`,
-        message: `${item!.name} | QA-Gym\n${option.months} tháng${option.bonusMonths ? ` + ${option.bonusMonths} tháng tặng` : ""}\n${formatVND(option.monthlyPrice)}/tháng\nTổng ${formatVND(option.totalPrice)}`,
+        message: `${item!.name} | QA-Gym\n${option.months} tháng${option.bonusMonths ? ` + ${option.bonusMonths} tháng tặng` : ''}\n${formatVND(option.monthlyPrice)}/tháng\nTổng ${formatVND(option.totalPrice)}`,
       });
     } catch {
-      showToast("Không thể mở chia sẻ trên thiết bị này.");
+      showToast('Không thể mở chia sẻ trên thiết bị này.');
     }
   }
   return (
-    <SafeAreaView style={s.safe} edges={["top", "bottom"]}>
+    <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
       <View style={s.header}>
         <Pressable
           onPress={back}
@@ -213,13 +213,13 @@ export default function PackageDetailScreen() {
         <View style={s.headerRight}>
           <Pressable
             accessibilityLabel="Trợ giúp"
-            onPress={() => showToast("Lễ tân QA-Gym: 1900 8899")}
+            onPress={() => showToast('Lễ tân QA-Gym: 1900 8899')}
           >
             <Icon name="help-circle-outline" color={C.muted} size={19} />
           </Pressable>
           <Pressable
             accessibilityLabel="Hồ sơ"
-            onPress={() => router.push("/profile")}
+            onPress={() => router.push('/profile')}
             style={s.avatar}
           >
             <Icon name="person-outline" color="#283500" size={17} />
@@ -243,7 +243,7 @@ export default function PackageDetailScreen() {
               style={s.roundIcon}
             >
               <Icon
-                name={favorite ? "heart" : "heart-outline"}
+                name={favorite ? 'heart' : 'heart-outline'}
                 color={favorite ? C.lime : C.text}
                 size={20}
               />
@@ -274,7 +274,7 @@ export default function PackageDetailScreen() {
             <View style={s.bestBadge}>
               <Icon name="star-outline" color="#283500" size={12} />
               <Text style={s.bestText}>
-                {item.popular ? "PHỔ BIẾN NHẤT" : item.tier}
+                {item.popular ? 'PHỔ BIẾN NHẤT' : item.tier}
               </Text>
             </View>
             <View style={s.diamondIcon}>
@@ -291,22 +291,24 @@ export default function PackageDetailScreen() {
               <Text style={s.imagePill}>
                 {item.accessHours
                   ? `${item.accessHours.from} - ${item.accessHours.to}`
-                  : "24/7"}
+                  : '24/7'}
               </Text>
             </View>
           </View>
-          {option ? <View style={s.priceBox}>
-            <View style={s.priceRow}>
-              <Text style={s.price}>{formatVND(option.monthlyPrice)}</Text>
-              <Text style={s.perMonth}>/ THÁNG</Text>
+          {option ? (
+            <View style={s.priceBox}>
+              <View style={s.priceRow}>
+                <Text style={s.price}>{formatVND(option.monthlyPrice)}</Text>
+                <Text style={s.perMonth}>/ THÁNG</Text>
+              </View>
+              <View style={s.priceMeta}>
+                <Text style={s.original}>
+                  {formatVND(option.originalMonthlyPrice)}
+                </Text>
+                <Text style={s.discount}>{option.discountLabel}</Text>
+              </View>
             </View>
-            <View style={s.priceMeta}>
-              <Text style={s.original}>
-                {formatVND(option.originalMonthlyPrice)}
-              </Text>
-              <Text style={s.discount}>{option.discountLabel}</Text>
-            </View>
-          </View> : null}
+          ) : null}
           <View style={s.durationHead}>
             <Text style={s.tinyLabel}>THỜI HẠN ĐÓNG GÓI</Text>
           </View>
@@ -355,9 +357,9 @@ export default function PackageDetailScreen() {
               <Icon
                 name={privilege.icon as keyof typeof Ionicons.glyphMap}
                 color={
-                  privilege.accent === "cyan"
+                  privilege.accent === 'cyan'
                     ? C.cyan
-                    : privilege.accent === "mint"
+                    : privilege.accent === 'mint'
                       ? C.mint
                       : C.lime
                 }
@@ -474,23 +476,23 @@ export default function PackageDetailScreen() {
         <View style={s.checkoutInfo}>
           <Text style={s.checkoutLabel}>TỔNG ƯỚC TÍNH</Text>
           <Text style={s.checkoutPrice}>
-            {option ? formatVND(option.totalPrice) : "Chưa có thời hạn"}
+            {option ? formatVND(option.totalPrice) : 'Chưa có thời hạn'}
           </Text>
           {option ? (
             <Text style={s.checkoutPeriod}>{periodLabel(option)}</Text>
           ) : null}
         </View>
         <Pressable
-          disabled={item.availability !== "active" || !option}
+          disabled={item.availability !== 'active' || !option}
           style={[
             s.checkoutButton,
-            (item.availability !== "active" || !option) && { opacity: 0.4 },
+            (item.availability !== 'active' || !option) && { opacity: 0.4 },
           ]}
           onPress={() => {
             if (!option) return;
             if (item.requiresStudentVerification && !studentVerified) {
               router.push({
-                pathname: "/student-verification" as never,
+                pathname: '/student-verification' as never,
                 params: {
                   packageId: String(item.apiId),
                   durationId: String(option.durationId),
@@ -500,7 +502,7 @@ export default function PackageDetailScreen() {
               return;
             }
             router.push({
-              pathname: "/package-enrollment",
+              pathname: '/package-enrollment',
               params: {
                 packageId: String(item.apiId),
                 durationId: String(option.durationId),
@@ -511,12 +513,12 @@ export default function PackageDetailScreen() {
         >
           <Text style={s.checkoutButtonText}>
             {!option
-              ? "CHƯA CÓ THỜI HẠN"
-              : item.availability !== "active"
-              ? "CHƯA MỞ BÁN"
-              : item.requiresStudentVerification && !studentVerified
-                ? "XÁC MINH HSSV"
-                : "ĐĂNG KÝ NGAY"}
+              ? 'CHƯA CÓ THỜI HẠN'
+              : item.availability !== 'active'
+                ? 'CHƯA MỞ BÁN'
+                : item.requiresStudentVerification && !studentVerified
+                  ? 'XÁC MINH HSSV'
+                  : 'ĐĂNG KÝ NGAY'}
           </Text>
           <Icon name="arrow-forward" color="#283500" size={17} />
         </Pressable>
@@ -564,90 +566,90 @@ const s = StyleSheet.create({
   header: {
     minHeight: 52,
     paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 14,
     borderBottomWidth: 1,
     borderBottomColor: C.surfaceLow,
   },
-  headerTitle: { color: C.text, fontSize: 14, fontWeight: "800", flex: 1 },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 13 },
+  headerTitle: { color: C.text, fontSize: 14, fontWeight: '800', flex: 1 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 13 },
   avatar: {
     width: 29,
     height: 29,
     borderRadius: 15,
     backgroundColor: C.text,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
-    width: "100%",
+    width: '100%',
     maxWidth: 540,
-    alignSelf: "center",
+    alignSelf: 'center',
     paddingHorizontal: 16,
     paddingBottom: 32,
   },
   micro: {
     height: 62,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  microLeft: { flexDirection: "row", alignItems: "center", gap: 5, flex: 1 },
+  microLeft: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.lime },
   microText: {
     color: C.lime,
     fontSize: 10,
-    fontWeight: "800",
+    fontWeight: '800',
     letterSpacing: 0.3,
   },
-  microActions: { flexDirection: "row", gap: 8 },
+  microActions: { flexDirection: 'row', gap: 8 },
   roundIcon: {
     width: 36,
     height: 36,
     borderRadius: 18,
     backgroundColor: C.surfaceHigh,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   heroCard: {
-    backgroundColor: "#222a22",
+    backgroundColor: '#222a22',
     borderRadius: 16,
     padding: 15,
     marginBottom: 25,
   },
   heroTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   bestBadge: {
     backgroundColor: C.lime,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 4,
     borderRadius: 20,
     paddingHorizontal: 9,
     paddingVertical: 5,
   },
   bestText: {
-    color: "#283500",
+    color: '#283500',
     fontSize: 10,
-    fontWeight: "900",
+    fontWeight: '900',
     letterSpacing: 0.7,
   },
   diamondIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: C.surfaceHigh,
   },
   heroKicker: {
     color: C.muted,
     fontSize: 11,
-    fontWeight: "800",
+    fontWeight: '800',
     letterSpacing: 1,
     marginTop: 15,
   },
@@ -655,7 +657,7 @@ const s = StyleSheet.create({
     color: C.text,
     fontSize: 27,
     lineHeight: 31,
-    fontWeight: "800",
+    fontWeight: '800',
     marginTop: 3,
   },
   heroDescription: {
@@ -668,34 +670,34 @@ const s = StyleSheet.create({
   heroImageWrap: {
     height: 160,
     borderRadius: 11,
-    overflow: "hidden",
+    overflow: 'hidden',
     backgroundColor: C.surfaceLowest,
   },
-  heroImage: { width: "100%", height: "100%" },
+  heroImage: { width: '100%', height: '100%' },
   imageShade: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     height: 48,
-    backgroundColor: "rgba(12,14,17,.68)",
+    backgroundColor: 'rgba(12,14,17,.68)',
   },
   imageBadges: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 8,
     left: 9,
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 6,
   },
   imagePill: {
     color: C.lime,
-    backgroundColor: "#151916",
+    backgroundColor: '#151916',
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: '700',
     paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 12,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   priceBox: {
     backgroundColor: C.surfaceLowest,
@@ -704,91 +706,91 @@ const s = StyleSheet.create({
     marginTop: 15,
   },
   priceRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
     gap: 5,
   },
   price: {
     color: C.lime,
     fontSize: 32,
     lineHeight: 37,
-    fontWeight: "900",
+    fontWeight: '900',
     letterSpacing: -1,
   },
-  perMonth: { color: C.muted, fontSize: 12, fontWeight: "800" },
-  priceMeta: { flexDirection: "row", alignItems: "center", gap: 10 },
+  perMonth: { color: C.muted, fontSize: 12, fontWeight: '800' },
+  priceMeta: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   original: {
-    color: "#8e9379",
+    color: '#8e9379',
     fontSize: 13,
-    textDecorationLine: "line-through",
+    textDecorationLine: 'line-through',
   },
   discount: {
     color: C.lime,
-    backgroundColor: "#303b0d",
+    backgroundColor: '#303b0d',
     borderRadius: 12,
-    overflow: "hidden",
+    overflow: 'hidden',
     paddingHorizontal: 8,
     paddingVertical: 3,
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   durationHead: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 14,
     marginBottom: 7,
     gap: 6,
   },
-  tinyLabel: { color: C.muted, fontSize: 11, fontWeight: "800" },
-  tinyAccent: { color: C.mint, fontSize: 11, fontWeight: "700" },
-  durationRow: { flexDirection: "row", gap: 7 },
+  tinyLabel: { color: C.muted, fontSize: 11, fontWeight: '800' },
+  tinyAccent: { color: C.mint, fontSize: 11, fontWeight: '700' },
+  durationRow: { flexDirection: 'row', gap: 7 },
   duration: {
     flex: 1,
     minWidth: 0,
     backgroundColor: C.surface,
     borderRadius: 9,
     minHeight: 64,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 2,
   },
   durationActive: { backgroundColor: C.lime },
-  durationTitle: { color: C.text, fontSize: 15, fontWeight: "800" },
+  durationTitle: { color: C.text, fontSize: 15, fontWeight: '800' },
   durationSubtitle: {
     color: C.muted,
     fontSize: 11,
     marginTop: 3,
-    textAlign: "center",
+    textAlign: 'center',
   },
-  durationTextActive: { color: "#283500" },
+  durationTextActive: { color: '#283500' },
   hotDeal: {
-    position: "absolute",
+    position: 'absolute',
     top: 2,
     right: 2,
     color: C.lime,
-    backgroundColor: "#333538",
+    backgroundColor: '#333538',
     fontSize: 9,
-    fontWeight: "800",
+    fontWeight: '800',
     paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 3,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   sectionHeading: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: 3,
     gap: 8,
   },
   sectionTitle: {
     color: C.text,
     fontSize: 16,
-    fontWeight: "800",
+    fontWeight: '800',
     flexShrink: 1,
   },
-  sectionBadge: { color: C.lime, fontSize: 11, fontWeight: "800" },
+  sectionBadge: { color: C.lime, fontSize: 11, fontWeight: '800' },
   sectionCopy: {
     color: C.muted,
     fontSize: 13,
@@ -797,7 +799,7 @@ const s = StyleSheet.create({
     marginBottom: 12,
   },
   privilege: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 11,
     padding: 11,
     backgroundColor: C.surface,
@@ -809,22 +811,22 @@ const s = StyleSheet.create({
     height: 33,
     borderRadius: 8,
     backgroundColor: C.surfaceHigh,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   privilegeBody: { flex: 1 },
   privilegeTitleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 5,
   },
-  privilegeTitle: { color: C.text, fontSize: 13, fontWeight: "800", flex: 1 },
+  privilegeTitle: { color: C.text, fontSize: 13, fontWeight: '800', flex: 1 },
   privilegeBadge: {
     color: C.lime,
     fontSize: 10,
-    fontWeight: "800",
+    fontWeight: '800',
     maxWidth: 88,
-    textAlign: "right",
+    textAlign: 'right',
   },
   privilegeCopy: { color: C.muted, fontSize: 12, lineHeight: 15, marginTop: 4 },
   classScroll: { gap: 10, paddingBottom: 24 },
@@ -832,27 +834,27 @@ const s = StyleSheet.create({
     width: 186,
     backgroundColor: C.surface,
     borderRadius: 11,
-    overflow: "hidden",
+    overflow: 'hidden',
     paddingBottom: 10,
   },
   classImageWrap: { height: 102 },
-  classImage: { width: "100%", height: "100%" },
+  classImage: { width: '100%', height: '100%' },
   classTag: {
-    position: "absolute",
+    position: 'absolute',
     left: 7,
     top: 7,
     color: C.lime,
-    backgroundColor: "#111916",
+    backgroundColor: '#111916',
     fontSize: 10,
-    fontWeight: "800",
+    fontWeight: '800',
     paddingHorizontal: 5,
     paddingVertical: 3,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   className: {
     color: C.text,
     fontSize: 14,
-    fontWeight: "800",
+    fontWeight: '800',
     marginTop: 8,
     marginHorizontal: 9,
   },
@@ -865,13 +867,13 @@ const s = StyleSheet.create({
     marginHorizontal: 9,
   },
   classMetrics: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 9,
     marginHorizontal: 9,
   },
   classMetric: { color: C.muted, fontSize: 11 },
-  classKcal: { color: C.lime, fontSize: 11, fontWeight: "800" },
+  classKcal: { color: C.lime, fontSize: 11, fontWeight: '800' },
   reviewCount: { color: C.muted, fontSize: 11, marginBottom: 10 },
   reviewCard: {
     backgroundColor: C.surface,
@@ -879,17 +881,17 @@ const s = StyleSheet.create({
     padding: 12,
     marginBottom: 9,
   },
-  reviewHead: { flexDirection: "row", alignItems: "center", gap: 9 },
+  reviewHead: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   reviewAvatar: { width: 34, height: 34, borderRadius: 17 },
-  reviewNameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  reviewName: { color: C.text, fontSize: 13, fontWeight: "800" },
+  reviewNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  reviewName: { color: C.text, fontSize: 13, fontWeight: '800' },
   verified: {
-    color: "#283500",
+    color: '#283500',
     backgroundColor: C.lime,
     borderRadius: 3,
-    overflow: "hidden",
+    overflow: 'hidden',
     fontSize: 8,
-    fontWeight: "900",
+    fontWeight: '900',
     paddingHorizontal: 4,
     paddingVertical: 2,
   },
@@ -903,45 +905,45 @@ const s = StyleSheet.create({
     marginTop: 8,
   },
   policyHeading: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     marginBottom: 11,
   },
-  policyTitle: { color: C.text, fontSize: 14, fontWeight: "800" },
-  policy: { flexDirection: "row", gap: 10, marginBottom: 11 },
-  policyName: { color: C.text, fontSize: 12, fontWeight: "800" },
+  policyTitle: { color: C.text, fontSize: 14, fontWeight: '800' },
+  policy: { flexDirection: 'row', gap: 10, marginBottom: 11 },
+  policyName: { color: C.text, fontSize: 12, fontWeight: '800' },
   policyCopy: { color: C.muted, fontSize: 11, lineHeight: 15, marginTop: 3 },
   checkout: {
-    backgroundColor: "#0c0e11",
+    backgroundColor: '#0c0e11',
     borderTopWidth: 1,
     borderTopColor: C.surfaceHigh,
     paddingHorizontal: 16,
     paddingVertical: 11,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
   checkoutInfo: { flex: 1 },
-  checkoutLabel: { color: C.muted, fontSize: 10, fontWeight: "800" },
-  checkoutPrice: { color: C.lime, fontSize: 20, fontWeight: "900" },
+  checkoutLabel: { color: C.muted, fontSize: 10, fontWeight: '800' },
+  checkoutPrice: { color: C.lime, fontSize: 20, fontWeight: '900' },
   checkoutPeriod: { color: C.muted, fontSize: 11, marginTop: 2 },
   checkoutButton: {
     backgroundColor: C.lime,
     borderRadius: 10,
     minHeight: 47,
     paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 5,
   },
-  checkoutButtonText: { color: "#283500", fontSize: 12, fontWeight: "800" },
+  checkoutButtonText: { color: '#283500', fontSize: 12, fontWeight: '800' },
   toast: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 92,
-    alignSelf: "center",
-    maxWidth: "90%",
+    alignSelf: 'center',
+    maxWidth: '90%',
     backgroundColor: C.surfaceHigh,
     borderWidth: 1,
     borderColor: C.border,
@@ -950,11 +952,11 @@ const s = StyleSheet.create({
     borderRadius: 12,
     zIndex: 5,
   },
-  toastText: { color: C.text, fontSize: 13, textAlign: "center" },
+  toastText: { color: C.text, fontSize: 13, textAlign: 'center' },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,.7)",
-    justifyContent: "flex-end",
+    backgroundColor: 'rgba(0,0,0,.7)',
+    justifyContent: 'flex-end',
   },
   modalCard: {
     backgroundColor: C.surfaceLow,
@@ -962,24 +964,24 @@ const s = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
     paddingBottom: 28,
-    maxHeight: "90%",
+    maxHeight: '90%',
   },
   modalKicker: {
     color: C.lime,
     fontSize: 11,
-    fontWeight: "800",
+    fontWeight: '800',
     letterSpacing: 1,
   },
   modalTitle: {
     color: C.text,
     fontSize: 22,
-    fontWeight: "800",
+    fontWeight: '800',
     marginTop: 5,
     marginBottom: 13,
   },
   summary: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 9,
     paddingVertical: 7,
     borderBottomWidth: 1,
@@ -989,34 +991,34 @@ const s = StyleSheet.create({
   summaryValue: {
     color: C.text,
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: '700',
     flex: 1,
-    textAlign: "right",
+    textAlign: 'right',
   },
   modalTotal: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 13,
-    alignItems: "center",
+    alignItems: 'center',
   },
-  modalTotalLabel: { color: C.muted, fontSize: 12, fontWeight: "800" },
-  modalTotalPrice: { color: C.lime, fontSize: 21, fontWeight: "900" },
+  modalTotalLabel: { color: C.muted, fontSize: 12, fontWeight: '800' },
+  modalTotalPrice: { color: C.lime, fontSize: 21, fontWeight: '900' },
   modalNote: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 14 },
   action: {
     backgroundColor: C.lime,
     borderRadius: 10,
     minHeight: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
     gap: 8,
     marginTop: 19,
   },
   actionMuted: { backgroundColor: C.surfaceHigh },
-  actionText: { color: "#283500", fontSize: 13, fontWeight: "800" },
-  cancel: { alignItems: "center", padding: 13 },
-  cancelText: { color: C.muted, fontSize: 13, fontWeight: "700" },
-  modalClassImage: { height: 170, width: "100%", borderRadius: 10 },
-  notFound: { flex: 1, justifyContent: "center", padding: 24 },
-  title: { color: C.text, fontSize: 23, fontWeight: "800" },
+  actionText: { color: '#283500', fontSize: 13, fontWeight: '800' },
+  cancel: { alignItems: 'center', padding: 13 },
+  cancelText: { color: C.muted, fontSize: 13, fontWeight: '700' },
+  modalClassImage: { height: 170, width: '100%', borderRadius: 10 },
+  notFound: { flex: 1, justifyContent: 'center', padding: 24 },
+  title: { color: C.text, fontSize: 23, fontWeight: '800' },
 });

@@ -1,7 +1,7 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { router } from "expo-router";
-import { useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { router } from 'expo-router';
+import { useRef, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   AuthButton,
   AuthDivider,
@@ -9,24 +9,24 @@ import {
   AuthLink,
   AuthScreen,
   SocialButtons,
-} from "@/components/auth-ui";
-import { AuthColors as C } from "@/constants/theme";
-import { useAuth } from "@/context/AuthContext";
+} from '@/components/auth-ui';
+import { AuthColors as C } from '@/constants/theme';
+import { useAuth } from '@/context/AuthContext';
 
 const goals = [
-  { title: "Tăng cơ bắp", detail: "Hypertrophy", icon: "barbell-outline" },
-  { title: "Giảm mỡ / Siết", detail: "Fat Burn", icon: "flame-outline" },
-  { title: "Rèn thể lực", detail: "Endurance", icon: "fitness-outline" },
-  { title: "Yoga & Phục hồi", detail: "Mobility", icon: "body-outline" },
+  { title: 'Tăng cơ bắp', detail: 'Hypertrophy', icon: 'barbell-outline' },
+  { title: 'Giảm mỡ / Siết', detail: 'Fat Burn', icon: 'flame-outline' },
+  { title: 'Rèn thể lực', detail: 'Endurance', icon: 'fitness-outline' },
+  { title: 'Yoga & Phục hồi', detail: 'Mobility', icon: 'body-outline' },
 ] as const;
 export default function Register() {
   const { register } = useAuth();
   const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    password: "",
-    confirm: "",
+    name: '',
+    phone: '',
+    email: '',
+    password: '',
+    confirm: '',
   });
   const [goalsSelected, setGoalsSelected] = useState<string[]>([]);
   const [terms, setTerms] = useState(false);
@@ -34,20 +34,37 @@ export default function Register() {
   const submittingRef = useRef(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [message, setMessage] = useState("");
-  const set = (key: keyof typeof form) => (value: string) =>
-    { setMessage(""); setForm((old) => ({ ...old, [key]: value })); };
+  const [message, setMessage] = useState('');
+  const set = (key: keyof typeof form) => (value: string) => {
+    setMessage('');
+    setForm((old) => ({ ...old, [key]: value }));
+  };
   const errors = {
-    name: (!form.name.trim() || form.name.trim().length > 100) ? "Vui lòng nhập họ và tên (tối đa 100 ký tự)." : "",
-    phone: !/^0[35789]\d{8}$/.test(form.phone.replace(/\s/g, "").replace(/^\+84/, "0")) ? "Số di động Việt Nam không hợp lệ." : "",
-    email: (form.email.trim().length > 100 || !/^\S+@\S+\.\S+$/.test(form.email.trim()))
-      ? "Email không hợp lệ."
-      : "",
-    password: (form.password.length < 8 || form.password.length > 255 || !/[A-Za-z]/.test(form.password) || !/\d/.test(form.password)) ? "Mật khẩu cần 8–255 ký tự, gồm chữ và số." : "",
+    name:
+      !form.name.trim() || form.name.trim().length > 100
+        ? 'Vui lòng nhập họ và tên (tối đa 100 ký tự).'
+        : '',
+    phone: !/^0[35789]\d{8}$/.test(
+      form.phone.replace(/\s/g, '').replace(/^\+84/, '0')
+    )
+      ? 'Số di động Việt Nam không hợp lệ.'
+      : '',
+    email:
+      form.email.trim().length > 100 ||
+      !/^\S+@\S+\.\S+$/.test(form.email.trim())
+        ? 'Email không hợp lệ.'
+        : '',
+    password:
+      form.password.length < 8 ||
+      form.password.length > 255 ||
+      !/[A-Za-z]/.test(form.password) ||
+      !/\d/.test(form.password)
+        ? 'Mật khẩu cần 8–255 ký tự, gồm chữ và số.'
+        : '',
     confirm:
       form.confirm !== form.password || !form.confirm
-        ? "Mật khẩu xác nhận không khớp."
-        : "",
+        ? 'Mật khẩu xác nhận không khớp.'
+        : '',
   };
   const strength = !form.password
     ? 0
@@ -61,19 +78,25 @@ export default function Register() {
   async function handleRegister() {
     if (submittingRef.current || success) return;
     setSubmitted(true);
-    setMessage("");
+    setMessage('');
     if (Object.values(errors).some(Boolean) || !terms) return;
     submittingRef.current = true;
     setSubmitting(true);
     try {
       const error = await register({
-        name: form.name.trim(), phone: form.phone.trim(),
-        email: form.email.trim(), password: form.password,
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+        password: form.password,
       });
       if (error) setMessage(error);
       else setSuccess(true);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Đăng ký thất bại. Vui lòng thử lại.");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : 'Đăng ký thất bại. Vui lòng thử lại.'
+      );
     } finally {
       submittingRef.current = false;
       setSubmitting(false);
@@ -93,9 +116,9 @@ export default function Register() {
         </Text>
         <View style={s.benefits}>
           {[
-            ["fitness-outline", "1x HLV Pro"],
-            ["stats-chart-outline", "InBody Scan"],
-            ["ribbon-outline", "Pass 30 ngày"],
+            ['fitness-outline', '1x HLV Pro'],
+            ['stats-chart-outline', 'InBody Scan'],
+            ['ribbon-outline', 'Pass 30 ngày'],
           ].map(([icon, title]) => (
             <View style={s.benefit} key={title}>
               <Ionicons
@@ -114,7 +137,7 @@ export default function Register() {
         icon="person-outline"
         placeholder="Nguyễn Tuấn Anh"
         value={form.name}
-        onChangeText={set("name")}
+        onChangeText={set('name')}
         error={submitted ? errors.name : undefined}
       />
       <AuthField
@@ -124,7 +147,7 @@ export default function Register() {
         placeholder="0912 345 678"
         keyboardType="phone-pad"
         value={form.phone}
-        onChangeText={set("phone")}
+        onChangeText={set('phone')}
         error={submitted ? errors.phone : undefined}
       />
       <AuthField
@@ -135,7 +158,7 @@ export default function Register() {
         keyboardType="email-address"
         autoCapitalize="none"
         value={form.email}
-        onChangeText={set("email")}
+        onChangeText={set('email')}
         error={submitted ? errors.email : undefined}
       />
       <AuthField
@@ -144,13 +167,13 @@ export default function Register() {
         icon="lock-closed-outline"
         placeholder="Ít nhất 8 ký tự, gồm chữ và số"
         value={form.password}
-        onChangeText={set("password")}
+        onChangeText={set('password')}
         password
         error={submitted ? errors.password : undefined}
       />
       <View style={s.strength}>
         <Text style={s.strengthText}>
-          {["CHƯA NHẬP", "YẾU", "TRUNG BÌNH", "MẠNH"][strength]}
+          {['CHƯA NHẬP', 'YẾU', 'TRUNG BÌNH', 'MẠNH'][strength]}
         </Text>
         <View style={s.bars}>
           {[1, 2, 3].map((n) => (
@@ -172,7 +195,7 @@ export default function Register() {
         icon="lock-closed-outline"
         placeholder="Nhập lại mật khẩu"
         value={form.confirm}
-        onChangeText={set("confirm")}
+        onChangeText={set('confirm')}
         password
         error={submitted ? errors.confirm : undefined}
       />
@@ -192,7 +215,7 @@ export default function Register() {
                 setGoalsSelected((old) =>
                   selected
                     ? old.filter((x) => x !== goal.title)
-                    : [...old, goal.title],
+                    : [...old, goal.title]
                 )
               }
             >
@@ -200,7 +223,7 @@ export default function Register() {
                 <Ionicons
                   name={goal.icon}
                   size={19}
-                  color={selected ? "#283500" : C.text}
+                  color={selected ? '#283500' : C.text}
                 />
               </View>
               <View style={{ flex: 1 }}>
@@ -224,7 +247,7 @@ export default function Register() {
           {terms && <Ionicons name="checkmark" size={18} color="#283500" />}
         </View>
         <Text style={s.termsText}>
-          Tôi đồng ý với <Text style={s.underline}>Điều khoản dịch vụ</Text> &{" "}
+          Tôi đồng ý với <Text style={s.underline}>Điều khoản dịch vụ</Text> &{' '}
           <Text style={s.underline}>Chính sách bảo mật</Text> của QA-Gym.
         </Text>
       </Pressable>
@@ -232,10 +255,20 @@ export default function Register() {
         <Text style={s.error}>Vui lòng đồng ý với điều khoản.</Text>
       ) : null}
       {message ? <Text style={s.error}>{message}</Text> : null}
-      {success ? <Text style={[s.error, { color: C.mint }]}>Đăng ký thành công! Hãy đăng nhập bằng email và mật khẩu vừa tạo.</Text> : null}
+      {success ? (
+        <Text style={[s.error, { color: C.mint }]}>
+          Đăng ký thành công! Hãy đăng nhập bằng email và mật khẩu vừa tạo.
+        </Text>
+      ) : null}
       <AuthButton
-        title={success ? "ĐĂNG NHẬP NGAY" : submitting ? "ĐANG ĐĂNG KÝ..." : "ĐĂNG KÝ HỘI VIÊN"}
-        onPress={success ? () => router.replace("/login") : handleRegister}
+        title={
+          success
+            ? 'ĐĂNG NHẬP NGAY'
+            : submitting
+              ? 'ĐANG ĐĂNG KÝ...'
+              : 'ĐĂNG KÝ HỘI VIÊN'
+        }
+        onPress={success ? () => router.replace('/login') : handleRegister}
         disabled={submitting}
       />
       <AuthDivider title="HOẶC ĐĂNG KÝ NHANH" />
@@ -255,7 +288,7 @@ export default function Register() {
 }
 const s = StyleSheet.create({
   promo: {
-    backgroundColor: "#2b2d2e",
+    backgroundColor: '#2b2d2e',
     borderRadius: 15,
     padding: 17,
     marginBottom: 26,
@@ -263,37 +296,37 @@ const s = StyleSheet.create({
   promoBadge: {
     color: C.lime,
     fontSize: 11,
-    fontWeight: "800",
+    fontWeight: '800',
     letterSpacing: 0.5,
     marginBottom: 13,
   },
-  promoTitle: { color: C.text, fontSize: 27, fontWeight: "800" },
+  promoTitle: { color: C.text, fontSize: 27, fontWeight: '800' },
   promoCopy: { color: C.muted, fontSize: 14, lineHeight: 20, marginTop: 9 },
-  benefits: { flexDirection: "row", gap: 9, marginTop: 16 },
+  benefits: { flexDirection: 'row', gap: 9, marginTop: 16 },
   benefit: {
     flex: 1,
     minHeight: 43,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
     backgroundColor: C.background,
     borderRadius: 9,
     padding: 7,
   },
-  benefitText: { color: C.text, fontSize: 11, fontWeight: "700", flex: 1 },
+  benefitText: { color: C.text, fontSize: 11, fontWeight: '700', flex: 1 },
   strength: { marginTop: -10, marginBottom: 17 },
   strengthText: {
     color: C.muted,
     fontSize: 11,
-    fontWeight: "700",
-    textAlign: "right",
+    fontWeight: '700',
+    textAlign: 'right',
     marginBottom: 5,
   },
-  bars: { flexDirection: "row", gap: 6 },
+  bars: { flexDirection: 'row', gap: 6 },
   bar: { flex: 1, height: 4, borderRadius: 3, backgroundColor: C.surfaceHigh },
   sectionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 8,
     marginTop: 8,
     marginBottom: 9,
@@ -301,36 +334,36 @@ const s = StyleSheet.create({
   sectionTitle: {
     color: C.text,
     fontSize: 12,
-    fontWeight: "800",
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
-  hint: { color: C.lime, fontSize: 12, fontWeight: "700" },
-  goals: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  hint: { color: C.lime, fontSize: 12, fontWeight: '700' },
+  goals: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   goal: {
-    width: "48%",
-    flexDirection: "row",
-    alignItems: "center",
+    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
     minHeight: 56,
     backgroundColor: C.surface,
     borderRadius: 10,
     gap: 8,
     padding: 8,
   },
-  goalSelected: { borderWidth: 1, borderColor: "#394713" },
+  goalSelected: { borderWidth: 1, borderColor: '#394713' },
   goalIcon: {
     width: 30,
     height: 30,
     borderRadius: 6,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: C.surfaceHigh,
   },
   goalIconSelected: { backgroundColor: C.lime },
-  goalTitle: { color: C.text, fontSize: 12, fontWeight: "700" },
+  goalTitle: { color: C.text, fontSize: 12, fontWeight: '700' },
   goalDetail: { color: C.muted, fontSize: 11 },
   terms: {
-    flexDirection: "row",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: 10,
     marginTop: 25,
   },
@@ -339,21 +372,21 @@ const s = StyleSheet.create({
     height: 22,
     backgroundColor: C.surfaceHigh,
     borderRadius: 4,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   termsText: { color: C.muted, flex: 1, fontSize: 13, lineHeight: 19 },
-  underline: { color: C.text, textDecorationLine: "underline" },
+  underline: { color: C.text, textDecorationLine: 'underline' },
   error: { color: C.error, fontSize: 13, marginTop: 8 },
   community: {
     marginTop: 28,
-    backgroundColor: "#0c0e11",
+    backgroundColor: '#0c0e11',
     borderRadius: 13,
     padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 15,
   },
-  communityTitle: { color: C.text, fontSize: 13, fontWeight: "700" },
+  communityTitle: { color: C.text, fontSize: 13, fontWeight: '700' },
   communityCopy: { color: C.muted, fontSize: 12, marginTop: 3 },
 });

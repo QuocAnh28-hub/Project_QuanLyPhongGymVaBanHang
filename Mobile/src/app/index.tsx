@@ -1,51 +1,51 @@
-import { Image } from "expo-image";
+import { Image } from 'expo-image';
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
-import Header from "@/app/Common/header";
+import Header from '@/app/Common/header';
 
 const images = {
-  hero: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=85",
+  hero: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=85',
   strength:
-    "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=700&q=85",
-  hiit: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&q=85",
-  yoga: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=700&q=85",
+    'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=700&q=85',
+  hiit: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&q=85',
+  yoga: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=700&q=85',
 };
 
 const workouts = [
   {
     icon: <MaterialCommunityIcons name="check-circle" />,
-    value: "100+",
-    label: "Thiết bị tối tân",
-    color: "#d9ff00",
+    value: '100+',
+    label: 'Thiết bị tối tân',
+    color: '#d9ff00',
   },
   {
     icon: <MaterialCommunityIcons name="hot-tub" />,
-    value: "Sauna & Spa",
-    label: "Không gian thư giãn",
-    color: "#8cebd2",
+    value: 'Sauna & Spa',
+    label: 'Không gian thư giãn',
+    color: '#8cebd2',
   },
   {
     icon: <Ionicons name="body" />,
-    value: "InBody 770",
-    label: "Đo cơ thể miễn phí",
-    color: "#8fb7ff",
+    value: 'InBody 770',
+    label: 'Đo cơ thể miễn phí',
+    color: '#8fb7ff',
   },
   {
     icon: <Ionicons name="fast-food" />,
-    value: "Free Bar",
-    label: "Nạp năng lượng lành mạnh",
-    color: "#d9ff00",
+    value: 'Free Bar',
+    label: 'Nạp năng lượng lành mạnh',
+    color: '#d9ff00',
   },
 ];
 
@@ -99,13 +99,13 @@ function WorkoutCard({
 }
 
 const packages = () => {
-  router.replace("/packages");
-}
+  router.replace('/packages');
+};
 
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={["top"]} style={styles.safeArea}>
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
@@ -179,9 +179,9 @@ export default function HomeScreen() {
           <SectionTitle title="Lớp Group-X hôm nay" />
           <View style={styles.schedule}>
             {[
-              ["17:30", "Les Mills BodyPump™", "Phòng tập GX1", "Còn 12 chỗ"],
-              ["18:45", "RPM Cycling Party", "Phòng Cycling", "Còn 8 chỗ"],
-              ["19:30", "Zumba Fitness", "Studio 3", "Còn 6 chỗ"],
+              ['17:30', 'Les Mills BodyPump™', 'Phòng tập GX1', 'Còn 12 chỗ'],
+              ['18:45', 'RPM Cycling Party', 'Phòng Cycling', 'Còn 8 chỗ'],
+              ['19:30', 'Zumba Fitness', 'Studio 3', 'Còn 6 chỗ'],
             ].map(([time, title, room, seats]) => (
               <View style={styles.scheduleRow} key={title}>
                 <Text style={styles.scheduleTime}>{time}</Text>
@@ -199,9 +199,7 @@ export default function HomeScreen() {
           <View style={styles.ctaCard}>
             <Text style={styles.ctaIcon}>♨</Text>
             <Text style={styles.ctaKicker}>TRẢI NGHIỆM KHÁC BIỆT MỖI NGÀY</Text>
-            <Text style={styles.ctaTitle}>
-              Đăng ký trải nghiệm
-            </Text>
+            <Text style={styles.ctaTitle}>Đăng ký trải nghiệm</Text>
             <Text style={styles.ctaCopy}>
               Tận hưởng đầy đủ tiện ích cao cấp và cảm nhận sự thay đổi.
             </Text>
@@ -219,195 +217,195 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#101210" },
-  safeArea: { flex: 1, width: "100%", maxWidth: 540, alignSelf: "center" },
+  container: { flex: 1, backgroundColor: '#101210' },
+  safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' },
   content: { paddingHorizontal: 16, paddingBottom: 24 },
   greeting: { marginBottom: 18 },
   kicker: {
-    color: "#c1da00",
+    color: '#c1da00',
     fontSize: 11,
-    fontWeight: "800",
+    fontWeight: '800',
     letterSpacing: 1.4,
   },
   greetingTitle: {
-    color: "#f4f7ee",
+    color: '#f4f7ee',
     fontSize: 26,
-    fontWeight: "800",
+    fontWeight: '800',
     marginTop: 6,
   },
-  greetingCopy: { color: "#9ca599", fontSize: 13, marginTop: 6 },
+  greetingCopy: { color: '#9ca599', fontSize: 13, marginTop: 6 },
   heroCard: {
     height: 204,
     borderRadius: 14,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginBottom: 26,
   },
   heroImage: { ...StyleSheet.absoluteFill },
   heroShade: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(8, 15, 10, .62)",
+    backgroundColor: 'rgba(8, 15, 10, .62)',
   },
-  heroCopy: { flex: 1, padding: 18, justifyContent: "center" },
+  heroCopy: { flex: 1, padding: 18, justifyContent: 'center' },
   pill: {
-    alignSelf: "flex-start",
-    backgroundColor: "#c8ed00",
+    alignSelf: 'flex-start',
+    backgroundColor: '#c8ed00',
     borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 5,
     marginBottom: 10,
   },
-  pillText: { color: "#192000", fontSize: 10, fontWeight: "900" },
-  heroTitle: { color: "#fff", fontSize: 25, fontWeight: "900", lineHeight: 26 },
-  heroDetail: { color: "#d4dbcf", fontSize: 12, marginTop: 7 },
+  pillText: { color: '#192000', fontSize: 10, fontWeight: '900' },
+  heroTitle: { color: '#fff', fontSize: 25, fontWeight: '900', lineHeight: 26 },
+  heroDetail: { color: '#d4dbcf', fontSize: 12, marginTop: 7 },
   heroButton: {
-    backgroundColor: "#d9ff00",
+    backgroundColor: '#d9ff00',
     paddingHorizontal: 13,
     paddingVertical: 9,
     borderRadius: 4,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     marginTop: 13,
   },
-  heroButtonText: { color: "#152000", fontSize: 11, fontWeight: "900" },
+  heroButtonText: { color: '#152000', fontSize: 11, fontWeight: '900' },
   sectionTitle: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
-  sectionHeading: { color: "#f2f6ea", fontSize: 16, fontWeight: "800" },
-  sectionAction: { color: "#c9ed00", fontSize: 10, fontWeight: "900" },
+  sectionHeading: { color: '#f2f6ea', fontSize: 16, fontWeight: '800' },
+  sectionAction: { color: '#c9ed00', fontSize: 10, fontWeight: '900' },
   statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 6,
     marginBottom: 26,
   },
   statCard: {
-    backgroundColor: "#1c211d",
+    backgroundColor: '#1c211d',
     borderRadius: 8,
     padding: 11,
-    width: "48.8%",
+    width: '48.8%',
     minHeight: 82,
     borderWidth: 1,
-    borderColor: "#2c322c",
+    borderColor: '#2c322c',
   },
-  statIcon: { fontSize: 17, fontWeight: "900", marginBottom: 4 },
-  statValue: { color: "#f0f4e8", fontSize: 13, fontWeight: "800" },
-  statLabel: { color: "#8e978d", fontSize: 10, marginTop: 3 },
+  statIcon: { fontSize: 17, fontWeight: '900', marginBottom: 4 },
+  statValue: { color: '#f0f4e8', fontSize: 13, fontWeight: '800' },
+  statLabel: { color: '#8e978d', fontSize: 10, marginTop: 3 },
   horizontalList: { gap: 10, paddingBottom: 26 },
   workoutCard: {
     width: 180,
     height: 174,
     borderRadius: 10,
-    overflow: "hidden",
-    backgroundColor: "#1d231e",
+    overflow: 'hidden',
+    backgroundColor: '#1d231e',
   },
   workoutImage: { ...StyleSheet.absoluteFill },
   workoutOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(7, 12, 8, .52)",
+    backgroundColor: 'rgba(7, 12, 8, .52)',
   },
   workoutTag: {
-    position: "absolute",
+    position: 'absolute',
     top: 10,
     left: 10,
-    backgroundColor: "#d9ff00",
+    backgroundColor: '#d9ff00',
     paddingHorizontal: 6,
     paddingVertical: 4,
     borderRadius: 3,
   },
-  workoutTagText: { color: "#172000", fontSize: 8, fontWeight: "900" },
-  workoutCopy: { position: "absolute", left: 12, right: 10, bottom: 11 },
-  workoutTitle: { color: "#fff", fontSize: 15, fontWeight: "900" },
+  workoutTagText: { color: '#172000', fontSize: 8, fontWeight: '900' },
+  workoutCopy: { position: 'absolute', left: 12, right: 10, bottom: 11 },
+  workoutTitle: { color: '#fff', fontSize: 15, fontWeight: '900' },
   workoutDetail: {
-    color: "#d0d8ce",
+    color: '#d0d8ce',
     fontSize: 10,
     marginTop: 4,
     lineHeight: 13,
   },
   schedule: {
-    backgroundColor: "#1b201c",
+    backgroundColor: '#1b201c',
     borderRadius: 9,
     paddingHorizontal: 12,
     marginBottom: 24,
   },
   scheduleRow: {
     minHeight: 61,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: "#2c322c",
+    borderBottomColor: '#2c322c',
     gap: 11,
   },
   scheduleTime: {
-    color: "#d9ff00",
+    color: '#d9ff00',
     fontSize: 12,
-    fontWeight: "900",
+    fontWeight: '900',
     width: 39,
   },
   scheduleInfo: { flex: 1 },
-  scheduleTitle: { color: "#ecf2e7", fontSize: 12, fontWeight: "800" },
-  scheduleRoom: { color: "#858e84", fontSize: 10, marginTop: 4 },
+  scheduleTitle: { color: '#ecf2e7', fontSize: 12, fontWeight: '800' },
+  scheduleRoom: { color: '#858e84', fontSize: 10, marginTop: 4 },
   seatPill: {
-    backgroundColor: "#2a3328",
+    backgroundColor: '#2a3328',
     borderRadius: 4,
     paddingHorizontal: 7,
     paddingVertical: 5,
   },
-  seatText: { color: "#bde000", fontSize: 9, fontWeight: "800" },
+  seatText: { color: '#bde000', fontSize: 9, fontWeight: '800' },
   reviewCard: {
-    backgroundColor: "#1d231e",
+    backgroundColor: '#1d231e',
     borderRadius: 9,
     padding: 14,
     marginBottom: 24,
   },
-  stars: { color: "#d9ff00", fontSize: 14, letterSpacing: 1 },
-  rating: { color: "#e8eee2", fontSize: 12, letterSpacing: 0 },
-  reviewQuote: { color: "#d9ded5", fontSize: 12, lineHeight: 17, marginTop: 8 },
-  reviewAuthor: { color: "#899288", fontSize: 10, marginTop: 7 },
+  stars: { color: '#d9ff00', fontSize: 14, letterSpacing: 1 },
+  rating: { color: '#e8eee2', fontSize: 12, letterSpacing: 0 },
+  reviewQuote: { color: '#d9ded5', fontSize: 12, lineHeight: 17, marginTop: 8 },
+  reviewAuthor: { color: '#899288', fontSize: 10, marginTop: 7 },
   ctaCard: {
-    backgroundColor: "#182018",
+    backgroundColor: '#182018',
     borderRadius: 10,
     padding: 18,
-    alignItems: "center",
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: "#35412e",
+    borderColor: '#35412e',
   },
-  ctaIcon: { color: "#d9ff00", fontSize: 23, marginBottom: 8 },
+  ctaIcon: { color: '#d9ff00', fontSize: 23, marginBottom: 8 },
   ctaKicker: {
-    color: "#b8cf00",
+    color: '#b8cf00',
     fontSize: 9,
-    fontWeight: "900",
+    fontWeight: '900',
     letterSpacing: 1.1,
   },
   ctaTitle: {
-    color: "#f6faef",
-    textAlign: "center",
+    color: '#f6faef',
+    textAlign: 'center',
     fontSize: 20,
     lineHeight: 23,
-    fontWeight: "900",
+    fontWeight: '900',
     marginTop: 7,
   },
   ctaCopy: {
-    color: "#929d91",
-    textAlign: "center",
+    color: '#929d91',
+    textAlign: 'center',
     fontSize: 11,
     lineHeight: 15,
     marginTop: 8,
   },
   ctaButton: {
-    backgroundColor: "#d9ff00",
-    alignSelf: "stretch",
-    alignItems: "center",
+    backgroundColor: '#d9ff00',
+    alignSelf: 'stretch',
+    alignItems: 'center',
     paddingVertical: 11,
     borderRadius: 5,
     marginTop: 15,
   },
-  ctaButtonText: { color: "#192100", fontSize: 10, fontWeight: "900" },
+  ctaButtonText: { color: '#192100', fontSize: 10, fontWeight: '900' },
   footerNote: {
-    color: "#717a6e",
+    color: '#717a6e',
     fontSize: 9,
-    textAlign: "center",
+    textAlign: 'center',
     marginTop: 10,
   },
 });

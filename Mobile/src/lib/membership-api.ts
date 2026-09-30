@@ -1,5 +1,5 @@
-import { baseUrl } from "@/lib/account-api";
-import type { PaymentMethod } from "@/lib/membership";
+import { baseUrl } from '@/lib/account-api';
+import type { PaymentMethod } from '@/lib/membership';
 
 export type RegistrationResult = {
   DangKyID: number;
@@ -16,7 +16,7 @@ export type RegistrationResult = {
   SoTienGiam: number;
   GiaThanhToan: number;
   MaKhuyenMai: string | null;
-  TrangThai: "PENDING";
+  TrangThai: 'PENDING';
 };
 
 export type RegistrationDetail = {
@@ -28,7 +28,7 @@ export type RegistrationDetail = {
   NgayBatDau: string;
   NgayKetThuc: string;
   GiaThanhToan: string | number;
-  TrangThai: "PENDING" | "ACTIVE" | "EXPIRED" | "CANCELLED";
+  TrangThai: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
   TenGoi: string;
   SoThang: number;
   ThangTang: number;
@@ -49,19 +49,19 @@ export type CurrentMembership = {
   NgayBatDau: string;
   NgayKetThuc: string;
   GiaThanhToan: string | number;
-  TrangThaiDangKy: "ACTIVE";
+  TrangThaiDangKy: 'ACTIVE';
   ThanhToanID: number;
   SoTien: string | number;
-  PhuongThucThanhToan: "TIEN_MAT" | "CHUYEN_KHOAN" | "THE";
-  TrangThaiThanhToan: "SUCCESS";
-  TinhTrangSuDung: "ACTIVE" | "UPCOMING";
+  PhuongThucThanhToan: 'TIEN_MAT' | 'CHUYEN_KHOAN' | 'THE';
+  TrangThaiThanhToan: 'SUCCESS';
+  TinhTrangSuDung: 'ACTIVE' | 'UPCOMING';
 };
 
 export class RegistrationApiError extends Error {
   constructor(
     message: string,
     readonly code?: string,
-    readonly registrationId?: number,
+    readonly registrationId?: number
   ) {
     super(message);
   }
@@ -84,9 +84,9 @@ export async function registerPackage(input: {
   voucherCode?: string | null;
 }): Promise<RegistrationResult> {
   const response = await fetch(`${baseUrl}/dangkygoitap/register`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       TaiKhoanID: input.accountId,
@@ -106,7 +106,7 @@ export async function registerPackage(input: {
     throw new RegistrationApiError(
       data?.message || `HTTP ${response.status}`,
       data?.code,
-      data?.data?.DangKyID,
+      data?.data?.DangKyID
     );
   }
 
@@ -116,17 +116,17 @@ export async function registerPackage(input: {
   };
 
   if (!payload?.data?.DangKyID) {
-    throw new Error("Backend không trả về DangKyID");
+    throw new Error('Backend không trả về DangKyID');
   }
 
   return payload.data;
 }
 
 export async function getRegistrationDetail(
-  registrationId: number,
+  registrationId: number
 ): Promise<RegistrationDetail> {
   const response = await fetch(
-    `${baseUrl}/dangkygoitap/detail/${registrationId}`,
+    `${baseUrl}/dangkygoitap/detail/${registrationId}`
   );
 
   if (!response.ok) {
@@ -137,10 +137,10 @@ export async function getRegistrationDetail(
 }
 
 export async function getCurrentMembership(
-  accountId: number,
+  accountId: number
 ): Promise<CurrentMembership | null> {
   const response = await fetch(
-    `${baseUrl}/dangkygoitap/current/account/${accountId}`,
+    `${baseUrl}/dangkygoitap/current/account/${accountId}`
   );
 
   if (!response.ok) throw new Error(await readError(response));
@@ -148,8 +148,8 @@ export async function getCurrentMembership(
 }
 
 export const paymentMethodNames: Record<PaymentMethod, string> = {
-  vietqr: "VietQR / Chuyển khoản 24/7",
-  card: "Thẻ tín dụng / Ghi nợ quốc tế",
-  wallet: "Ví điện tử",
-  pos: "Thanh toán trực tiếp tại quầy",
+  vietqr: 'VietQR / Chuyển khoản 24/7',
+  card: 'Thẻ tín dụng / Ghi nợ quốc tế',
+  wallet: 'Ví điện tử',
+  pos: 'Thanh toán trực tiếp tại quầy',
 };

@@ -3,7 +3,9 @@ import { Platform } from 'react-native';
 
 // ponytail: small local development records; use a database when records outgrow SecureStore values.
 export async function readLocal(key: string) {
-  return Platform.OS === 'web' ? globalThis.localStorage?.getItem(key) ?? null : SecureStore.getItemAsync(key);
+  return Platform.OS === 'web'
+    ? (globalThis.localStorage?.getItem(key) ?? null)
+    : SecureStore.getItemAsync(key);
 }
 export async function writeLocal(key: string, value: string | null) {
   if (Platform.OS === 'web') {
