@@ -31,12 +31,16 @@ const ThanhtoanController = {
   createPackagePayment: (req, res) => {
     const DangKyID = positiveInteger(req.body?.DangKyID);
     const PhuongThucThanhToan = String(req.body?.PhuongThucThanhToan || '');
+    const ActivationMode = req.body?.ActivationMode || 'QUEUE_AFTER_CURRENT';
     if (!DangKyID) return res.status(400).json({ message: 'DangKyID không hợp lệ' });
     if (!['TIEN_MAT', 'CHUYEN_KHOAN', 'THE'].includes(PhuongThucThanhToan)) {
       return res.status(400).json({ message: 'Phương thức thanh toán không hợp lệ' });
     }
+    if (!['QUEUE_AFTER_CURRENT', 'REPLACE_NOW'].includes(ActivationMode)) {
+      return res.status(400).json({ message: 'ActivationMode không hợp lệ' });
+    }
 
-    Thanhtoan.createPackagePayment({ DangKyID, PhuongThucThanhToan }, (error, result) => {
+    Thanhtoan.createPackagePayment({ DangKyID, PhuongThucThanhToan, ActivationMode }, (error, result) => {
       if (error) return sendError(res, error, 'Không thể tạo yêu cầu thanh toán');
       res.status(result.existing ? 200 : 201).json({
         message: result.existing
@@ -80,7 +84,9 @@ const ThanhtoanController = {
           Thongbao.notifyMember(result.HoiVienID, {
             Loai: 'PACKAGE_PAYMENT', DanhMuc: 'TRANSACTION',
             TieuDe: 'Thanh toán gói tập thành công',
-            NoiDung: `Gói ${detail.TenGoi} đã được kích hoạt.`,
+            NoiDung: result.TinhTrangSuDung === 'UPCOMING'
+              ? `Thanh toán gói tập thành công. Gói ${detail.TenGoi} đã được xếp lịch và sẽ kích hoạt từ ${result.NgayBatDau.split('-').reverse().join('/')}.`
+              : `Thanh toán gói tập thành công. Gói ${detail.TenGoi} đã được kích hoạt.`,
             ActionType: 'MEMBERSHIP', ActionPayload: { ThanhToanID: id },
           });
         });

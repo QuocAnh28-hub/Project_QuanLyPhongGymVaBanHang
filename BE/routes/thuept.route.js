@@ -9,9 +9,7 @@ router.get('/account/:TaiKhoanID', ThueptController.getByAccount);
 router.get('/detail/:ThuePTID', ThueptController.getDetail);
 router.post('/:ThuePTID/confirm', ThueptController.confirm);
 router.post('/:ThuePTID/cancel', ThueptController.cancel);
+router.post('/:ThuePTID/complete', ThueptController.complete);
 router.get('/:ThuePTID', ThueptController.getById);
-router.post('/', ThueptController.create);
-router.put('/:ThuePTID', ThueptController.update);
-router.delete('/:ThuePTID', ThueptController.delete);
 
 module.exports = router;

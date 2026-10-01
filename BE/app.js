@@ -6,6 +6,7 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const db = require('./common/db');
+const { requireAuth } = require('./middleware/auth');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -66,6 +67,7 @@ app.get('/health', (req, res) => {
 
 const routes = [
   ['/auth/admin', './routes/admin-auth.route'],
+  ['/auth', './routes/auth.route', 'router'],
   ['/auth', './routes/recovery.route'],
   ['/apdungkhuyenmaidonhang', './routes/apdungkhuyenmaidonhang.route'],
   ['/apdungkhuyenmaigoitap', './routes/apdungkhuyenmaigoitap.route'],
@@ -96,8 +98,50 @@ const routes = [
   ['/thuept', './routes/thuept.route']
 ];
 
-routes.forEach(([basePath, modulePath]) => {
-  app.use(basePath, require(modulePath));
+const adminOnly = new Set(['/apdungkhuyenmaidonhang','/apdungkhuyenmaigoitap','/apdungkhuyenmaipt','/danhmuc','/goitap','/hoadon','/kho','/khuyenmai','/nhanvien','/phieunhap','/reports','/sanpham','/taikhoan']);
+const customerPaths = [
+  /^GET \/(?:goitap\/active|pt\/active|lichpt\/available|sanpham|danhmuc)(?:\/|$)/,
+  /^(?:GET|PUT) \/hoivien\/account\/\d+$/, /^POST \/taikhoan\/\d+\/change-password$/,
+  /^GET \/dangkygoitap\/(?:(?:current|owned)\/account\/\d+|detail\/\d+)$/, /^POST \/dangkygoitap\/(?:register|\d+\/renew)$/,
+  /^(?:GET|POST) \/checkin\/(?:token|history\/account\/\d+)$/, /^(?:GET|POST) \/thanhtoan\/(?:history\/account\/\d+|package(?:\/\d+)?|registration\/\d+)$/,
+  /^(?:GET|POST) \/thuept\/(?:book|account\/\d+|detail\/\d+|\d+\/cancel)$/, /^(?:GET|POST|PUT) \/thongbao\/(?:account\/\d+(?:\/read-all)?|preferences\/account\/\d+|\d+\/read)$/,
+  /^(?:GET|POST|PUT) \/giohang\/account\/\d+\/items$/, /^(?:GET|POST) \/donhang\/(?:checkout\/\d+|account\/\d+\/)/
+];
+async function authorizeApi(req, res, next) {
+  if (req.auth.VaiTro === 'ADMIN') return next();
+  if (req.auth.VaiTro === 'STAFF') return adminOnly.has(req.baseUrl) ? res.status(403).json({ message: 'Chỉ Admin được thực hiện thao tác này.' }) : next();
+  const fullPath = req.baseUrl + req.path;
+  if (!customerPaths.some(pattern => pattern.test(`${req.method} ${fullPath}`))) return res.status(403).json({ message: 'Bạn không có quyền thực hiện thao tác này.' });
+  const pathId = fullPath.match(/(?:account|taikhoan)\/(\d+)/i)?.[1] || (req.baseUrl === '/taikhoan' ? req.path.match(/^\/(\d+)/)?.[1] : null);
+  const bodyId = req.body?.TaiKhoanID ?? req.body?.accountId;
+  if ((pathId && Number(pathId) !== Number(req.auth.TaiKhoanID)) || (bodyId && Number(bodyId) !== Number(req.auth.TaiKhoanID)))
+    return res.status(403).json({ message: 'Không được truy cập dữ liệu của tài khoản khác.' });
+  let ownershipSql;
+  let resourceId;
+  const registration = fullPath.match(/^\/(?:dangkygoitap\/detail|thanhtoan\/registration)\/(\d+)$/)?.[1] || req.body?.DangKyID;
+  if (registration) {
+    resourceId = Number(registration);
+    ownershipSql = 'SELECT 1 FROM dangkygoitap d JOIN hoivien h ON h.HoiVienID=d.HoiVienID WHERE d.DangKyID=? AND h.TaiKhoanID=?';
+  } else if ((resourceId = Number(fullPath.match(/^\/thanhtoan\/package\/(\d+)$/)?.[1]))) {
+    ownershipSql = 'SELECT 1 FROM thanhtoan t JOIN hoivien h ON h.HoiVienID=t.HoiVienID WHERE t.ThanhToanID=? AND h.TaiKhoanID=?';
+  } else if ((resourceId = Number(fullPath.match(/^\/thuept\/(?:detail\/)?(\d+)(?:\/cancel)?$/)?.[1]))) {
+    ownershipSql = 'SELECT 1 FROM thuept t JOIN hoivien h ON h.HoiVienID=t.HoiVienID WHERE t.ThuePTID=? AND h.TaiKhoanID=?';
+  } else if ((resourceId = Number(fullPath.match(/^\/thongbao\/(\d+)\/read$/)?.[1]))) {
+    ownershipSql = 'SELECT 1 FROM thongbao WHERE ThongBaoID=? AND TaiKhoanID=?';
+  }
+  if (ownershipSql) {
+    const [rows] = await db.promise().query(ownershipSql, [resourceId, req.auth.TaiKhoanID]);
+    if (!rows.length) return res.status(403).json({ message: 'Không được truy cập dữ liệu của tài khoản khác.' });
+  }
+  next();
+}
+function protectApi(req, res, next) {
+  if ((req.baseUrl === '/taikhoan' && req.path === '/register') || (req.baseUrl === '/checkin' && req.path === '/scan')) return next();
+  requireAuth(req, res, error => error ? next(error) : Promise.resolve(authorizeApi(req, res, next)).catch(next));
+}
+routes.forEach(([basePath, modulePath, property]) => {
+  const route = property ? require(modulePath)[property] : require(modulePath);
+  app.use(basePath, basePath.startsWith('/auth') ? route : [protectApi, route]);
 });
 
 app.use((req, res) => {

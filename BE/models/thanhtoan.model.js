@@ -8,6 +8,21 @@ function appError(status, code, message, data) {
   return error;
 }
 
+function addMonthsClamped(dateString, months) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const target = month - 1 + months;
+  const targetYear = year + Math.floor(target / 12);
+  const targetMonth = ((target % 12) + 12) % 12;
+  const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(targetYear, targetMonth, Math.min(day, lastDay))).toISOString().slice(0, 10);
+}
+function nextDay(value) {
+  const date = new Date(`${String(value).slice(0, 10)}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
+const activationMode = payment => String(payment.NoiDung || '').includes('REPLACE_NOW') ? 'REPLACE_NOW' : 'QUEUE_AFTER_CURRENT';
+
 const packagePaymentDetailSql = `
   SELECT
     tt.ThanhToanID,
@@ -22,7 +37,8 @@ const packagePaymentDetailSql = `
     DATE_FORMAT(dk.NgayKetThuc, '%Y-%m-%d') AS NgayKetThuc,
     dk.GiaThanhToan,
     tt.SoTien,
-    tt.PhuongThucThanhToan,
+      tt.PhuongThucThanhToan,
+      CASE WHEN tt.NoiDung LIKE '%REPLACE_NOW%' THEN 'REPLACE_NOW' ELSE 'QUEUE_AFTER_CURRENT' END AS ActivationMode,
     tt.TrangThai AS TrangThaiThanhToan,
     dk.TrangThai AS TrangThaiDangKy
   FROM thanhtoan tt
@@ -74,6 +90,11 @@ Thanhtoan.createPackagePayment = (input, callback) => {
       );
 
       if (payments.length) {
+        if (payments[0].TrangThai === 'PENDING') {
+          const note = `PACKAGE_ACTIVATION:${input.ActivationMode || 'QUEUE_AFTER_CURRENT'}; đăng ký #${registration.DangKyID}`;
+          await query.query('UPDATE thanhtoan SET NoiDung=? WHERE ThanhToanID=?', [note, payments[0].ThanhToanID]);
+          payments[0].NoiDung = note;
+        }
         await query.commit();
         return callback(null, { payment: payments[0], existing: true });
       }
@@ -91,7 +112,7 @@ Thanhtoan.createPackagePayment = (input, callback) => {
           registration.HoiVienID,
           registration.GiaThanhToan,
           input.PhuongThucThanhToan,
-          `Thanh toán đăng ký gói #${registration.DangKyID}`,
+          `PACKAGE_ACTIVATION:${input.ActivationMode || 'QUEUE_AFTER_CURRENT'}; đăng ký #${registration.DangKyID}`,
         ],
       );
       const payment = {
@@ -183,7 +204,10 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
       }
 
       const [registrations] = await query.query(
-        "SELECT DangKyID, TrangThai FROM dangkygoitap WHERE DangKyID = ? FOR UPDATE",
+        `SELECT d.DangKyID,d.HoiVienID,d.NgayBatDau,d.NgayKetThuc,d.TrangThai,
+          th.SoThang,th.ThangTang,DATE_FORMAT(CURDATE(),'%Y-%m-%d') Today
+         FROM dangkygoitap d INNER JOIN GoiTapThoiHan th ON th.GoiTapThoiHanID=d.GoiTapThoiHanID
+         WHERE d.DangKyID = ? FOR UPDATE`,
         [payment.DangKyID],
       );
       if (!registrations.length) {
@@ -193,16 +217,46 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
         throw appError(409, "REGISTRATION_NOT_PENDING", "Đăng ký gói tập không còn ở trạng thái PENDING");
       }
 
-      await query.query(
-        "UPDATE thanhtoan SET TrangThai = 'SUCCESS', NgayThanhToan = NOW() WHERE ThanhToanID = ?",
-        [ThanhToanID],
-      );
+      const registration = registrations[0];
+      await query.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [registration.HoiVienID]);
+      const mode = activationMode(payment);
+      const months = Number(registration.SoThang) + Number(registration.ThangTang || 0);
+      let start = String(registration.NgayBatDau).slice(0, 10);
+      if (mode === 'REPLACE_NOW') {
+        start = registration.Today;
+        await query.query(`UPDATE dangkygoitap d
+          INNER JOIN thanhtoan p ON p.DangKyID=d.DangKyID AND p.TrangThai='SUCCESS'
+          SET d.NgayKetThuc=DATE_SUB(CURDATE(),INTERVAL 1 DAY)
+          WHERE d.HoiVienID=? AND d.DangKyID<>? AND d.TrangThai='ACTIVE'
+            AND d.NgayBatDau<=CURDATE() AND d.NgayKetThuc>=CURDATE()`, [registration.HoiVienID, payment.DangKyID]);
+      } else {
+        const [queue] = await query.query(`SELECT MAX(d.NgayKetThuc) MaxNgayKetThuc
+          FROM dangkygoitap d INNER JOIN thanhtoan p ON p.DangKyID=d.DangKyID AND p.TrangThai='SUCCESS'
+          WHERE d.HoiVienID=? AND d.DangKyID<>? AND d.TrangThai='ACTIVE' AND d.NgayKetThuc>=CURDATE()`, [registration.HoiVienID, payment.DangKyID]);
+        if (queue[0].MaxNgayKetThuc) start = nextDay(queue[0].MaxNgayKetThuc);
+      }
+      const end = addMonthsClamped(start, months);
+      await query.query("UPDATE thanhtoan SET TrangThai = 'SUCCESS', NgayThanhToan = NOW() WHERE ThanhToanID = ?", [ThanhToanID]);
       const [registrationUpdate] = await query.query(
-        "UPDATE dangkygoitap SET TrangThai = 'ACTIVE' WHERE DangKyID = ? AND TrangThai = 'PENDING'",
-        [payment.DangKyID],
+        "UPDATE dangkygoitap SET TrangThai='ACTIVE',NgayBatDau=?,NgayKetThuc=? WHERE DangKyID=? AND TrangThai='PENDING'",
+        [start, end, payment.DangKyID],
       );
       if (registrationUpdate.affectedRows !== 1) {
         throw appError(409, "REGISTRATION_UPDATE_FAILED", "Không thể kích hoạt đăng ký gói tập");
+      }
+      if (mode === 'REPLACE_NOW') {
+        const [upcoming] = await query.query(`SELECT d.DangKyID,th.SoThang,th.ThangTang
+          FROM dangkygoitap d INNER JOIN GoiTapThoiHan th ON th.GoiTapThoiHanID=d.GoiTapThoiHanID
+          INNER JOIN thanhtoan p ON p.DangKyID=d.DangKyID AND p.TrangThai='SUCCESS'
+          WHERE d.HoiVienID=? AND d.DangKyID<>? AND d.TrangThai='ACTIVE' AND d.NgayBatDau>CURDATE()
+          ORDER BY d.NgayBatDau,d.DangKyID FOR UPDATE`, [registration.HoiVienID, payment.DangKyID]);
+        let cursor = end;
+        for (const item of upcoming) {
+          const itemStart = nextDay(cursor);
+          const itemEnd = addMonthsClamped(itemStart, Number(item.SoThang) + Number(item.ThangTang || 0));
+          await query.query('UPDATE dangkygoitap SET NgayBatDau=?,NgayKetThuc=? WHERE DangKyID=?', [itemStart, itemEnd, item.DangKyID]);
+          cursor = itemEnd;
+        }
       }
 
       const [invoice] = await query.query(
@@ -218,6 +272,10 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
         ...payment,
         TrangThai: "SUCCESS",
         TrangThaiDangKy: "ACTIVE",
+        ActivationMode: mode,
+        NgayBatDau: start,
+        NgayKetThuc: end,
+        TinhTrangSuDung: start > registration.Today ? 'UPCOMING' : 'CURRENT',
         HoaDonID: invoice.insertId || invoices[0].HoaDonID,
         alreadyConfirmed: false,
       });

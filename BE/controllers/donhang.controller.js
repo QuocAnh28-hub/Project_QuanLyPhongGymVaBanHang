@@ -1,4 +1,16 @@
 const Donhang = require('../models/donhang.model');
+const Thongbao = require('../models/thongbao.model');
+
+function positiveInteger(value) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function respondError(res, error) {
+  if (error?.status) return res.status(error.status).json({ message: error.message, code: error.code });
+  console.error('Loi nghiep vu don hang:', error);
+  return res.status(500).json({ message: 'Khong the xu ly don hang' });
+}
 
 const DonhangController = {
 
@@ -32,6 +44,32 @@ const DonhangController = {
       }
 
       res.json(result[0]);
+    });
+  },
+
+  updateDelivery: (req, res) => {
+    const id = positiveInteger(req.params.DonHangID);
+    const DiaChiGiaoHang = String(req.body?.DiaChiGiaoHang || '').trim();
+    const GhiChu = req.body?.GhiChu == null ? null : String(req.body.GhiChu).trim();
+    if (!id || !DiaChiGiaoHang || DiaChiGiaoHang.length > 255 || (GhiChu && GhiChu.length > 500)) {
+      return res.status(400).json({ message: 'Thong tin giao hang khong hop le' });
+    }
+    Donhang.updateDelivery(id, { DiaChiGiaoHang, GhiChu }, (error, result) => {
+      if (error) return respondError(res, error);
+      res.json({ message: 'Cap nhat giao hang thanh cong', data: result });
+    });
+  },
+
+  transitionStatus: (req, res) => {
+    const id = positiveInteger(req.params.DonHangID);
+    const TrangThai = String(req.body?.TrangThai || '').trim().toUpperCase();
+    if (!id || !['CONFIRMED', 'PROCESSING', 'COMPLETED', 'CANCELLED'].includes(TrangThai)) {
+      return res.status(400).json({ message: 'Trang thai don hang khong hop le' });
+    }
+    Donhang.transitionStatus(id, TrangThai, (error, result, previousStatus) => {
+      if (error) return respondError(res, error);
+      Thongbao.notifyOrderStatus(result, previousStatus);
+      res.json({ message: 'Cap nhat trang thai thanh cong', data: result });
     });
   },
 

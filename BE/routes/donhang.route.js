@@ -14,8 +14,7 @@ router.post('/:orderId/confirm-payment', checkout.confirmManual);
 
 router.get('/', DonhangController.getAll);
 router.get('/:DonHangID', DonhangController.getById);
-router.post('/', DonhangController.create);
-router.put('/:DonHangID', DonhangController.update);
-router.delete('/:DonHangID', DonhangController.delete);
+router.patch('/:DonHangID/delivery', DonhangController.updateDelivery);
+router.post('/:DonHangID/status', DonhangController.transitionStatus);
 
 module.exports = router;

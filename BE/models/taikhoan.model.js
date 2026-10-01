@@ -10,7 +10,7 @@ const Taikhoan = (taikhoan) => {
 };
 
 Taikhoan.getById = (TaiKhoanID, callback) => {
-  const sqlString = "SELECT * FROM `taikhoan` WHERE `TaiKhoanID` = ?";
+  const sqlString = "SELECT TaiKhoanID, Email, VaiTro, TrangThai, NgayTao FROM `taikhoan` WHERE `TaiKhoanID` = ?";
   db.query(sqlString, [TaiKhoanID], (err, result) => {
     if (err) {
       return callback(err);
@@ -20,7 +20,7 @@ Taikhoan.getById = (TaiKhoanID, callback) => {
 };
 
 Taikhoan.getAll = (callback) => {
-  const sqlString = "SELECT * FROM `taikhoan`";
+  const sqlString = "SELECT TaiKhoanID, Email, VaiTro, TrangThai, NgayTao FROM `taikhoan`";
   db.query(sqlString, (err, result) => {
     if (err) {
       return callback(err);
@@ -29,8 +29,12 @@ Taikhoan.getAll = (callback) => {
   });
 };
 
-Taikhoan.changePassword = (id, currentPassword, newPassword, callback) => {
-  db.query("UPDATE taikhoan SET MatKhau = ? WHERE TaiKhoanID = ? AND TrangThai = 'ACTIVE' AND MatKhau = ?", [newPassword, id, currentPassword], (error, result) => {
+Taikhoan.getPasswordById = (TaiKhoanID, callback) => {
+  db.query('SELECT TaiKhoanID, MatKhau, TrangThai FROM taikhoan WHERE TaiKhoanID = ?', [TaiKhoanID], callback);
+};
+
+Taikhoan.changePassword = (id, newPassword, callback) => {
+  db.query("UPDATE taikhoan SET MatKhau = ? WHERE TaiKhoanID = ? AND TrangThai = 'ACTIVE'", [newPassword, id], (error, result) => {
     if (error) return callback(error);
     callback(null, result.affectedRows === 1);
   });
@@ -42,7 +46,8 @@ Taikhoan.insert = (taikhoan, callback) => {
     if (err) {
       return callback(err);
     }
-    callback(null, { TaiKhoanID: res.insertId, ...taikhoan });
+    const { MatKhau, ...account } = taikhoan;
+    callback(null, { TaiKhoanID: res.insertId, ...account });
   });
 };
 

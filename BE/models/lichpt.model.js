@@ -1,5 +1,12 @@
 const db = require("../common/db");
 
+function lockedError() {
+  const error = new Error('Ca da co lich thue, khong the sua hoac xoa');
+  error.status = 409;
+  error.code = 'SCHEDULE_HAS_BOOKINGS';
+  return error;
+}
+
 const Lichpt = (lichpt) => {
   this.LichPTID = lichpt.LichPTID;
   this.PTID = lichpt.PTID;
@@ -68,20 +75,24 @@ Lichpt.insert = (lichpt, callback) => {
 };
 
 Lichpt.update = (lichpt, LichPTID, callback) => {
-  const sqlString = "UPDATE `lichpt` SET ? WHERE `LichPTID` = ?";
+  const sqlString = `UPDATE lichpt SET ? WHERE LichPTID = ?
+    AND NOT EXISTS (SELECT 1 FROM thuept WHERE thuept.LichPTID = lichpt.LichPTID)`;
   db.query(sqlString, [lichpt, LichPTID], (err, res) => {
     if (err) {
       return callback(err);
     }
+    if (res.affectedRows !== 1) return callback(lockedError());
     callback(null, { message: "Cập nhật lichpt thành công" });
   });
 };
 
 Lichpt.delete = (LichPTID, callback) => {
-  db.query("DELETE FROM `lichpt` WHERE `LichPTID` = ?", [LichPTID], (err, res) => {
+  db.query(`DELETE FROM lichpt WHERE LichPTID = ?
+    AND NOT EXISTS (SELECT 1 FROM thuept WHERE thuept.LichPTID = lichpt.LichPTID)`, [LichPTID], (err, res) => {
     if (err) {
       return callback(err);
     }
+    if (res.affectedRows !== 1) return callback(lockedError());
     callback(null, { message: "Xóa lichpt thành công" });
   });
 };

@@ -25,6 +25,17 @@ function addMonthsClamped(dateString, months) {
   ].join("-");
 }
 
+function ymd(value) {
+  if (typeof value === 'string') return value.slice(0, 10);
+  return value?.toISOString().slice(0, 10);
+}
+
+function nextDay(value) {
+  const date = new Date(`${ymd(value)}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
 const Dangkygoitap = (dangkygoitap) => {
   this.DangKyID = dangkygoitap.DangKyID;
   this.HoiVienID = dangkygoitap.HoiVienID;
@@ -147,6 +158,34 @@ Dangkygoitap.getCurrentMembershipByAccount = (TaiKhoanID, callback) => {
   });
 };
 
+Dangkygoitap.getOwnedMembershipsByAccount = (TaiKhoanID, callback) => {
+  db.query(`SELECT dk.DangKyID,dk.HoiVienID,dk.GoiTapID,dk.GoiTapThoiHanID,
+      g.TenGoi,th.SoThang,th.ThangTang,
+      DATE_FORMAT(dk.NgayDangKy,'%Y-%m-%d') NgayDangKy,
+      DATE_FORMAT(dk.NgayBatDau,'%Y-%m-%d') NgayBatDau,
+      DATE_FORMAT(dk.NgayKetThuc,'%Y-%m-%d') NgayKetThuc,
+      dk.GiaThanhToan,dk.TrangThai TrangThaiDangKy,
+      tt.ThanhToanID,tt.SoTien,tt.PhuongThucThanhToan,
+      tt.TrangThai TrangThaiThanhToan,
+      CASE WHEN dk.NgayBatDau<=CURDATE() AND dk.NgayKetThuc>=CURDATE()
+        THEN 'CURRENT' ELSE 'UPCOMING' END TinhTrangSuDung
+    FROM hoivien hv
+    INNER JOIN dangkygoitap dk ON dk.HoiVienID=hv.HoiVienID AND dk.TrangThai='ACTIVE'
+    INNER JOIN goitap g ON g.GoiTapID=dk.GoiTapID
+    INNER JOIN GoiTapThoiHan th ON th.GoiTapThoiHanID=dk.GoiTapThoiHanID
+    INNER JOIN thanhtoan tt ON tt.ThanhToanID=(
+      SELECT MAX(p.ThanhToanID) FROM thanhtoan p
+      WHERE p.DangKyID=dk.DangKyID AND p.TrangThai='SUCCESS')
+    WHERE hv.TaiKhoanID=? AND dk.NgayKetThuc>=CURDATE()
+    ORDER BY dk.NgayBatDau ASC,dk.DangKyID ASC`, [TaiKhoanID], (error, rows) => {
+    if (error) return callback(error);
+    callback(null, {
+      current: rows.find(row => row.TinhTrangSuDung === 'CURRENT') || null,
+      upcoming: rows.filter(row => row.TinhTrangSuDung === 'UPCOMING'),
+    });
+  });
+};
+
 Dangkygoitap.getAll = (callback) => {
   db.query("SELECT * FROM `dangkygoitap`", (err, result) => {
     if (err) return callback(err);
@@ -191,12 +230,17 @@ Dangkygoitap.renew = (registrationId, callback) => {
       if (!rows.length) throw appError(404, 'REGISTRATION_NOT_FOUND', 'Không tìm thấy đăng ký');
       const old = rows[0];
       if (old.GoiTapTrangThai !== 'ACTIVE' || old.ThoiHanTrangThai !== 'ACTIVE') throw appError(409, 'PACKAGE_INACTIVE', 'Gói hoặc thời hạn đã ngừng hoạt động');
-      const [pending] = await q.query("SELECT DangKyID FROM dangkygoitap WHERE HoiVienID=? AND GoiTapID=? AND GoiTapThoiHanID=? AND TrangThai='PENDING' LIMIT 1", [old.HoiVienID, old.GoiTapID, old.GoiTapThoiHanID]);
+      await q.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [old.HoiVienID]);
+      const [pending] = await q.query(`SELECT d.DangKyID FROM dangkygoitap d
+        WHERE d.HoiVienID=? AND d.TrangThai='PENDING'
+          AND NOT EXISTS (SELECT 1 FROM thanhtoan p WHERE p.DangKyID=d.DangKyID AND p.TrangThai IN ('SUCCESS','CANCELLED'))
+        ORDER BY d.DangKyID DESC LIMIT 1`, [old.HoiVienID]);
       if (pending.length) throw appError(409, 'PENDING_EXISTS', 'Đã có lần gia hạn đang chờ thanh toán', { DangKyID: pending[0].DangKyID });
       const today = new Date().toISOString().slice(0, 10);
-      const previousEnd = new Date(old.NgayKetThuc);
-      previousEnd.setUTCDate(previousEnd.getUTCDate() + 1);
-      const start = old.NgayKetThuc && new Date(old.NgayKetThuc) >= new Date(today) ? previousEnd.toISOString().slice(0, 10) : today;
+      const [queue] = await q.query(`SELECT MAX(d.NgayKetThuc) MaxNgayKetThuc
+        FROM dangkygoitap d INNER JOIN thanhtoan p ON p.DangKyID=d.DangKyID AND p.TrangThai='SUCCESS'
+        WHERE d.HoiVienID=? AND d.TrangThai='ACTIVE' AND d.NgayKetThuc>=CURDATE()`, [old.HoiVienID]);
+      const start = queue[0].MaxNgayKetThuc ? nextDay(queue[0].MaxNgayKetThuc) : today;
       const end = addMonthsClamped(start, Number(old.SoThang) + Number(old.ThangTang || 0));
       const [created] = await q.query("INSERT INTO dangkygoitap (HoiVienID,GoiTapID,GoiTapThoiHanID,NgayDangKy,NgayBatDau,NgayKetThuc,GiaThanhToan,TrangThai) VALUES (?,?,?,NOW(),?,?,?,'PENDING')", [old.HoiVienID,old.GoiTapID,old.GoiTapThoiHanID,start,end,old.GiaBan]);
       await q.commit();
@@ -225,7 +269,8 @@ Dangkygoitap.register = (input, callback) => {
          FROM hoivien h
          INNER JOIN taikhoan t ON t.TaiKhoanID = h.TaiKhoanID
          WHERE h.TaiKhoanID = ?
-         LIMIT 1`,
+         LIMIT 1
+         FOR UPDATE`,
         [input.TaiKhoanID],
       );
 
@@ -279,18 +324,14 @@ Dangkygoitap.register = (input, callback) => {
       }
 
       const [duplicates] = await query.query(
-        `SELECT DangKyID
-         FROM dangkygoitap
-         WHERE HoiVienID = ?
-           AND GoiTapID = ?
-           AND GoiTapThoiHanID = ?
-           AND TrangThai = 'PENDING'
-         LIMIT 1`,
-        [
-          member.HoiVienID,
-          input.GoiTapID,
-          input.GoiTapThoiHanID,
-        ],
+        `SELECT d.DangKyID FROM dangkygoitap d
+         WHERE d.HoiVienID = ? AND d.TrangThai = 'PENDING'
+           AND NOT EXISTS (
+             SELECT 1 FROM thanhtoan p WHERE p.DangKyID = d.DangKyID
+               AND p.TrangThai IN ('SUCCESS', 'CANCELLED')
+           )
+         ORDER BY d.DangKyID DESC LIMIT 1`,
+        [member.HoiVienID],
       );
 
       if (duplicates.length) {
@@ -343,7 +384,22 @@ Dangkygoitap.register = (input, callback) => {
       const giaThanhToan = Math.max(0, giaBan - discount);
       const totalMonths =
         Number(selectedPackage.SoThang) + Number(selectedPackage.ThangTang || 0);
-      const ngayKetThuc = addMonthsClamped(input.NgayBatDau, totalMonths);
+      const [queue] = await query.query(
+        `SELECT MAX(d.NgayKetThuc) AS MaxNgayKetThuc,
+                DATE_FORMAT(CURDATE(), '%Y-%m-%d') AS Today
+         FROM dangkygoitap d
+         INNER JOIN thanhtoan p ON p.DangKyID = d.DangKyID AND p.TrangThai = 'SUCCESS'
+         WHERE d.HoiVienID = ? AND d.TrangThai = 'ACTIVE'
+           AND d.NgayKetThuc >= CURDATE()`,
+        [member.HoiVienID],
+      );
+      const activationMode = input.ActivationMode || 'QUEUE_AFTER_CURRENT';
+      const effectiveStart = activationMode === 'REPLACE_NOW'
+        ? ymd(queue[0].Today)
+        : queue[0].MaxNgayKetThuc
+          ? nextDay(queue[0].MaxNgayKetThuc)
+          : input.NgayBatDau;
+      const ngayKetThuc = addMonthsClamped(effectiveStart, totalMonths);
 
       const [insertResult] = await query.query(
         `INSERT INTO dangkygoitap
@@ -362,7 +418,7 @@ Dangkygoitap.register = (input, callback) => {
           member.HoiVienID,
           input.GoiTapID,
           input.GoiTapThoiHanID,
-          input.NgayBatDau,
+          effectiveStart,
           ngayKetThuc,
           giaThanhToan,
         ],
@@ -389,8 +445,10 @@ Dangkygoitap.register = (input, callback) => {
         TenGoi: selectedPackage.TenGoi,
         SoThang: Number(selectedPackage.SoThang),
         ThangTang: Number(selectedPackage.ThangTang || 0),
-        NgayBatDau: input.NgayBatDau,
+        ActivationMode: activationMode,
+        NgayBatDau: effectiveStart,
         NgayKetThuc: ngayKetThuc,
+        TinhTrangSuDung: effectiveStart > ymd(queue[0].Today) ? 'UPCOMING' : 'CURRENT',
         GiaGoc: Number(selectedPackage.GiaGoc),
         GiaBan: giaBan,
         SoTienGiam: discount,

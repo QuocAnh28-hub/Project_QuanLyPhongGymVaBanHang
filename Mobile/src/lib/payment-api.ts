@@ -1,5 +1,6 @@
-import { baseUrl } from '@/lib/account-api';
+import { authenticatedFetch, baseUrl } from '@/lib/account-api';
 import type { PaymentMethod } from '@/lib/membership';
+import type { ActivationMode } from '@/lib/membership-api';
 
 export type BackendPaymentMethod = 'TIEN_MAT' | 'CHUYEN_KHOAN' | 'THE';
 export type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'CANCELLED';
@@ -20,6 +21,7 @@ export type PackagePayment = {
   PhuongThucThanhToan: BackendPaymentMethod;
   TrangThaiThanhToan: PaymentStatus;
   TrangThaiDangKy: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+  ActivationMode: ActivationMode;
 };
 
 type PackagePaymentSummary = Pick<
@@ -46,13 +48,15 @@ async function readError(response: Response): Promise<string> {
 export async function createPackagePayment(input: {
   registrationId: number;
   paymentMethod: PaymentMethod;
+  activationMode: ActivationMode;
 }): Promise<PackagePaymentSummary> {
-  const response = await fetch(`${baseUrl}/thanhtoan/package`, {
+  const response = await authenticatedFetch(`${baseUrl}/thanhtoan/package`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       DangKyID: input.registrationId,
       PhuongThucThanhToan: methodMap[input.paymentMethod],
+      ActivationMode: input.activationMode,
     }),
   });
   if (!response.ok) throw new Error(await readError(response));
@@ -65,7 +69,7 @@ export async function createPackagePayment(input: {
 export async function getPackagePaymentDetail(
   paymentId: number
 ): Promise<PackagePayment> {
-  const response = await fetch(`${baseUrl}/thanhtoan/package/${paymentId}`);
+  const response = await authenticatedFetch(`${baseUrl}/thanhtoan/package/${paymentId}`);
   if (!response.ok) throw new Error(await readError(response));
   return (await response.json()) as PackagePayment;
 }
@@ -73,7 +77,7 @@ export async function getPackagePaymentDetail(
 export async function getPaymentByRegistration(
   registrationId: number
 ): Promise<PackagePayment | null> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${baseUrl}/thanhtoan/registration/${registrationId}`
   );
   if (response.status === 404) return null;

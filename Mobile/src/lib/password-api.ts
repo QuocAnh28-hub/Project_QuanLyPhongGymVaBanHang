@@ -1,11 +1,11 @@
-import { baseUrl } from './account-api';
+import { authenticatedFetch, baseUrl } from './account-api';
 
 export async function changePassword(
   accountId: number,
   current: string,
   next: string
 ): Promise<void> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${baseUrl}/taikhoan/${accountId}/change-password`,
     {
       method: 'POST',

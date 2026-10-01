@@ -1,4 +1,4 @@
-import { baseUrl } from '@/lib/account-api';
+import { authenticatedFetch, baseUrl } from '@/lib/account-api';
 
 export type ApiPT = {
   PTID: number;
@@ -63,17 +63,17 @@ async function read<T>(response: Response): Promise<T> {
 }
 
 export async function getActivePTs(): Promise<ApiPT[]> {
-  return read(await fetch(`${baseUrl}/pt/active`));
+  return read(await authenticatedFetch(`${baseUrl}/pt/active`));
 }
 
 export async function getPTDetail(ptId: number): Promise<ApiPT> {
-  return read(await fetch(`${baseUrl}/pt/active/${ptId}`));
+  return read(await authenticatedFetch(`${baseUrl}/pt/active/${ptId}`));
 }
 
 export async function getAvailablePTSchedules(
   ptId: number
 ): Promise<ApiPTSchedule[]> {
-  return read(await fetch(`${baseUrl}/lichpt/available/${ptId}`));
+  return read(await authenticatedFetch(`${baseUrl}/lichpt/available/${ptId}`));
 }
 
 export async function bookPT(input: {
@@ -81,7 +81,7 @@ export async function bookPT(input: {
   scheduleId: number;
   note?: string;
 }): Promise<ApiPTBooking> {
-  const response = await fetch(`${baseUrl}/thuept/book`, {
+  const response = await authenticatedFetch(`${baseUrl}/thuept/book`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -97,14 +97,14 @@ export async function bookPT(input: {
 export async function getMyPTBookings(
   accountId: number
 ): Promise<ApiPTBooking[]> {
-  return read(await fetch(`${baseUrl}/thuept/account/${accountId}`));
+  return read(await authenticatedFetch(`${baseUrl}/thuept/account/${accountId}`));
 }
 
 export async function cancelPTBooking(input: {
   accountId: number;
   bookingId: number;
 }): Promise<ApiPTBooking> {
-  const response = await fetch(`${baseUrl}/thuept/${input.bookingId}/cancel`, {
+  const response = await authenticatedFetch(`${baseUrl}/thuept/${input.bookingId}/cancel`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ TaiKhoanID: input.accountId }),

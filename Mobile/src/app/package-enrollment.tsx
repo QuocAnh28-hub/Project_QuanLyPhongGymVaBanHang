@@ -4,12 +4,16 @@ import {
   getActivePackageDetail,
   packageFromApiDetail,
 } from '@/lib/package-api';
-import { registerPackage, RegistrationApiError } from '@/lib/membership-api';
+import {
+  getOwnedMemberships,
+  registerPackage,
+  RegistrationApiError,
+  type ActivationMode,
+} from '@/lib/membership-api';
 import {
   createPackagePayment,
   getPaymentByRegistration,
 } from '@/lib/payment-api';
-import { getActiveMembership, getEnrollment } from '@/lib/membership';
 import { getStudentVerification } from '@/lib/student-verification';
 import { AuthColors as C } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
@@ -137,11 +141,12 @@ export default function PackageEnrollmentScreen() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethod>('vietqr');
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [hasMembership, setHasMembership] = useState(false);
+  const [activationMode, setActivationMode] = useState<ActivationMode | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const submitting = useRef(false);
-  const switchConfirmed = useRef(false);
 
   useEffect(() => {
     if (!validPackageId) return;
@@ -168,6 +173,13 @@ export default function PackageEnrollmentScreen() {
       active = false;
     };
   }, [packageId, validPackageId]);
+
+  useEffect(() => {
+    if (!user?.accountId) return;
+    getOwnedMemberships(user.accountId)
+      .then(({ current, upcoming }) => setHasMembership(!!current || upcoming.length > 0))
+      .catch(() => setHasMembership(false));
+  }, [user?.accountId]);
 
   const option = item?.durations.find((row) => row.durationId === durationId);
   const pricing = option ? calculatePrice(option, appliedVoucher) : null;
@@ -238,6 +250,18 @@ export default function PackageEnrollmentScreen() {
       setVoucherCode(result.voucher.code);
     }
   }
+  function chooseMode(mode: ActivationMode) {
+    if (mode === 'QUEUE_AFTER_CURRENT') return setActivationMode(mode);
+    const warning = 'Phần thời gian còn lại của gói hiện tại sẽ không được cộng sang gói mới và hiện chưa hỗ trợ hoàn tiền tự động.';
+    if (Platform.OS === 'web') {
+      if (globalThis.confirm(warning)) setActivationMode(mode);
+    } else {
+      Alert.alert('Xác nhận kích hoạt ngay', warning, [
+        { text: 'Hủy', style: 'cancel' },
+        { text: 'Tôi hiểu và xác nhận', style: 'destructive', onPress: () => setActivationMode(mode) },
+      ]);
+    }
+  }
   async function submit() {
     if (submitting.current) return;
     const next: Errors = validateMemberForm(form);
@@ -261,51 +285,20 @@ export default function PackageEnrollmentScreen() {
         (await getStudentVerification(currentUser.email))?.status !== 'verified'
       )
         throw new Error('Thẻ HSSV chưa được xác minh.');
-      const active = await getActiveMembership(currentUser.email);
-      if (
-        active &&
-        active.packageId !== String(selectedItem.apiId) &&
-        !switchConfirmed.current
-      ) {
-        const warning =
-          'Bạn đang có gói đang hoạt động. Gói mới sẽ chờ thanh toán và không tự thay thế gói hiện tại. Nâng cấp chưa được hỗ trợ.';
-        if (Platform.OS === 'web') {
-          if (globalThis.confirm(warning)) {
-            switchConfirmed.current = true;
-            setTimeout(() => {
-              void submit();
-            }, 0);
-          }
-        } else
-          Alert.alert('Bạn đang có gói đang hoạt động', warning, [
-            { text: 'Hủy', style: 'cancel' },
-            {
-              text: 'Đăng ký gói tiếp theo',
-              onPress: () => {
-                switchConfirmed.current = true;
-                void submit();
-              },
-            },
-          ]);
-        submitting.current = false;
-        setIsSubmitting(false);
-        return;
-      }
-      const renewal = params.renewal
-        ? await getEnrollment(currentUser.email, params.renewal)
-        : null;
-      if (
-        params.renewal &&
-        (!renewal || renewal.packageId !== String(selectedItem.apiId))
-      )
-        throw new Error('Gói gia hạn không hợp lệ.');
-      const activationDate = renewal
-        ? renewal.expiryDate > localDate(today)
-          ? renewal.expiryDate
-          : localDate(today)
-        : form.activationDate;
       if (!currentUser.accountId)
         throw new Error('Phiên đăng nhập chưa có TaiKhoanID từ backend.');
+      const owned = await getOwnedMemberships(currentUser.accountId);
+      const ownsPackage = !!owned.current || owned.upcoming.length > 0;
+      if (ownsPackage && !activationMode)
+        throw new Error('Vui lòng chọn thời điểm kích hoạt gói mới.');
+      const renewal = owned.current || owned.upcoming[0] || null;
+      if (
+        params.renewal &&
+        (!renewal ||
+          renewal.DangKyID !== Number(params.renewal) ||
+          renewal.GoiTapID !== selectedItem.apiId)
+      )
+        throw new Error('Gói gia hạn không hợp lệ.');
       if (!selectedOption.durationId)
         throw new Error('Thời hạn đã chọn không tồn tại trên backend.');
 
@@ -315,7 +308,8 @@ export default function PackageEnrollmentScreen() {
           accountId: currentUser.accountId,
           packageId: selectedItem.apiId,
           durationId: selectedOption.durationId,
-          activationDate,
+          activationDate: form.activationDate,
+          activationMode: activationMode || 'QUEUE_AFTER_CURRENT',
           voucherCode: appliedVoucher?.code ?? null,
         });
         registrationId = registration.DangKyID;
@@ -332,12 +326,12 @@ export default function PackageEnrollmentScreen() {
 
       const existingPayment = await getPaymentByRegistration(registrationId);
       const payment =
-        existingPayment?.TrangThaiThanhToan === 'PENDING' ||
         existingPayment?.TrangThaiThanhToan === 'SUCCESS'
           ? existingPayment
           : await createPackagePayment({
               registrationId,
               paymentMethod: selectedPaymentMethod,
+              activationMode: activationMode || 'QUEUE_AFTER_CURRENT',
             });
 
       router.replace({
@@ -529,6 +523,25 @@ export default function PackageEnrollmentScreen() {
               </View>
             ) : null}
           </Card>
+          {hasMembership ? (
+            <Card>
+              <Text style={s.title}>Bạn muốn kích hoạt gói mới khi nào?</Text>
+              <Pressable style={[s.method, activationMode === 'QUEUE_AFTER_CURRENT' && s.methodActive]} onPress={() => chooseMode('QUEUE_AFTER_CURRENT')}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.methodTitle}>CHỜ HẾT GÓI HIỆN TẠI</Text>
+                  <Text style={s.small}>Gói mới sẽ được xếp sau gói cuối cùng bạn đã mua. Gói hiện tại vẫn tiếp tục sử dụng bình thường.</Text>
+                </View>
+                <View style={[s.radio, activationMode === 'QUEUE_AFTER_CURRENT' && s.radioActive]}>{activationMode === 'QUEUE_AFTER_CURRENT' ? <View style={s.radioDot} /> : null}</View>
+              </Pressable>
+              <Pressable style={[s.method, activationMode === 'REPLACE_NOW' && s.methodActive]} onPress={() => chooseMode('REPLACE_NOW')}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.methodTitle}>KÍCH HOẠT NGAY</Text>
+                  <Text style={s.small}>Gói hiện tại sẽ kết thúc sớm và gói mới được kích hoạt ngay.</Text>
+                </View>
+                <View style={[s.radio, activationMode === 'REPLACE_NOW' && s.radioActive]}>{activationMode === 'REPLACE_NOW' ? <View style={s.radioDot} /> : null}</View>
+              </Pressable>
+            </Card>
+          ) : null}
           <Card>
             <View style={s.sectionHead}>
               <Text style={s.title}>Phương thức thanh toán</Text>

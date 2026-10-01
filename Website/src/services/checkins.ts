@@ -36,7 +36,7 @@ export type MemberOption = {
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
+  const response = await adminFetch(url, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...options?.headers },
   })
@@ -71,3 +71,4 @@ export const revokeQr = (id: number) =>
   request(`/api/maqr/${id}/revoke`, { method: 'PATCH' })
 export const checkout = (CheckInID: number) =>
   request(`/api/checkin/${CheckInID}/checkout`, { method: 'POST' })
+import { adminFetch } from './auth'

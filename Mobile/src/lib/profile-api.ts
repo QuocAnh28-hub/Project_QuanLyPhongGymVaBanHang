@@ -1,4 +1,4 @@
-import { baseUrl } from './account-api';
+import { authenticatedFetch, baseUrl } from './account-api';
 
 export type MemberProfile = {
   TaiKhoanID: number;
@@ -20,7 +20,7 @@ export type MemberProfile = {
 export async function getMemberProfile(
   accountId: number
 ): Promise<MemberProfile> {
-  const response = await fetch(`${baseUrl}/hoivien/account/${accountId}`);
+  const response = await authenticatedFetch(`${baseUrl}/hoivien/account/${accountId}`);
   const result = await response.json().catch(() => null);
   if (!response.ok) throw new Error(result?.message || 'Không tải được hồ sơ');
   return result as MemberProfile;
@@ -43,7 +43,7 @@ export async function updateMemberProfile(
     >
   >
 ): Promise<MemberProfile> {
-  const response = await fetch(`${baseUrl}/hoivien/account/${accountId}`, {
+  const response = await authenticatedFetch(`${baseUrl}/hoivien/account/${accountId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

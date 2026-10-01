@@ -229,10 +229,7 @@ export async function updateBooking(
     const s = await catalogRequest<Shift>(`lichpt/${fresh.LichPTID}`)
     if (fresh.TrangThai !== 'CONFIRMED' || shiftEnd(s) > Date.now())
       throw new Error('Chỉ hoàn thành lịch đã xác nhận và đã kết thúc.')
-    await catalogRequest(`thuept/${b.ThuePTID}`, {
-      method: 'PUT',
-      body: JSON.stringify({ TrangThai: 'COMPLETED' }),
-    })
+    await catalogRequest(`thuept/${b.ThuePTID}/complete`, { method: 'POST' })
   } else {
     const TaiKhoanID = accountId
     if (action === 'cancel' && !TaiKhoanID)

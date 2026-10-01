@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import { getCheckInHistory, type CheckInRecord } from '@/lib/check-in';
 import {
-  getCurrentMembership,
+  getOwnedMemberships,
   type CurrentMembership,
 } from '@/lib/membership-api';
 import {
@@ -34,6 +34,7 @@ const daysBetween = (from: Date, to: Date) =>
 export default function MembershipDetailScreen() {
   const { user } = useAuth();
   const [membership, setMembership] = useState<CurrentMembership | null>();
+  const [upcoming, setUpcoming] = useState<CurrentMembership[]>([]);
   const [gymPackage, setGymPackage] = useState<GymPackage | null>(null);
   const [records, setRecords] = useState<CheckInRecord[]>([]);
   useFocusEffect(
@@ -41,10 +42,11 @@ export default function MembershipDetailScreen() {
       let mounted = true;
       if (user?.accountId)
         Promise.all([
-          getCurrentMembership(user.accountId),
+          getOwnedMemberships(user.accountId),
           getCheckInHistory(user.email).catch(() => []),
         ])
-          .then(async ([current, history]) => {
+          .then(async ([owned, history]) => {
+            const current = owned.current;
             const packageDetail = current
               ? await getActivePackageDetail(current.GoiTapID)
                   .then(packageFromApiDetail)
@@ -52,6 +54,7 @@ export default function MembershipDetailScreen() {
               : null;
             if (mounted) {
               setMembership(current);
+              setUpcoming(owned.upcoming);
               setGymPackage(packageDetail);
               setRecords(history);
             }
@@ -59,6 +62,7 @@ export default function MembershipDetailScreen() {
           .catch(() => {
             if (mounted) {
               setMembership(null);
+              setUpcoming([]);
               setGymPackage(null);
               setRecords([]);
             }
@@ -142,7 +146,7 @@ export default function MembershipDetailScreen() {
                 </View>
                 <Text style={s.active}>
                   ●{' '}
-                  {membership.TinhTrangSuDung === 'ACTIVE'
+                  {membership.TinhTrangSuDung !== 'UPCOMING'
                     ? 'ĐANG HOẠT ĐỘNG'
                     : 'CHỜ KÍCH HOẠT'}
                 </Text>
@@ -158,7 +162,7 @@ export default function MembershipDetailScreen() {
               <View style={s.remaining}>
                 <Text style={s.remainingText}>
                   ◉{' '}
-                  {membership.TinhTrangSuDung === 'ACTIVE'
+                  {membership.TinhTrangSuDung !== 'UPCOMING'
                     ? `Còn lại ${data.remaining} ngày`
                     : `Bắt đầu sau ${daysBetween(new Date(), parseLocalDate(membership.NgayBatDau) ?? new Date())} ngày`}
                 </Text>
@@ -310,6 +314,30 @@ export default function MembershipDetailScreen() {
             </View>
           </>
         )}
+        {upcoming.length ? (
+          <>
+            <Text style={s.section}>GÓI ĐÃ MUA - CHỜ KÍCH HOẠT</Text>
+            {upcoming.map((item, index) => (
+              <View style={s.memberCard} key={item.DangKyID}>
+                <View style={s.packageHead}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.packageName}>{item.TenGoi.toUpperCase()}</Text>
+                    <Text style={s.label}>Gói tiếp theo #{index + 1}</Text>
+                  </View>
+                  <Text style={s.active}>CHỜ KÍCH HOẠT</Text>
+                </View>
+                <DetailRow label="Ngày bắt đầu" value={new Date(`${item.NgayBatDau}T00:00:00`).toLocaleDateString('vi-VN')} />
+                <DetailRow label="Ngày hết hạn" value={new Date(`${item.NgayKetThuc}T00:00:00`).toLocaleDateString('vi-VN')} />
+                <DetailRow label="Thời hạn" value={`${item.SoThang + item.ThangTang} tháng`} />
+                <DetailRow label="Đã thanh toán" value={formatVND(Number(item.SoTien))} />
+                <DetailRow label="Phương thức" value={backendPaymentMethodNames[item.PhuongThucThanhToan]} />
+                <Text style={s.remainingText}>Còn {daysBetween(new Date(), parseLocalDate(item.NgayBatDau) ?? new Date())} ngày đến khi kích hoạt</Text>
+              </View>
+            ))}
+          </>
+        ) : membership !== undefined ? (
+          <Text style={s.muted}>Bạn chưa có gói chờ kích hoạt.</Text>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

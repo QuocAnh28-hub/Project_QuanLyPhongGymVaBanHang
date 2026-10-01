@@ -12,8 +12,5 @@ router.post('/scan', CheckinController.scan);
 router.get('/history/account/:TaiKhoanID', CheckinController.getHistoryByAccount);
 router.post('/:CheckInID/checkout', CheckinController.checkout);
 router.get('/:CheckInID', CheckinController.getById);
-router.post('/', CheckinController.create);
-router.put('/:CheckInID', CheckinController.update);
-router.delete('/:CheckInID', CheckinController.delete);
 
 module.exports = router;

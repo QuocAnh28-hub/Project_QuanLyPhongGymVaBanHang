@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { adminFetch } from './auth'
 
 export type Member = {
   HoiVienID: number
@@ -75,7 +76,7 @@ export const money = (value: number) =>
 export const memberCode = (id: number) => `HV${String(id).padStart(5, '0')}`
 export async function getApi<T>(path: string, signal: AbortSignal): Promise<T> {
   const base = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
-  const response = await fetch(`${base}/${path}`, {
+  const response = await adminFetch(`${base}/${path}`, {
     signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]),
   })
   if (!response.ok)

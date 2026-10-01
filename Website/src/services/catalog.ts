@@ -36,7 +36,7 @@ export async function catalogRequest<T>(
   const base = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
   let response: Response
   try {
-    response = await fetch(`${base}/${path}`, {
+    response = await adminFetch(`${base}/${path}`, {
       ...options,
       headers: { 'Content-Type': 'application/json', ...options.headers },
       signal: options.signal
@@ -131,3 +131,4 @@ export function deleteCatalogItem(products: boolean, id: number) {
     method: 'DELETE',
   })
 }
+import { adminFetch } from './auth'

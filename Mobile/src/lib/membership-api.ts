@@ -1,4 +1,4 @@
-import { baseUrl } from '@/lib/account-api';
+import { authenticatedFetch, baseUrl } from '@/lib/account-api';
 import type { PaymentMethod } from '@/lib/membership';
 
 export type RegistrationResult = {
@@ -17,7 +17,11 @@ export type RegistrationResult = {
   GiaThanhToan: number;
   MaKhuyenMai: string | null;
   TrangThai: 'PENDING';
+  ActivationMode: ActivationMode;
+  TinhTrangSuDung: 'CURRENT' | 'UPCOMING';
 };
+
+export type ActivationMode = 'QUEUE_AFTER_CURRENT' | 'REPLACE_NOW';
 
 export type RegistrationDetail = {
   DangKyID: number;
@@ -54,7 +58,11 @@ export type CurrentMembership = {
   SoTien: string | number;
   PhuongThucThanhToan: 'TIEN_MAT' | 'CHUYEN_KHOAN' | 'THE';
   TrangThaiThanhToan: 'SUCCESS';
-  TinhTrangSuDung: 'ACTIVE' | 'UPCOMING';
+  TinhTrangSuDung: 'ACTIVE' | 'CURRENT' | 'UPCOMING';
+};
+export type OwnedMemberships = {
+  current: CurrentMembership | null;
+  upcoming: CurrentMembership[];
 };
 
 export class RegistrationApiError extends Error {
@@ -81,9 +89,10 @@ export async function registerPackage(input: {
   packageId: number;
   durationId: number;
   activationDate: string;
+  activationMode?: ActivationMode;
   voucherCode?: string | null;
 }): Promise<RegistrationResult> {
-  const response = await fetch(`${baseUrl}/dangkygoitap/register`, {
+  const response = await authenticatedFetch(`${baseUrl}/dangkygoitap/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -93,6 +102,7 @@ export async function registerPackage(input: {
       GoiTapID: input.packageId,
       GoiTapThoiHanID: input.durationId,
       NgayBatDau: input.activationDate,
+      ActivationMode: input.activationMode || 'QUEUE_AFTER_CURRENT',
       MaKhuyenMai: input.voucherCode || undefined,
     }),
   });
@@ -125,7 +135,7 @@ export async function registerPackage(input: {
 export async function getRegistrationDetail(
   registrationId: number
 ): Promise<RegistrationDetail> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${baseUrl}/dangkygoitap/detail/${registrationId}`
   );
 
@@ -139,12 +149,18 @@ export async function getRegistrationDetail(
 export async function getCurrentMembership(
   accountId: number
 ): Promise<CurrentMembership | null> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${baseUrl}/dangkygoitap/current/account/${accountId}`
   );
 
   if (!response.ok) throw new Error(await readError(response));
   return (await response.json()) as CurrentMembership | null;
+}
+
+export async function getOwnedMemberships(accountId: number): Promise<OwnedMemberships> {
+  const response = await authenticatedFetch(`${baseUrl}/dangkygoitap/owned/account/${accountId}`);
+  if (!response.ok) throw new Error(await readError(response));
+  return (await response.json()) as OwnedMemberships;
 }
 
 export const paymentMethodNames: Record<PaymentMethod, string> = {

@@ -1,13 +1,13 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { readLocal } from './local-store';
 
 export type ApiAccount = {
   TaiKhoanID: number;
   Email: string;
-  MatKhau: string;
   VaiTro: string;
-  TrangThai: string;
 };
+export const API_TOKEN = 'qa-gym-api-token-v1';
 
 const expoHost = Constants.expoConfig?.hostUri?.split(':')[0];
 
@@ -18,31 +18,29 @@ export const baseUrl = (
     : 'http://localhost:3000')
 ).replace(/\/$/, '');
 
-export async function getAccounts(): Promise<ApiAccount[]> {
-  try {
-    const response = await fetch(`${baseUrl}/taikhoan`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data: unknown = await response.json();
-    if (!Array.isArray(data))
-      throw new Error('Dữ liệu trả về không phải danh sách tài khoản');
-    return data as ApiAccount[];
-  } catch (error) {
-    throw new Error(
-      `Không đọc được ${baseUrl}/taikhoan: ${error instanceof Error ? error.message : String(error)}`
-    );
-  }
-}
-
-export async function getAccount(id: number): Promise<ApiAccount | null> {
-  const response = await fetch(`${baseUrl}/taikhoan/${id}`);
-  if (response.status === 404) return null;
-  if (!response.ok) throw new Error('API_UNAVAILABLE');
-  return response.json() as Promise<ApiAccount>;
+export async function authenticatedFetch(input: string, init: RequestInit = {}) {
+  const token = await readLocal(API_TOKEN);
+  return fetch(input, { ...init, headers: { ...init.headers, ...(token && { Authorization: `Bearer ${token}` }) } });
 }
 
 export function isActiveCustomer(account: ApiAccount): boolean {
-  return account.VaiTro === 'CUSTOMER' && account.TrangThai === 'ACTIVE';
+  return account.VaiTro === 'CUSTOMER';
 }
+
+export async function loginAccount(email: string, password: string) {
+  const response = await fetch(`${baseUrl}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) return null;
+  return data as { token: string; expiresAt: number; account: ApiAccount };
+}
+
+export async function restoreAccount() {
+  const response = await authenticatedFetch(`${baseUrl}/auth/me`);
+  if (!response.ok) return null;
+  return (await response.json() as { account: ApiAccount }).account;
+}
+
+export const logoutAccount = () => authenticatedFetch(`${baseUrl}/auth/logout`, { method: 'POST' });
 
 export async function registerAccount(account: {
   name: string;

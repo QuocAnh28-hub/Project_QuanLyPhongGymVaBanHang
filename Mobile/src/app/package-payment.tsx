@@ -128,7 +128,9 @@ export default function PackagePaymentScreen() {
             </Text>
             <Text style={s.intro}>
               {success
-                ? 'Gói tập đã được kích hoạt.'
+                ? order.ActivationMode === 'QUEUE_AFTER_CURRENT' && order.NgayBatDau > new Date().toISOString().slice(0, 10)
+                  ? `Gói tập đã được xếp lịch và sẽ kích hoạt từ ${order.NgayBatDau}.`
+                  : 'Gói tập đã được kích hoạt.'
                 : 'Gói tập chưa được kích hoạt.'}
             </Text>
 

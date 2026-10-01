@@ -1,6 +1,6 @@
 const base = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${base}/${path}`, {
+  const response = await adminFetch(`${base}/${path}`, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...options?.headers },
   })
@@ -87,3 +87,4 @@ export const deactivatePromotion = (id: number) =>
   request(`khuyenmai/${id}`, { method: 'DELETE' })
 export const getReport = (from: string, to: string) =>
   request<Report>(`reports/admin?from=${from}&to=${to}`)
+import { adminFetch } from './auth'

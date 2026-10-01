@@ -1,4 +1,4 @@
-import { baseUrl } from './account-api';
+import { authenticatedFetch, baseUrl } from './account-api';
 
 export type Notification = {
   ThongBaoID: number;
@@ -25,7 +25,7 @@ export type NotificationPreferences = {
 };
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${baseUrl}/thongbao${path}`, options);
+  const response = await authenticatedFetch(`${baseUrl}/thongbao${path}`, options);
   const result = await response.json().catch(() => null);
   if (!response.ok)
     throw new Error(result?.message || 'Không thể xử lý thông báo');

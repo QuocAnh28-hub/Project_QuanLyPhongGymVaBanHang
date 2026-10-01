@@ -29,7 +29,7 @@ type ApiPackage = {
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
+  const response = await adminFetch(url, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...options?.headers },
   })
@@ -79,3 +79,4 @@ export const setPackageStatus = (id: number, active: boolean) =>
   })
 export const deletePackage = (id: number) =>
   request<{ message: string }>(`/api/goitap/${id}`, { method: 'DELETE' })
+import { adminFetch } from './auth'

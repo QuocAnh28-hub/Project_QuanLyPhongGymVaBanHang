@@ -1,4 +1,4 @@
-import { baseUrl } from '@/lib/account-api';
+import { authenticatedFetch, baseUrl } from '@/lib/account-api';
 
 export type CheckInQrToken = {
   token: string;
@@ -42,7 +42,7 @@ async function readResponse<T>(response: Response): Promise<T> {
 export async function createCheckInToken(
   accountId: number
 ): Promise<CheckInQrToken> {
-  const response = await fetch(`${baseUrl}/checkin/token`, {
+  const response = await authenticatedFetch(`${baseUrl}/checkin/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ TaiKhoanID: accountId }),
@@ -53,7 +53,7 @@ export async function createCheckInToken(
 export async function getCheckInHistory(
   accountId: number
 ): Promise<ApiCheckInRecord[]> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${baseUrl}/checkin/history/account/${accountId}`
   );
   return readResponse<ApiCheckInRecord[]>(response);
