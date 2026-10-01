@@ -67,6 +67,16 @@ const ThueptController = {
     });
   },
 
+  complete: (req, res) => {
+    const id = positiveInteger(req.params.ThuePTID);
+    if (!id) return res.status(400).json({ message: 'ThuePTID khong hop le' });
+    Thuept.completeBooking(id, (err, result) => {
+      if (err) return respondError(res, err);
+      notifyBooking(result, 'Lich PT da hoan thanh');
+      res.json({ message: 'Hoan thanh lich PT thanh cong', data: result });
+    });
+  },
+
   cancel: (req, res) => {
     const ThuePTID = positiveInteger(req.params.ThuePTID);
     const TaiKhoanID = positiveInteger(req.body?.TaiKhoanID);

@@ -18,7 +18,6 @@ import {
   orderLabel,
   orderStatuses,
   validateTransition,
-  type Order,
 } from '../services/orders'
 
 export default function ShopOrdersPage() {
@@ -308,11 +307,13 @@ function OrderDetail({
     setSaveError('')
     try {
       const fresh = await loadOrderDetail(id, new AbortController().signal)
-      let payload: Partial<Order>
       if (form) {
         if (['COMPLETED', 'CANCELLED'].includes(fresh.order.TrangThai))
           throw new Error('Đơn đã kết thúc, không thể sửa thông tin giao hàng.')
-        payload = deliveryPayload(form)
+        await catalogRequest(`donhang/${id}/delivery`, {
+          method: 'PATCH',
+          body: JSON.stringify(deliveryPayload(form)),
+        })
       } else {
         if (!action) return
         validateTransition(
@@ -321,12 +322,11 @@ function OrderDetail({
           fresh.checkoutState,
           fresh.checkout
         )
-        payload = { TrangThai: action }
+        await catalogRequest(`donhang/${id}/status`, {
+          method: 'POST',
+          body: JSON.stringify({ TrangThai: action }),
+        })
       }
-      await catalogRequest(`donhang/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      })
       setEditing(false)
       setAction(null)
       reload()

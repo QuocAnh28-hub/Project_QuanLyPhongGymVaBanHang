@@ -235,6 +235,48 @@ Thuept.confirmBooking = (ThuePTID, callback) => {
   });
 };
 
+Thuept.completeBooking = (ThuePTID, callback) => {
+  db.getConnection(async (connectionError, connection) => {
+    if (connectionError) return callback(connectionError);
+    const query = connection.promise();
+    try {
+      await query.beginTransaction();
+      const [bookings] = await query.query(
+        `SELECT tp.TrangThai, l.NgayLam, l.GioKetThuc
+         FROM thuept tp
+         INNER JOIN lichpt l ON l.LichPTID = tp.LichPTID
+         WHERE tp.ThuePTID = ? LIMIT 1 FOR UPDATE`,
+        [ThuePTID],
+      );
+      if (!bookings.length) {
+        throw appError(404, "BOOKING_NOT_FOUND", "Khong tim thay lich thue PT");
+      }
+      if (bookings[0].TrangThai !== "CONFIRMED") {
+        throw appError(409, "INVALID_BOOKING_STATUS", "Chi co the hoan thanh lich da xac nhan");
+      }
+      const [timeCheck] = await query.query(
+        "SELECT TIMESTAMP(?, ?) <= NOW() AS HasEnded",
+        [bookings[0].NgayLam, bookings[0].GioKetThuc],
+      );
+      if (!timeCheck[0].HasEnded) {
+        throw appError(409, "BOOKING_NOT_ENDED", "Lich PT chua ket thuc");
+      }
+      await query.query(
+        "UPDATE thuept SET TrangThai = 'COMPLETED' WHERE ThuePTID = ? AND TrangThai = 'CONFIRMED'",
+        [ThuePTID],
+      );
+      const [updated] = await query.query(`${bookingDetailSql} WHERE tp.ThuePTID = ?`, [ThuePTID]);
+      await query.commit();
+      callback(null, updated[0]);
+    } catch (error) {
+      try { await query.rollback(); } catch (_) {}
+      callback(error);
+    } finally {
+      connection.release();
+    }
+  });
+};
+
 Thuept.cancel = (input, callback) => {
   db.getConnection(async (connectionError, connection) => {
     if (connectionError) return callback(connectionError);

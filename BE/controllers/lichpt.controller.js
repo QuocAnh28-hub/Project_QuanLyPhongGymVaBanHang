@@ -9,6 +9,23 @@ function validDate(value) {
   return !value || /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
+function schedulePayload(body) {
+  const PTID = positiveInteger(body?.PTID);
+  const NgayLam = String(body?.NgayLam || '');
+  const GioBatDau = String(body?.GioBatDau || '');
+  const GioKetThuc = String(body?.GioKetThuc || '');
+  const TrangThai = String(body?.TrangThai || '');
+  if (!PTID || !/^\d{4}-\d{2}-\d{2}$/.test(NgayLam) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(GioBatDau)
+      || !/^([01]\d|2[0-3]):[0-5]\d$/.test(GioKetThuc) || GioKetThuc <= GioBatDau
+      || !['AVAILABLE', 'OFF'].includes(TrangThai)) return null;
+  return { PTID, NgayLam, GioBatDau, GioKetThuc, TrangThai };
+}
+
+function respondWriteError(res, error, fallback) {
+  if (error?.status) return res.status(error.status).json({ message: error.message, code: error.code });
+  return res.status(500).json({ message: fallback, error });
+}
+
 const LichptController = {
 
   getAvailableByPT: (req, res) => {
@@ -59,14 +76,12 @@ const LichptController = {
   },
 
   create: (req, res) => {
-    const data = req.body;
+    const data = schedulePayload(req.body);
+    if (!data) return res.status(400).json({ message: 'Du lieu ca PT khong hop le' });
 
     Lichpt.insert(data, (err, result) => {
       if (err) {
-        return res.status(500).json({
-          message: 'Thêm dữ liệu thất bại',
-          error: err
-        });
+        return respondWriteError(res, err, 'Them du lieu that bai');
       }
 
       res.status(201).json({
@@ -77,15 +92,13 @@ const LichptController = {
   },
 
   update: (req, res) => {
-    const id = req.params.LichPTID;
-    const data = req.body;
+    const id = positiveInteger(req.params.LichPTID);
+    const data = schedulePayload(req.body);
+    if (!id || !data) return res.status(400).json({ message: 'Du lieu ca PT khong hop le' });
 
     Lichpt.update(data, id, (err, result) => {
       if (err) {
-        return res.status(500).json({
-          message: 'Cập nhật thất bại',
-          error: err
-        });
+        return respondWriteError(res, err, 'Cap nhat that bai');
       }
 
       res.json({
@@ -96,14 +109,12 @@ const LichptController = {
   },
 
   delete: (req, res) => {
-    const id = req.params.LichPTID;
+    const id = positiveInteger(req.params.LichPTID);
+    if (!id) return res.status(400).json({ message: 'LichPTID khong hop le' });
 
     Lichpt.delete(id, (err, result) => {
       if (err) {
-        return res.status(500).json({
-          message: 'Xóa thất bại',
-          error: err
-        });
+        return respondWriteError(res, err, 'Xoa that bai');
       }
 
       res.json({
