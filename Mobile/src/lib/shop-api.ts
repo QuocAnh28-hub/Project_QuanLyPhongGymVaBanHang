@@ -11,6 +11,7 @@ export type ShopProduct = {
   DonViTinh: string;
   HinhAnh: string | null;
   TrangThai: string;
+  SoLuongTon: number;
 };
 export type ShopCategory = {
   DanhMucID: number;
@@ -69,6 +70,7 @@ function product<T extends ShopProduct>(row: T): T {
     SanPhamID: Number(row.SanPhamID),
     DanhMucID: Number(row.DanhMucID),
     GiaBan: price,
+    SoLuongTon: Math.max(0, Number(row.SoLuongTon) || 0),
     HinhAnh: image
       ? /^https?:\/\//i.test(image)
         ? image

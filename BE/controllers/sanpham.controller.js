@@ -5,10 +5,7 @@ const SanphamController = {
   getAll: (req, res) => {
     Sanpham.getAll((err, result) => {
       if (err) {
-        return res.status(500).json({
-          message: 'Lỗi khi lấy dữ liệu',
-          error: err
-        });
+        return res.status(err.status || 500).json({ message: err.message || 'Lỗi khi lấy dữ liệu', code: err.code });
       }
       res.json(result);
     });
@@ -19,10 +16,7 @@ const SanphamController = {
 
     Sanpham.getById(id, (err, result) => {
       if (err) {
-        return res.status(500).json({
-          message: 'Lỗi khi lấy dữ liệu',
-          error: err
-        });
+        return res.status(err.status || 500).json({ message: err.message || 'Lỗi khi lấy dữ liệu', code: err.code });
       }
 
       if (!result || result.length === 0) {

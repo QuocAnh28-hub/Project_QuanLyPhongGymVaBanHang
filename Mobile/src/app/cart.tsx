@@ -89,7 +89,10 @@ export default function CartScreen() {
     items.length > 0 &&
     items.every(
       (item) =>
-        item.TrangThai === 'ACTIVE' && item.DanhMucTrangThai === 'ACTIVE'
+        item.TrangThai === 'ACTIVE' &&
+        item.DanhMucTrangThai === 'ACTIVE' &&
+        item.SoLuongTon > 0 &&
+        item.SoLuong <= item.SoLuongTon
     );
   return (
     <View style={styles.container}>
@@ -184,6 +187,9 @@ export default function CartScreen() {
                         ? formatPrice(item.GiaBan * item.SoLuong)
                         : 'Sản phẩm không còn bán'}
                     </Text>
+                    {item.SoLuong > item.SoLuongTon && (
+                      <Text style={styles.stock}>Chỉ còn {item.SoLuongTon} sản phẩm trong kho.</Text>
+                    )}
                     <View style={styles.quantity}>
                       <Pressable
                         disabled={saving || item.SoLuong <= 1}
@@ -197,6 +203,7 @@ export default function CartScreen() {
                         disabled={
                           saving ||
                           item.SoLuong >= 99 ||
+                          item.SoLuong >= item.SoLuongTon ||
                           item.TrangThai !== 'ACTIVE' ||
                           item.DanhMucTrangThai !== 'ACTIVE'
                         }

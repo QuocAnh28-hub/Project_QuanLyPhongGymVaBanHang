@@ -23,21 +23,23 @@ export type ReceiptLine = {
   ThanhTien: number | string
 }
 export type Employee = { NhanVienID: number; HoTen: string; TrangThai: string }
+export type Stock = { KhoID: number; TenKho: string; SanPhamID: number; TenSanPham: string; DonViTinh: string; SoLuongTon: number; NgayCapNhat: string | null }
 export const receiptLabel = (s: string) =>
   ({ PENDING: 'Chờ nhập kho', COMPLETED: 'Đã nhập kho', CANCELLED: 'Đã hủy' })[
     s
   ] || s
 export async function loadWarehouse(signal: AbortSignal) {
-  const [warehouses, receipts, lines, products, employees] = await Promise.all([
+  const [warehouses, receipts, lines, products, employees, stock] = await Promise.all([
     catalogRequest<Warehouse[]>('kho', { signal }),
     catalogRequest<Receipt[]>('phieunhap', { signal }),
     catalogRequest<ReceiptLine[]>('chitietphieunhap', { signal }),
     catalogRequest<Product[]>('sanpham', { signal }),
     catalogRequest<Employee[]>('nhanvien', { signal }),
+    catalogRequest<Stock[]>('kho/stock', { signal }),
   ])
-  if (![warehouses, receipts, lines, products, employees].every(Array.isArray))
+  if (![warehouses, receipts, lines, products, employees, stock].every(Array.isArray))
     throw new Error('Dữ liệu kho không hợp lệ.')
-  return { warehouses, receipts, lines, products, employees }
+  return { warehouses, receipts, lines, products, employees, stock }
 }
 export type WarehouseData = Awaited<ReturnType<typeof loadWarehouse>>
 export function summarizeInbound(data: WarehouseData) {

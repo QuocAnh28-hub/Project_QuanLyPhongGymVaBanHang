@@ -3,13 +3,14 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
 const dbPath = require.resolve('../common/db');
+process.env.SHOP_WAREHOUSE_ID = '1';
 let connection;
 require.cache[dbPath] = { id: dbPath, filename: dbPath, loaded: true,
   exports: { promise: () => ({ getConnection: async () => connection }) } };
 const handle = require('../controllers/shop-cart.controller');
 
 async function run({ method = 'POST', body = { productId: 5, quantity: 2 }, accountId = '7', member = true,
-  available = true, existing = 3, cart = { GioHangID: 9, TrangThai: 'ACTIVE' }, failure = false } = {}) {
+  available = true, stock = 99, existing = 3, cart = { GioHangID: 9, TrangThai: 'ACTIVE' }, failure = false } = {}) {
   const calls = [];
   connection = {
     beginTransaction: async () => calls.push('begin'), commit: async () => calls.push('commit'),
@@ -17,12 +18,13 @@ async function run({ method = 'POST', body = { productId: 5, quantity: 2 }, acco
     query: async (sql, values) => {
       calls.push({ sql, values });
       if (sql.includes('SELECT h.HoiVienID')) return [member ? [{ HoiVienID: 8 }] : []];
+      if (sql.includes('FROM kho')) return [[{ KhoID: 1 }]];
       if (sql.includes('SELECT GioHangID')) return [cart ? [cart] : []];
-      if (sql.includes('SELECT s.SanPhamID')) return [available ? [{ SanPhamID: 5 }] : []];
+      if (sql.includes('SELECT s.SanPhamID')) return [available ? [{ SanPhamID: 5, TenSanPham: 'Whey', SoLuongTon: stock }] : []];
       if (sql.includes('SELECT SoLuong')) return [existing ? [{ SoLuong: existing }] : []];
       if (sql.includes('INSERT INTO giohang')) return [{ insertId: 10 }];
       if (failure && sql.includes('INSERT INTO chitietgiohang')) throw new Error('db unavailable');
-      if (sql.includes('SELECT s.*')) return [[{ SanPhamID: 5, SoLuong: 5, GiaBan: '10000.00' }]];
+      if (sql.includes('SELECT s.*')) return [[{ SanPhamID: 5, SoLuong: 5, SoLuongTon: stock, GiaBan: '10000.00' }]];
       return [{}];
     },
   };
@@ -59,6 +61,11 @@ test('unavailable product and missing customer cannot mutate the cart', async ()
 test('cumulative quantity cannot exceed limit', async () => {
   const { res, writes } = await run({ existing: 98 });
   assert.equal(res.statusCode, 409); assert.deepEqual(writes, []);
+});
+test('stock limits POST and PUT quantities', async () => {
+  assert.equal((await run({ stock: 4 })).res.statusCode, 409);
+  assert.equal((await run({ method: 'PUT', stock: 1 })).res.statusCode, 409);
+  assert.equal((await run({ method: 'PUT', stock: 2 })).res.statusCode, 200);
 });
 test('PUT replaces quantity and zero removes unavailable products', async () => {
   const updated = await run({ method: 'PUT' });

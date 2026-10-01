@@ -1,4 +1,5 @@
 const db = require("../common/db");
+const { requireWarehouse } = require('../common/inventory');
 
 const Sanpham = (sanpham) => {
   this.SanPhamID = sanpham.SanPhamID;
@@ -12,24 +13,25 @@ const Sanpham = (sanpham) => {
 };
 
 Sanpham.getById = (SanPhamID, callback) => {
-  const sqlString = "SELECT * FROM `sanpham` WHERE `SanPhamID` = ?";
-  db.query(sqlString, [SanPhamID], (err, result) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, result);
-  });
+  withStock('WHERE s.SanPhamID=?', [SanPhamID], callback);
 };
 
 Sanpham.getAll = (callback) => {
-  const sqlString = "SELECT * FROM `sanpham`";
-  db.query(sqlString, (err, result) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, result);
-  });
+  withStock('', [], callback);
 };
+
+async function withStock(where, params, callback) {
+  let connection;
+  try {
+    connection = await db.promise().getConnection();
+    const warehouse = await requireWarehouse(connection);
+    const [rows] = await connection.query(`SELECT s.*,COALESCE(t.SoLuongTon,0) AS SoLuongTon
+      FROM sanpham s LEFT JOIN TonKho t ON t.SanPhamID=s.SanPhamID AND t.KhoID=?
+      ${where} ORDER BY s.SanPhamID`, [warehouse, ...params]);
+    callback(null, rows);
+  } catch (error) { callback(error); }
+  finally { connection?.release(); }
+}
 
 Sanpham.insert = (sanpham, callback) => {
   const sqlString = "INSERT INTO `sanpham` SET ?";

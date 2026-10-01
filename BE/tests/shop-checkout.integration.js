@@ -10,6 +10,7 @@ test('shop checkout persists consistent orders and invoices, handles retries and
   const previousMode = process.env.SHOP_PAYMENT_MODE;
   const previousFee = process.env.SHOP_SHIPPING_FEE_VND;
   const previousKey = process.env.SHOP_PAYMENT_CONFIRM_KEY;
+  const previousWarehouse = process.env.SHOP_WAREHOUSE_ID;
   const previousEnvironment = process.env.NODE_ENV;
   let injectedFailure = false;
   const bridge = {
@@ -35,6 +36,9 @@ test('shop checkout persists consistent orders and invoices, handles retries and
     const [member] = await connection.query('INSERT INTO hoivien (TaiKhoanID, HoTen, SoDienThoai) VALUES (?, ?, ?)', [account.insertId, 'Checkout Test', '0912345678']);
     const [category] = await connection.query('INSERT INTO danhmuc (TenDanhMuc) VALUES (?)', ['Checkout Test']);
     const [product] = await connection.query('INSERT INTO sanpham (DanhMucID, TenSanPham, GiaBan) VALUES (?, ?, ?)', [category.insertId, 'Checkout Test Product', '125000.50']);
+    const [warehouse] = await connection.query('INSERT INTO kho (TenKho) VALUES (?)', ['Checkout Test Warehouse']);
+    process.env.SHOP_WAREHOUSE_ID = String(warehouse.insertId);
+    await connection.query('INSERT INTO TonKho (KhoID,SanPhamID,SoLuongTon) VALUES (?,?,100)', [warehouse.insertId, product.insertId]);
     const [cart] = await connection.query('INSERT INTO giohang (HoiVienID) VALUES (?)', [member.insertId]);
     const resetCart = async () => {
       await connection.query("UPDATE giohang SET TrangThai = 'ACTIVE' WHERE GioHangID = ?", [cart.insertId]);
@@ -80,6 +84,10 @@ test('shop checkout persists consistent orders and invoices, handles retries and
       assert.equal(order.items[0].DonGia, '125000.50');
       assert.equal(order.items[0].ThanhTien, '250001.00');
       assert.equal(order.TenNguoiNhan, request.name);
+      const [links] = await connection.query('SELECT KhoID FROM shopcheckout WHERE DonHangID=?', [order.DonHangID]);
+      assert.equal(links[0].KhoID, warehouse.insertId);
+      const [pendingStock] = await connection.query('SELECT SoLuongTon FROM TonKho WHERE KhoID=? AND SanPhamID=?', [warehouse.insertId, product.insertId]);
+      assert.equal(pendingStock[0].SoLuongTon, 100);
       const [items] = await connection.query('SELECT * FROM chitietgiohang WHERE GioHangID = ?', [cart.insertId]);
       assert.equal(items.length, 0);
     });
@@ -109,6 +117,8 @@ test('shop checkout persists consistent orders and invoices, handles retries and
       assert.ok(result.body.HoaDonID);
       const again = await call('confirmManual', {}, params, headers);
       assert.equal(again.body.HoaDonID, result.body.HoaDonID);
+      const [stock] = await connection.query('SELECT SoLuongTon FROM TonKho WHERE KhoID=? AND SanPhamID=?', [warehouse.insertId, product.insertId]);
+      assert.equal(stock[0].SoLuongTon, 98);
       const [invoices] = await connection.query('SELECT * FROM hoadon WHERE ThanhToanID = ?', [order.ThanhToanID]);
       assert.equal(invoices.length, 1);
       assert.equal(invoices[0].TongTien, '265001.00');
@@ -139,16 +149,32 @@ test('shop checkout persists consistent orders and invoices, handles retries and
       assert.equal(result.body.TrangThaiThanhToan, 'SUCCESS');
       assert.ok(result.body.HoaDonID);
     });
+    await t.test('insufficient stock rolls back payment, order and invoice', async () => {
+      await resetCart();
+      await connection.query('UPDATE chitietgiohang SET SoLuong=2 WHERE GioHangID=? AND SanPhamID=?', [cart.insertId, product.insertId]);
+      const quote = await call('preview');
+      const created = await call('create', payload(quote.body));
+      await connection.query('UPDATE TonKho SET SoLuongTon=1 WHERE KhoID=? AND SanPhamID=?', [warehouse.insertId, product.insertId]);
+      const result = await call('confirmManual', {}, { orderId: created.body.DonHangID }, { authorization: 'Bearer test-server-secret' });
+      assert.equal(result.statusCode, 409);
+      assert.equal(result.body.code, 'INSUFFICIENT_STOCK');
+      const [orders] = await connection.query('SELECT TrangThai FROM donhang WHERE DonHangID=?', [created.body.DonHangID]);
+      const [payments] = await connection.query('SELECT TrangThai FROM thanhtoan WHERE ThanhToanID=?', [created.body.ThanhToanID]);
+      const [invoices] = await connection.query('SELECT HoaDonID FROM hoadon WHERE ThanhToanID=?', [created.body.ThanhToanID]);
+      assert.equal(orders[0].TrangThai, 'PENDING');
+      assert.equal(payments[0].TrangThai, 'PENDING');
+      assert.equal(invoices.length, 0);
+    });
     await t.test('empty cart and unknown customer are rejected; history comes from DB', async () => {
       assert.equal((await call('preview')).statusCode, 409);
       assert.equal((await call('get', {}, { accountId: '2147483647', orderId: order.DonHangID })).statusCode, 403);
-      assert.equal((await call('list')).body.length, 2);
+      assert.equal((await call('list')).body.length, 3);
     });
   } finally {
     await connection.rollback();
     connection.release();
     require.cache[modulePath].exports = originalExports;
-    for (const [name, value] of Object.entries({ SHOP_PAYMENT_MODE: previousMode, SHOP_SHIPPING_FEE_VND: previousFee, SHOP_PAYMENT_CONFIRM_KEY: previousKey, NODE_ENV: previousEnvironment })) {
+    for (const [name, value] of Object.entries({ SHOP_PAYMENT_MODE: previousMode, SHOP_SHIPPING_FEE_VND: previousFee, SHOP_PAYMENT_CONFIRM_KEY: previousKey, SHOP_WAREHOUSE_ID: previousWarehouse, NODE_ENV: previousEnvironment })) {
       if (value === undefined) delete process.env[name]; else process.env[name] = value;
     }
     await db.promise().end();

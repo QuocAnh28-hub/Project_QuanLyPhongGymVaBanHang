@@ -70,7 +70,7 @@ export default function ProductsScreen() {
     const result = products.filter(
       (p) =>
         (!categoryId || p.DanhMucID === categoryId) &&
-        (!availableOnly || p.TrangThai === 'ACTIVE') &&
+        (!availableOnly || (p.TrangThai === 'ACTIVE' && p.SoLuongTon > 0)) &&
         searchKey(`${p.TenSanPham} ${p.MoTa || ''}`).includes(
           searchKey(search.trim())
         )
@@ -223,7 +223,7 @@ export default function ProductsScreen() {
                           style={styles.productImage}
                           contentFit="contain"
                         />
-                        {p.TrangThai === 'OUT_OF_STOCK' && (
+                        {(p.TrangThai !== 'ACTIVE' || p.SoLuongTon <= 0) && (
                           <Text style={styles.productBadge}>HẾT HÀNG</Text>
                         )}
                       </View>
@@ -241,11 +241,11 @@ export default function ProductsScreen() {
                         {formatPrice(p.GiaBan)}
                       </Text>
                       <Pressable
-                        disabled={adding !== null || p.TrangThai !== 'ACTIVE'}
+                        disabled={adding !== null || p.TrangThai !== 'ACTIVE' || p.SoLuongTon <= 0}
                         onPress={() => void add(p)}
                         style={[
                           styles.addButton,
-                          (adding !== null || p.TrangThai !== 'ACTIVE') && {
+                          (adding !== null || p.TrangThai !== 'ACTIVE' || p.SoLuongTon <= 0) && {
                             opacity: 0.4,
                           },
                         ]}

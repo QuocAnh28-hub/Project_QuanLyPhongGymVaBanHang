@@ -28,6 +28,12 @@ Kho.getAll = (callback) => {
   });
 };
 
+Kho.getStock = (callback) => db.query(`SELECT k.KhoID,k.TenKho,s.SanPhamID,s.TenSanPham,s.DonViTinh,
+  COALESCE(t.SoLuongTon,0) AS SoLuongTon,t.NgayCapNhat
+  FROM kho k CROSS JOIN sanpham s
+  LEFT JOIN TonKho t ON t.KhoID=k.KhoID AND t.SanPhamID=s.SanPhamID
+  ORDER BY k.KhoID,s.SanPhamID`, callback);
+
 Kho.insert = (kho, callback) => {
   const sqlString = "INSERT INTO `kho` SET ?";
   db.query(sqlString, kho, (err, res) => {

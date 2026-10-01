@@ -73,7 +73,7 @@ export default function ProductDetailScreen() {
       setAdding(false);
     }
   }
-  const canBuy = product?.TrangThai === 'ACTIVE' && !adding;
+  const canBuy = product?.TrangThai === 'ACTIVE' && product.SoLuongTon > 0 && !adding;
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
@@ -122,7 +122,7 @@ export default function ProductDetailScreen() {
                       {product.TenDanhMuc}
                     </Text>
                     <Text style={styles.stock}>
-                      {product.TrangThai === 'ACTIVE' ? 'CÒN HÀNG' : 'HẾT HÀNG'}
+                      {product.TrangThai === 'ACTIVE' && product.SoLuongTon > 0 ? `CÒN ${product.SoLuongTon} SẢN PHẨM` : 'HẾT HÀNG'}
                     </Text>
                   </View>
                   <Text style={styles.productName}>{product.TenSanPham}</Text>
@@ -187,8 +187,8 @@ export default function ProductDetailScreen() {
               </Pressable>
               <Text style={styles.quantity}>{quantity}</Text>
               <Pressable
-                disabled={!canBuy || quantity >= 99}
-                onPress={() => setQuantity((q) => Math.min(99, q + 1))}
+                disabled={!canBuy || quantity >= Math.min(99, product.SoLuongTon)}
+                onPress={() => setQuantity((q) => Math.min(99, product.SoLuongTon, q + 1))}
                 accessibilityLabel="Tăng số lượng"
               >
                 <Text style={styles.quantityAction}>+</Text>
@@ -202,7 +202,7 @@ export default function ProductDetailScreen() {
               <Text style={styles.buyButtonText}>
                 {adding
                   ? 'ĐANG THÊM...'
-                  : product.TrangThai !== 'ACTIVE'
+                  : product.TrangThai !== 'ACTIVE' || product.SoLuongTon <= 0
                     ? 'HẾT HÀNG'
                     : 'THÊM & XEM GIỎ HÀNG'}
               </Text>

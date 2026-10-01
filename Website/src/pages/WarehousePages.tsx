@@ -97,9 +97,7 @@ export default function WarehousePages({ mode }: { mode: WarehouseMode }) {
       </header>
       {mode === 'inventory' && (
         <p className="catalog-notice">
-          Chưa có số dư tồn thực tế hoặc dữ liệu xuất kho. Bảng dưới chỉ tổng
-          hợp hàng từ phiếu đã nhập kho, chưa trừ xuất bán, điều chuyển hay kiểm
-          kê.
+          Tồn thực tế lấy trực tiếp từ TonKho; lượng và giá trị nhập được tổng hợp từ phiếu COMPLETED.
         </p>
       )}
       {mode === 'history' && (
@@ -235,7 +233,7 @@ export default function WarehousePages({ mode }: { mode: WarehouseMode }) {
                           <td>{productUnit(r.SanPhamID)}</td>
                           <td>{r.quantity}</td>
                           <td>{money(r.value)}</td>
-                          <td>Chưa có dữ liệu</td>
+                          <td>{r.SoLuongTon}</td>
                         </tr>
                       ))
                     : visibleReceipts.map((r) => (

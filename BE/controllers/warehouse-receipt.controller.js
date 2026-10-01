@@ -48,9 +48,28 @@ exports.create = async (req, res) => {
 };
 exports.transition = async (req, res) => {
   if (!positiveId(req.params.PhieuNhapID) || !['COMPLETED', 'CANCELLED'].includes(req.body?.TrangThai)) return res.status(400).json({ message: 'Trạng thái phiếu nhập không hợp lệ.' });
+  let connection;
   try {
-    const [result] = await db.promise().query("UPDATE phieunhap SET TrangThai = ? WHERE PhieuNhapID = ? AND TrangThai = 'PENDING' AND EXISTS (SELECT 1 FROM chitietphieunhap c WHERE c.PhieuNhapID = phieunhap.PhieuNhapID)", [req.body.TrangThai, Number(req.params.PhieuNhapID)]);
-    if (!result.affectedRows) return res.status(409).json({ message: 'Phiếu đã đổi trạng thái, không tồn tại hoặc chưa có chi tiết hàng.' });
+    connection = await db.promise().getConnection();
+    await connection.beginTransaction();
+    const [receipts] = await connection.query('SELECT PhieuNhapID,KhoID,TrangThai FROM phieunhap WHERE PhieuNhapID=? FOR UPDATE', [Number(req.params.PhieuNhapID)]);
+    if (!receipts.length) throw Object.assign(new Error('Không tìm thấy phiếu nhập.'), { status: 404 });
+    if (receipts[0].TrangThai !== 'PENDING') throw Object.assign(new Error('Phiếu nhập không còn ở trạng thái PENDING.'), { status: 409 });
+    const [warehouses] = await connection.query('SELECT KhoID FROM kho WHERE KhoID=?', [receipts[0].KhoID]);
+    if (!warehouses.length) throw Object.assign(new Error('Kho của phiếu nhập không còn tồn tại.'), { status: 409 });
+    const [items] = await connection.query('SELECT SanPhamID,SoLuong FROM chitietphieunhap WHERE PhieuNhapID=? ORDER BY SanPhamID FOR UPDATE', [receipts[0].PhieuNhapID]);
+    if (!items.length) throw Object.assign(new Error('Phiếu nhập chưa có chi tiết hàng.'), { status: 409 });
+    if (req.body.TrangThai === 'COMPLETED') {
+      for (const item of items) {
+        await connection.query(`INSERT INTO TonKho (KhoID,SanPhamID,SoLuongTon) VALUES (?,?,?)
+          ON DUPLICATE KEY UPDATE SoLuongTon=SoLuongTon+VALUES(SoLuongTon)`, [receipts[0].KhoID, item.SanPhamID, item.SoLuong]);
+      }
+    }
+    await connection.query('UPDATE phieunhap SET TrangThai=? WHERE PhieuNhapID=?', [req.body.TrangThai, receipts[0].PhieuNhapID]);
+    await connection.commit();
     res.json({ message: 'Đã cập nhật phiếu nhập.' });
-  } catch { res.status(500).json({ message: 'Không thể cập nhật phiếu nhập.' }); }
+  } catch (error) {
+    if (connection) await connection.rollback().catch(() => {});
+    res.status(error.status || 500).json({ message: error.status ? error.message : 'Không thể cập nhật phiếu nhập.' });
+  } finally { connection?.release(); }
 };

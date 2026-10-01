@@ -51,3 +51,37 @@ test('rolls back entire receipt when item insertion fails', async () => {
   assert.equal(res.code, 500);
   assert.deepEqual(events, ['begin', 'header', 'items', 'rollback', 'release']);
 });
+
+function transitionSetup() {
+  let status = 'PENDING', stock = 5;
+  const connection = {
+    beginTransaction: async () => {}, commit: async () => {}, rollback: async () => {}, release: () => {},
+    query: async (sql, values) => {
+      if (sql.includes('FROM phieunhap')) return [[{ PhieuNhapID: 9, KhoID: 1, TrangThai: status }]];
+      if (sql.includes('FROM kho')) return [[{ KhoID: 1 }]];
+      if (sql.includes('FROM chitietphieunhap')) return [[{ SanPhamID: 3, SoLuong: 3 }]];
+      if (sql.includes('INSERT INTO TonKho')) { stock += Number(values[2]); return [{ affectedRows: 1 }]; }
+      if (sql.startsWith('UPDATE phieunhap')) { status = values[0]; return [{ affectedRows: 1 }]; }
+      throw new Error(`Unexpected SQL: ${sql}`);
+    },
+  };
+  const context = { exports: {}, require: () => ({ promise: () => ({ getConnection: async () => connection }) }) };
+  vm.runInNewContext(source, context);
+  return { api: context.exports, stock: () => stock };
+}
+
+test('COMPLETED adds stock once and repeated transition is idempotent', async () => {
+  const { api, stock } = transitionSetup();
+  const first = response();
+  await api.transition({ params: { PhieuNhapID: 9 }, body: { TrangThai: 'COMPLETED' } }, first);
+  assert.equal(first.code, 200); assert.equal(stock(), 8);
+  const repeated = response();
+  await api.transition({ params: { PhieuNhapID: 9 }, body: { TrangThai: 'COMPLETED' } }, repeated);
+  assert.equal(repeated.code, 409); assert.equal(stock(), 8);
+});
+
+test('CANCELLED does not change stock', async () => {
+  const { api, stock } = transitionSetup(); const res = response();
+  await api.transition({ params: { PhieuNhapID: 9 }, body: { TrangThai: 'CANCELLED' } }, res);
+  assert.equal(res.code, 200); assert.equal(stock(), 5);
+});

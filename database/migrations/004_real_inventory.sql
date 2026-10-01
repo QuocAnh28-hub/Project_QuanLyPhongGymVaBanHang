@@ -1,0 +1,29 @@
+-- Repository migration only. Do not rerun on databases where this schema was added manually.
+CREATE TABLE IF NOT EXISTS TonKho (
+    KhoID INT NOT NULL,
+    SanPhamID INT NOT NULL,
+    SoLuongTon INT NOT NULL DEFAULT 0,
+    NgayCapNhat DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (KhoID, SanPhamID),
+    CONSTRAINT FK_TonKho_Kho FOREIGN KEY (KhoID) REFERENCES Kho(KhoID) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT FK_TonKho_SanPham FOREIGN KEY (SanPhamID) REFERENCES SanPham(SanPhamID) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT CK_TonKho_KhongAm CHECK (SoLuongTon >= 0)
+);
+
+SET @add_kho_column = IF(
+  EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='shopcheckout' AND COLUMN_NAME='KhoID'),
+  'SELECT 1',
+  'ALTER TABLE shopcheckout ADD COLUMN KhoID INT NOT NULL AFTER HoiVienID'
+);
+PREPARE statement FROM @add_kho_column;
+EXECUTE statement;
+DEALLOCATE PREPARE statement;
+
+SET @add_kho_fk = IF(
+  EXISTS(SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='shopcheckout' AND CONSTRAINT_NAME='FK_ShopCheckout_Kho'),
+  'SELECT 1',
+  'ALTER TABLE shopcheckout ADD CONSTRAINT FK_ShopCheckout_Kho FOREIGN KEY (KhoID) REFERENCES Kho(KhoID) ON DELETE RESTRICT ON UPDATE CASCADE'
+);
+PREPARE statement FROM @add_kho_fk;
+EXECUTE statement;
+DEALLOCATE PREPARE statement;

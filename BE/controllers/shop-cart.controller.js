@@ -1,4 +1,5 @@
 const db = require('../common/db');
+const { requireWarehouse, insufficientStock } = require('../common/inventory');
 
 const positiveId = value => /^\d+$/.test(String(value)) && Number.isSafeInteger(Number(value)) && Number(value) > 0;
 const fail = (status, message) => Object.assign(new Error(message), { status });
@@ -24,14 +25,19 @@ async function handle(req, res) {
        WHERE t.TaiKhoanID = ? AND t.TrangThai = 'ACTIVE' AND t.VaiTro = 'CUSTOMER' FOR UPDATE`, [accountId]);
     if (!members.length) throw fail(403, 'Vui lòng đăng nhập bằng tài khoản hội viên đang hoạt động.');
     const memberId = members[0].HoiVienID;
+    const warehouseId = await requireWarehouse(connection);
     const [carts] = await connection.query('SELECT GioHangID, TrangThai FROM giohang WHERE HoiVienID = ?', [memberId]);
     let cartId = carts[0]?.GioHangID;
     if (writing) {
+      let stock;
       if (quantity > 0) {
         const [products] = await connection.query(
-          `SELECT s.SanPhamID FROM sanpham s JOIN danhmuc d ON d.DanhMucID = s.DanhMucID
-           WHERE s.SanPhamID = ? AND s.TrangThai = 'ACTIVE' AND d.TrangThai = 'ACTIVE' FOR UPDATE`, [productId]);
+          `SELECT s.SanPhamID,s.TenSanPham,COALESCE(t.SoLuongTon,0) AS SoLuongTon
+           FROM sanpham s JOIN danhmuc d ON d.DanhMucID=s.DanhMucID
+           LEFT JOIN TonKho t ON t.SanPhamID=s.SanPhamID AND t.KhoID=?
+           WHERE s.SanPhamID=? AND s.TrangThai='ACTIVE' AND d.TrangThai='ACTIVE' FOR UPDATE`, [warehouseId, productId]);
         if (!products.length) throw fail(409, 'Sản phẩm đã hết hàng hoặc ngừng bán.');
+        stock = products[0];
       }
       if (!cartId) {
         const [result] = await connection.query('INSERT INTO giohang (HoiVienID) VALUES (?)', [memberId]);
@@ -43,6 +49,7 @@ async function handle(req, res) {
       const [items] = await connection.query('SELECT SoLuong FROM chitietgiohang WHERE GioHangID = ? AND SanPhamID = ?', [cartId, productId]);
       const next = req.method === 'POST' ? Number(items[0]?.SoLuong || 0) + quantity : quantity;
       if (next > 99) throw fail(409, 'Mỗi sản phẩm được chọn tối đa 99 đơn vị.');
+      if (next > 0 && next > Number(stock.SoLuongTon)) throw insufficientStock(stock.TenSanPham, Number(stock.SoLuongTon));
       if (next === 0) {
         await connection.query('DELETE FROM chitietgiohang WHERE GioHangID = ? AND SanPhamID = ?', [cartId, productId]);
       } else {
@@ -51,15 +58,16 @@ async function handle(req, res) {
       }
     }
     const [items] = await connection.query(
-      `SELECT s.*, c.SoLuong, d.TenDanhMuc, d.TrangThai AS DanhMucTrangThai
+      `SELECT s.*, c.SoLuong, d.TenDanhMuc, d.TrangThai AS DanhMucTrangThai, COALESCE(t.SoLuongTon,0) AS SoLuongTon
        FROM chitietgiohang c JOIN giohang g ON g.GioHangID = c.GioHangID
        JOIN sanpham s ON s.SanPhamID = c.SanPhamID JOIN danhmuc d ON d.DanhMucID = s.DanhMucID
-       WHERE g.HoiVienID = ? AND g.TrangThai = 'ACTIVE' ORDER BY c.ChiTietGioHangID`, [memberId]);
+       LEFT JOIN TonKho t ON t.SanPhamID=s.SanPhamID AND t.KhoID=?
+       WHERE g.HoiVienID = ? AND g.TrangThai = 'ACTIVE' ORDER BY c.ChiTietGioHangID`, [warehouseId, memberId]);
     await connection.commit();
     return res.json(items);
   } catch (error) {
     if (connection) await connection.rollback();
-    return res.status(error.status || 500).json({ message: error.status ? error.message : 'Không cập nhật được giỏ hàng. Vui lòng thử lại.' });
+    return res.status(error.status || 500).json({ message: error.status ? error.message : 'Không cập nhật được giỏ hàng. Vui lòng thử lại.', ...(error.code && { code: error.code }) });
   } finally {
     connection?.release();
   }

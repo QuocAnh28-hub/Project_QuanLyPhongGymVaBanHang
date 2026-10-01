@@ -60,8 +60,12 @@ export function useWarehousePage(mode: WarehouseMode) {
         ).includes(searchText(search))
     )
     .sort((a, b) => b.PhieuNhapID - a.PhieuNhapID)
+  const inbound = data ? summarizeInbound(data) : []
   const stock = data
-    ? summarizeInbound(data).filter(
+    ? data.stock.map((row) => {
+        const received = inbound.find((item) => Number(item.KhoID) === Number(row.KhoID) && Number(item.SanPhamID) === Number(row.SanPhamID))
+        return { ...row, quantity: received?.quantity || 0, value: received?.value || 0, SoLuongTon: Number(row.SoLuongTon) }
+      }).filter(
         (r) =>
           (!warehouse || Number(r.KhoID) === Number(warehouse)) &&
           searchText(
@@ -129,12 +133,13 @@ export function useWarehousePage(mode: WarehouseMode) {
       `${mode}.csv`,
       mode === 'inventory'
         ? [
-            ['Kho', 'Sản phẩm', 'Lượng đã nhập', 'Giá trị nhập'],
+            ['Kho', 'Sản phẩm', 'Lượng đã nhập', 'Giá trị nhập', 'Tồn thực tế'],
             ...stock.map((r) => [
               warehouseName(r.KhoID),
               productName(r.SanPhamID),
               r.quantity,
               r.value,
+              r.SoLuongTon,
             ]),
           ]
         : [

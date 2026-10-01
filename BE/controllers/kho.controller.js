@@ -2,6 +2,10 @@ const Kho = require('../models/kho.model');
 
 const KhoController = {
 
+  getStock: (_req, res) => Kho.getStock((err, result) => err
+    ? res.status(500).json({ message: 'Không thể tải tồn kho' })
+    : res.json(result)),
+
   getAll: (req, res) => {
     Kho.getAll((err, result) => {
       if (err) {
