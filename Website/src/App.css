@@ -7699,6 +7699,62 @@ select {
     grid-template-columns: 1fr 1fr;
     gap: 13px;
   }
+  .package-duration-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.package-duration-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  padding: 12px;
+  border: 1px solid #30343a;
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.package-duration-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--muted);
+  font: 700 11px var(--font-heading);
+}
+
+.package-duration-row input,
+.package-duration-row select {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #333;
+  border-radius: 7px;
+  background: var(--surface);
+}
+
+.duration-delete {
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 7px;
+  background: #562522;
+  color: var(--error);
+  border: 1px solid #6d302c;
+}
+
+.duration-add {
+  align-self: flex-start;
+  padding: 10px 16px;
+  border-radius: 7px;
+  background: var(--high);
+  color: var(--text);
+}
+
+@media (max-width: 900px) {
+  .package-duration-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 
   .form-grid label {
     display: flex;

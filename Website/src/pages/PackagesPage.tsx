@@ -486,19 +486,119 @@ function PackageForm({
               <option value="trial">Trải nghiệm</option>
             </select>
           </label>
-          <div className="full">
+          <div className="full package-duration-section">
             <b>CÁC MỐC THỜI HẠN</b>
+
             {form.durations.map((row, index) => (
-              <div className="form-grid" key={row.durationId ?? `new-${index}`}>
-                <label>Số tháng<input required min="1" step="1" type="number" value={row.months} onChange={(e) => durationField(index, { months: +e.target.value })} /></label>
-                <label>Tháng tặng<input required min="0" step="1" type="number" value={row.bonusMonths} onChange={(e) => durationField(index, { bonusMonths: +e.target.value })} /></label>
-                <label>Giá gốc<input required min="0" type="number" value={row.originalPrice} onChange={(e) => durationField(index, { originalPrice: +e.target.value })} /></label>
-                <label>Giá bán<input required min="0" type="number" value={row.salePrice} onChange={(e) => durationField(index, { salePrice: +e.target.value })} /></label>
-                <label>Trạng thái<select value={String(row.active)} onChange={(e) => durationField(index, { active: e.target.value === 'true' })}><option value="true">ACTIVE</option><option value="false">INACTIVE</option></select></label>
-                <button type="button" onClick={() => setForm({ ...form, durations: form.durations.filter((_, i) => i !== index) })}>Xóa mốc</button>
+              <div
+                className="package-duration-row"
+                key={row.durationId ?? `new-${index}`}
+              >
+                <label>
+                  Số tháng
+                  <input
+                    required
+                    min="1"
+                    step="1"
+                    type="number"
+                    value={row.months}
+                    onChange={(e) =>
+                      durationField(index, { months: +e.target.value })
+                    }
+                  />
+                </label>
+
+                <label>
+                  Tháng tặng
+                  <input
+                    required
+                    min="0"
+                    step="1"
+                    type="number"
+                    value={row.bonusMonths}
+                    onChange={(e) =>
+                      durationField(index, { bonusMonths: +e.target.value })
+                    }
+                  />
+                </label>
+
+                <label>
+                  Giá gốc
+                  <input
+                    required
+                    min="0"
+                    type="number"
+                    value={row.originalPrice}
+                    onChange={(e) =>
+                      durationField(index, { originalPrice: +e.target.value })
+                    }
+                  />
+                </label>
+
+                <label>
+                  Giá bán
+                  <input
+                    required
+                    min="0"
+                    type="number"
+                    value={row.salePrice}
+                    onChange={(e) =>
+                      durationField(index, { salePrice: +e.target.value })
+                    }
+                  />
+                </label>
+
+                <label>
+                  Trạng thái
+                  <select
+                    value={String(row.active)}
+                    onChange={(e) =>
+                      durationField(index, {
+                        active: e.target.value === 'true',
+                      })
+                    }
+                  >
+                    <option value="true">ACTIVE</option>
+                    <option value="false">INACTIVE</option>
+                  </select>
+                </label>
+
+                <button
+                  className="duration-delete"
+                  type="button"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      durations: form.durations.filter((_, i) => i !== index),
+                    })
+                  }
+                >
+                  Xóa mốc
+                </button>
               </div>
             ))}
-            <button type="button" onClick={() => setForm({ ...form, durations: [...form.durations, { months: 1, bonusMonths: 0, originalPrice: 0, salePrice: 0, active: true }] })}>+ THÊM MỐC THỜI HẠN</button>
+
+            <button
+              className="duration-add"
+              type="button"
+              onClick={() =>
+                setForm({
+                  ...form,
+                  durations: [
+                    ...form.durations,
+                    {
+                      months: 1,
+                      bonusMonths: 0,
+                      originalPrice: 0,
+                      salePrice: 0,
+                      active: true,
+                    },
+                  ],
+                })
+              }
+            >
+              + THÊM MỐC THỜI HẠN
+            </button>
           </div>
           <label>
             Trạng thái
