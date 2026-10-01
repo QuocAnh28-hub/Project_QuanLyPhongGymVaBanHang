@@ -1,5 +1,6 @@
 import { authenticatedFetch, baseUrl } from '@/lib/account-api';
 import type { PaymentMethod } from '@/lib/membership';
+import type { ActivationMode } from '@/lib/membership-api';
 
 export type BackendPaymentMethod = 'TIEN_MAT' | 'CHUYEN_KHOAN' | 'THE';
 export type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'CANCELLED';
@@ -20,6 +21,7 @@ export type PackagePayment = {
   PhuongThucThanhToan: BackendPaymentMethod;
   TrangThaiThanhToan: PaymentStatus;
   TrangThaiDangKy: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+  ActivationMode: ActivationMode;
 };
 
 type PackagePaymentSummary = Pick<
@@ -46,6 +48,7 @@ async function readError(response: Response): Promise<string> {
 export async function createPackagePayment(input: {
   registrationId: number;
   paymentMethod: PaymentMethod;
+  activationMode: ActivationMode;
 }): Promise<PackagePaymentSummary> {
   const response = await authenticatedFetch(`${baseUrl}/thanhtoan/package`, {
     method: 'POST',
@@ -53,6 +56,7 @@ export async function createPackagePayment(input: {
     body: JSON.stringify({
       DangKyID: input.registrationId,
       PhuongThucThanhToan: methodMap[input.paymentMethod],
+      ActivationMode: input.activationMode,
     }),
   });
   if (!response.ok) throw new Error(await readError(response));

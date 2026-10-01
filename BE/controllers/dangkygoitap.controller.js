@@ -72,6 +72,14 @@ const DangkygoitapController = {
     });
   },
 
+  getOwnedByAccount: (req, res) => {
+    const accountId = positiveInteger(req.params.TaiKhoanID);
+    if (!accountId) return res.status(400).json({ message: 'TaiKhoanID không hợp lệ' });
+    Dangkygoitap.getOwnedMembershipsByAccount(accountId, (err, result) => err
+      ? res.status(500).json({ message: 'Không thể tải gói tập của hội viên' })
+      : res.json(result));
+  },
+
   getAll: (req, res) => {
     Dangkygoitap.getAll((err, result) => {
       if (err) {
@@ -134,6 +142,7 @@ const DangkygoitapController = {
     const MaKhuyenMai = req.body?.MaKhuyenMai
       ? String(req.body.MaKhuyenMai).trim().toUpperCase()
       : null;
+    const ActivationMode = req.body?.ActivationMode || 'QUEUE_AFTER_CURRENT';
 
     if (!TaiKhoanID) {
       return res.status(400).json({ message: 'TaiKhoanID không hợp lệ' });
@@ -146,6 +155,9 @@ const DangkygoitapController = {
     }
     if (!isValidYmd(NgayBatDau)) {
       return res.status(400).json({ message: 'NgayBatDau không hợp lệ' });
+    }
+    if (!['QUEUE_AFTER_CURRENT', 'REPLACE_NOW'].includes(ActivationMode)) {
+      return res.status(400).json({ message: 'ActivationMode không hợp lệ' });
     }
 
     const today = localDate(new Date());
@@ -163,7 +175,8 @@ const DangkygoitapController = {
         GoiTapID,
         GoiTapThoiHanID,
         NgayBatDau,
-        MaKhuyenMai
+        MaKhuyenMai,
+        ActivationMode
       },
       (err, result) => {
         if (err) {
