@@ -65,47 +65,6 @@ export default function Login({
             đa chi nhánh theo thời gian thực.
           </p>
         </div>
-        <div className="admin-stats" aria-label="Thông tin minh họa hệ thống">
-          <article>
-            <div>
-              CHI NHÁNH HOẠT ĐỘNG <Icon name="hub" />
-            </div>
-            <strong>
-              4 / 4 <small>100% OK</small>
-            </strong>
-            <p>Vincom Q1, Crescent, Thảo Điền, West Lake</p>
-          </article>
-          <article>
-            <div>
-              CỔNG IOT TURNSTILE <Icon name="sensor_door" />
-            </div>
-            <strong className="lime">
-              18 / 18 <small>ONLINE</small>
-            </strong>
-            <p>Độ trễ phản hồi &lt;14ms</p>
-          </article>
-          <article>
-            <div>
-              PHIÊN CÁN BỘ ACTIVE <Icon name="badge" />
-            </div>
-            <strong>
-              84 <small className="lime">STABLE</small>
-            </strong>
-            <p>Zero-Trust Token Enforced</p>
-          </article>
-        </div>
-        <div className="admin-traffic">
-          <span className="traffic-icon">
-            <Icon name="query_stats" />
-          </span>
-          <div>
-            <b>LƯỢNG TRUY CẬP HỆ THỐNG BIOMETRIC</b>
-            <span>1,420 lượt check-in / giờ cao điểm chiều</span>
-          </div>
-          <svg viewBox="0 0 140 40" aria-hidden="true">
-            <path d="M2 28 24 24 46 30 68 15 90 20 112 10 136 18" />
-          </svg>
-        </div>
         <footer className="admin-trust">
           <span>
             <Icon name="lock" />
