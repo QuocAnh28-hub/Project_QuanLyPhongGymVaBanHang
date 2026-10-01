@@ -18,6 +18,11 @@ const db = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME,
   connectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10),
+  maxIdle: Number(process.env.DB_MAX_IDLE || process.env.DB_CONNECTION_LIMIT || 10),
+  idleTimeout: Number(process.env.DB_IDLE_TIMEOUT_MS || 60000),
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
+  connectTimeout: Number(process.env.DB_CONNECT_TIMEOUT_MS || 10000),
   waitForConnections: true,
   queueLimit: 0,
   charset: 'utf8mb4'

@@ -32,7 +32,14 @@ export function clearSession() {
 }
 export async function adminFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const session = JSON.parse(localStorage.getItem(storageKey) || sessionStorage.getItem(storageKey) || 'null') as AdminSession | null
-  const response = await fetch(input, { ...init, headers: { ...init.headers, ...(session?.token && { Authorization: `Bearer ${session.token}` }) } })
+  const options = () => ({ ...init, signal: init.signal || AbortSignal.timeout(15000), headers: { ...init.headers, ...(session?.token && { Authorization: `Bearer ${session.token}` }) } })
+  let response: Response
+  try {
+    response = await fetch(input, options())
+  } catch (error) {
+    if ((init.method || 'GET').toUpperCase() !== 'GET' || init.signal?.aborted) throw error
+    response = await fetch(input, options())
+  }
   if (response.status === 401) {
     clearSession()
     window.dispatchEvent(new Event('qa-admin-session-expired'))
