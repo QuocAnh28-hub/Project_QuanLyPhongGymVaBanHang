@@ -37,6 +37,8 @@ test('admin synchronizes every package duration without deleting history', async
     const activeDetail = await new Promise((resolve, reject) => packages.getActiveDetailById(id, (error, result) => error ? reject(error) : resolve(result)));
     assert.equal(activeDetail.ThoiHan.length, 5);
     assert.equal(Number(activeDetail.ThoiHan.find(row => Number(row.SoThang) === 12).ThangTang), 1);
+    const adminList = await new Promise((resolve, reject) => packages.getAll((error, result) => error ? reject(error) : resolve(result)));
+    assert.equal(adminList.find(row => Number(row.GoiTapID) === id).ThoiHan.length, 5);
     const eightId = rows.find(row => Number(row.SoThang) === 8).GoiTapThoiHanID;
 
     await save(id, { ...base, ThoiHan: [duration(1, 200000), duration(3, 550000), duration(8, 1600000), duration(12, 2200000, 1), duration(18, 3000000)] });

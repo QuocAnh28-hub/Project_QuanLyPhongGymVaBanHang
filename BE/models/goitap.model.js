@@ -33,11 +33,22 @@ Goitap.getAll = (callback) => {
     LEFT JOIN dangkygoitap dk ON dk.GoiTapID = g.GoiTapID
     GROUP BY g.GoiTapID, th.GoiTapThoiHanID
     ORDER BY g.GoiTapID DESC`;
-  db.query(sqlString, (err, result) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, result);
+  db.query(sqlString, (err, packages) => {
+    if (err || !packages.length) return callback(err, packages || []);
+    const ids = packages.map(row => row.GoiTapID);
+    db.query(`SELECT GoiTapThoiHanID,GoiTapID,SoThang,ThangTang,GiaGoc,GiaBan,TrangThai
+      FROM GoiTapThoiHan WHERE GoiTapID IN (?) ORDER BY SoThang,GoiTapThoiHanID`, [ids], (durationError, durations) => {
+      if (durationError) return callback(durationError);
+      db.query(`SELECT GoiTapID,TenQuyenLoi,TrangThai FROM QuyenLoiGoiTap
+        WHERE GoiTapID IN (?) ORDER BY ThuTu,QuyenLoiID`, [ids], (privilegeError, privileges) => {
+        if (privilegeError) return callback(privilegeError);
+        callback(null, packages.map(row => ({
+          ...row,
+          ThoiHan: durations.filter(duration => Number(duration.GoiTapID) === Number(row.GoiTapID)),
+          QuyenLoiChiTiet: privileges.filter(privilege => Number(privilege.GoiTapID) === Number(row.GoiTapID)),
+        })));
+      });
+    });
   });
 };
 

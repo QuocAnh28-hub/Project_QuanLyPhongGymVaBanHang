@@ -31,6 +31,8 @@ type ApiPackage = {
   TrangThai: 'ACTIVE' | 'INACTIVE'
   SoHoiVienActive: number
   QuyenLoi?: string
+  ThoiHan: ApiPackageDetail['ThoiHan']
+  QuyenLoiChiTiet: ApiPackageDetail['QuyenLoi']
 }
 
 type ApiPackageDetail = {
@@ -83,7 +85,14 @@ export const getPackageAdminDetail = async (id: number, members = 0) =>
 
 export const getPackages = async () => {
   const rows = await request<ApiPackage[]>('/api/goitap')
-  return Promise.all(rows.map(row => getPackageAdminDetail(row.GoiTapID, Number(row.SoHoiVienActive || 0))))
+  return rows.map(row => mapPackage({
+    GoiTapID: row.GoiTapID,
+    TenGoi: row.TenGoi,
+    MoTa: row.MoTa,
+    TrangThai: row.TrangThai,
+    ThoiHan: row.ThoiHan,
+    QuyenLoi: row.QuyenLoiChiTiet,
+  }, Number(row.SoHoiVienActive || 0)))
 }
 export async function savePackage(value: GymPackage) {
   await request(value.id ? `/api/goitap/${value.id}` : '/api/goitap', {
