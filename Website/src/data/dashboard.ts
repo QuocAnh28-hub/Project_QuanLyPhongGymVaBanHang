@@ -1,81 +1,82 @@
-export const metrics = [
-  [
-    'TỔNG QUAN HỘI VIÊN',
-    '▣',
-    'Hội viên Active',
-    '25.840',
-    '↗ +148 mới tuần này (+12.4%)',
-    'Diamond VIP: 3.420|Classic/Silver: 22.420|Hết hạn trong 7 ngày: 4 hội viên',
-  ],
-  [
-    'DOANH THU HỆ THỐNG',
-    '▤',
-    'Doanh thu MTD',
-    '1.845.600.000 đ',
-    '◉ +18.2% vượt KPIs tháng',
-    'Tiến độ: 62%|Hội viên: (1.144M)|Huấn luyện: (461M)|QA Pro Shop: (240M)',
-  ],
-  [
-    'LƯỢT CHECK-IN HÔM NAY',
-    '◉',
-    'Turnstile Live',
-    '1.428 lượt',
-    '● Hiện có mặt: 312 khách',
-    'Công suất chuỗi: 68% peak|Turnstile 19/18 Online|IoT: 100%',
-  ],
-  [
-    'QA PRO SHOP',
-    '▢',
-    'Đơn hàng Nutrition',
-    '38 đơn mới',
-    '● Doanh số ngày: 18.950.000 đ',
-    '• Giao 12 đơn|• Hoàn tất: 24 đơn|• Chờ xác nhận: 2 đơn',
-  ],
-  [
-    'ĐỘI NGŨ HUẤN LUYỆN VIÊN',
-    '⚡',
-    'Lịch tập PT 1-1',
-    '42 Trainers',
-    '◉ Tỷ lệ kín lịch: 94.6%',
-    'Tổng ca hôm nay: 156 buổi|Đã hoàn tất: 84 buổi|Sắp diễn ra: 72 buổi',
-  ],
-]
+import type { Report } from '../services/admin-finance'
+import type { CheckInRow } from '../services/checkins'
+import type { Order } from '../services/orders'
+import type { TrainerData } from '../services/trainers'
 
-export const clubs = [
-  [
-    'Vincom Đồng Khởi Q.1',
-    'ĐÔNG ĐÚC',
-    82,
-    142,
-    '8 ca PT hoạt động',
-    'Cổng 1–4 Active',
-  ],
-  [
-    'Crescent Elite Q.7',
-    'BÌNH THƯỜNG',
-    64,
-    86,
-    '5 ca PT hoạt động',
-    'Cổng 1–4 Active',
-  ],
-  [
-    'Thảo Điền Performance Hub',
-    'LÝ TƯỞNG',
-    55,
-    54,
-    '4 ca PT hoạt động',
-    'Cổng 1–5 Active',
-  ],
-  [
-    'West Lake HM Exclusive',
-    'LÝ TƯỞNG',
-    48,
-    30,
-    '2 ca PT hoạt động',
-    'Cổng 1–5 Active',
-  ],
-]
+export const dashboardTimeZone = 'Asia/Ho_Chi_Minh'
 
-export const hours = [
-  34, 52, 64, 45, 33, 47, 67, 37, 18, 62, 72, 79, 68, 45, 28, 22,
-]
+// SQL DATETIME values have no offset; the gym operates in Vietnam time.
+export function dashboardTimestamp(value: string) {
+  return new Date(/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(value)
+    ? `${value.replace(' ', 'T')}+07:00`
+    : value).getTime()
+}
+
+export function dashboardDate(value: string | Date) {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value
+  const date = typeof value === 'string' ? new Date(dashboardTimestamp(value)) : value
+  if (!Number.isFinite(date.getTime())) return ''
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: dashboardTimeZone, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(date)
+  const part = (type: string) => parts.find((p) => p.type === type)?.value
+  return `${part('year')}-${part('month')}-${part('day')}`
+}
+
+export type DashboardData = {
+  report: Report
+  checkins: {
+    metrics: { total: number; present: number; checkedOut: number }
+    rows: CheckInRow[]
+  }
+  trainers: TrainerData
+  orders: Order[]
+  today: string
+  updatedAt: string
+}
+
+export function summarizeDashboard(data: DashboardData) {
+  const { report, checkins, trainers, orders, today } = data
+  const hours = Array.from({ length: 24 }, (_, hour) => ({ hour, count: 0 }))
+  for (const row of checkins.rows) {
+    if (dashboardDate(row.ThoiGianCheckIn) !== today) continue
+    const hour = Number(new Intl.DateTimeFormat('en-GB', {
+      timeZone: dashboardTimeZone, hour: '2-digit', hourCycle: 'h23',
+    }).format(new Date(dashboardTimestamp(row.ThoiGianCheckIn))))
+    hours[hour].count++
+  }
+  const amounts = new Map<string, number>()
+  for (const row of report.revenueByDay) {
+    const day = dashboardDate(row.date)
+    amounts.set(day, (amounts.get(day) || 0) + Number(row.amount || 0))
+  }
+  const revenueDays = Array.from({ length: Number(today.slice(8)) }, (_, i) => {
+    const date = `${today.slice(0, 8)}${String(i + 1).padStart(2, '0')}`
+    return { date, amount: amounts.get(date) || 0 }
+  })
+  const members = new Map(trainers.members.map((m) => [Number(m.HoiVienID), m.HoTen]))
+  const coaches = new Map(trainers.trainers.map((t) => [Number(t.PTID), t.HoTen]))
+  const shifts = new Map(trainers.shifts.map((s) => [Number(s.LichPTID), s]))
+  const sessions = trainers.bookings.flatMap((booking) => {
+    const shift = shifts.get(Number(booking.LichPTID))
+    if (!shift || dashboardDate(shift.NgayLam) !== today) return []
+    return [{
+      ...booking,
+      start: shift.GioBatDau.slice(0, 5),
+      startAt: dashboardTimestamp(`${today}T${shift.GioBatDau}`),
+      trainer: coaches.get(Number(booking.PTID)) || `HLV #${booking.PTID}`,
+      member: members.get(Number(booking.HoiVienID)) || `Hội viên #${booking.HoiVienID}`,
+    }]
+  }).sort((a, b) => a.startAt - b.startAt || a.ThuePTID - b.ThuePTID)
+  const upcoming = sessions.filter((s) =>
+    ['PENDING', 'CONFIRMED'].includes(s.TrangThai) && s.startAt >= dashboardTimestamp(data.updatedAt))
+  const todayOrders = orders.filter((o) => dashboardDate(o.NgayDat) === today)
+  const pendingOrders = orders.filter((o) => ['PENDING', 'CONFIRMED', 'PROCESSING'].includes(o.TrangThai))
+    .sort((a, b) => dashboardTimestamp(a.NgayDat) - dashboardTimestamp(b.NgayDat) || a.DonHangID - b.DonHangID)
+  return {
+    hours, revenueDays, sessions, upcoming, todayOrders, pendingOrders,
+    activeTrainers: trainers.trainers.filter((t) => t.TrangThai === 'ACTIVE').length,
+    latestCheckins: [...checkins.rows].sort((a, b) =>
+      dashboardTimestamp(b.ThoiGianCheckIn) - dashboardTimestamp(a.ThoiGianCheckIn) || b.CheckInID - a.CheckInID).slice(0, 6),
+  }
+}

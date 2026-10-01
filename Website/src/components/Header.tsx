@@ -1,4 +1,10 @@
-export default function Header() {
+import type { AdminSession } from '../services/auth'
+
+export default function Header({
+  account,
+}: {
+  account: AdminSession['account']
+}) {
   return (
     <header className="topbar">
       <label className="search">
@@ -10,14 +16,14 @@ export default function Header() {
       </label>
       <div className="system-status">
         <i />
-        HỆ THỐNG 24/7 - TOÀN CẢNH CLB
+        QUẢN TRỊ PHÒNG TẬP
       </div>
       <button className="location-select" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M19 10c0 5-7 10-7 10s-7-5-7-10a7 7 0 1 1 14 0Z" />
           <circle cx="12" cy="10" r="2.2" />
         </svg>
-        <span>Tất cả 4 Cơ sở</span>
+        <span>Toàn hệ thống</span>
         <svg className="chevron" viewBox="0 0 24 24" aria-hidden="true">
           <path d="m7 9 5 5 5-5" />
         </svg>
@@ -30,7 +36,8 @@ export default function Header() {
       </button>
       <div className="user">
         <span>
-          Trần Minh Hoàng<small>Head Operations / Master Admin</small>
+          {account.Email}
+          <small>Quản trị viên</small>
         </span>
         <b aria-label="Tài khoản">♙</b>
       </div>
