@@ -1,4 +1,5 @@
 const db = require('../common/db');
+const { hashPassword } = require('../common/password');
 
 module.exports = async (req, res) => {
   const { name, email, phone, password } = req.body || {};
@@ -25,7 +26,7 @@ module.exports = async (req, res) => {
     }
     // Keep the password format compatible with the existing login API.
     const [account] = await connection.query('INSERT INTO taikhoan SET ?', {
-      Email, MatKhau: password, VaiTro: 'CUSTOMER', TrangThai: 'ACTIVE',
+      Email, MatKhau: await hashPassword(password), VaiTro: 'CUSTOMER', TrangThai: 'ACTIVE',
     });
     const [member] = await connection.query('INSERT INTO hoivien SET ?', {
       TaiKhoanID: account.insertId, HoTen, Email, SoDienThoai, TrangThai: 'ACTIVE',

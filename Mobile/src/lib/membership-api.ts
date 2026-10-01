@@ -1,4 +1,4 @@
-import { baseUrl } from '@/lib/account-api';
+import { authenticatedFetch, baseUrl } from '@/lib/account-api';
 import type { PaymentMethod } from '@/lib/membership';
 
 export type RegistrationResult = {
@@ -83,7 +83,7 @@ export async function registerPackage(input: {
   activationDate: string;
   voucherCode?: string | null;
 }): Promise<RegistrationResult> {
-  const response = await fetch(`${baseUrl}/dangkygoitap/register`, {
+  const response = await authenticatedFetch(`${baseUrl}/dangkygoitap/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ export async function registerPackage(input: {
 export async function getRegistrationDetail(
   registrationId: number
 ): Promise<RegistrationDetail> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${baseUrl}/dangkygoitap/detail/${registrationId}`
   );
 
@@ -139,7 +139,7 @@ export async function getRegistrationDetail(
 export async function getCurrentMembership(
   accountId: number
 ): Promise<CurrentMembership | null> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${baseUrl}/dangkygoitap/current/account/${accountId}`
   );
 

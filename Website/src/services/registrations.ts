@@ -44,7 +44,7 @@ type ApiRegistration = {
   SoNgayConLai: number
 }
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
+  const response = await adminFetch(url, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...options?.headers },
   })
@@ -86,3 +86,4 @@ export const confirmPayment = (id: number) =>
   request<{ message: string }>(`/api/thanhtoan/${id}/confirm`, {
     method: 'POST',
   })
+import { adminFetch } from './auth'

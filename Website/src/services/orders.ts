@@ -1,4 +1,5 @@
 import { catalogRequest, type Product } from './catalog'
+import { adminFetch } from './auth'
 import type { Member } from './members'
 
 export type Order = {
@@ -79,7 +80,7 @@ export async function loadOrderDetail(id: number, signal: AbortSignal) {
         /\/$/,
         ''
       )
-      const response = await fetch(
+      const response = await adminFetch(
         `${base}/donhang/account/${member.TaiKhoanID}/orders/${id}`,
         { signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]) }
       )

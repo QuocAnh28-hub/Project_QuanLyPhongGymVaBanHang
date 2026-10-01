@@ -30,6 +30,15 @@ export function clearSession() {
   localStorage.removeItem(storageKey)
   sessionStorage.removeItem(storageKey)
 }
+export async function adminFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  const session = JSON.parse(localStorage.getItem(storageKey) || sessionStorage.getItem(storageKey) || 'null') as AdminSession | null
+  const response = await fetch(input, { ...init, headers: { ...init.headers, ...(session?.token && { Authorization: `Bearer ${session.token}` }) } })
+  if (response.status === 401) {
+    clearSession()
+    window.dispatchEvent(new Event('qa-admin-session-expired'))
+  }
+  return response
+}
 export async function login(
   email: string,
   password: string,

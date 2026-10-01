@@ -1,8 +1,9 @@
 const Taikhoan = require('../models/taikhoan.model');
+const { hashPassword, verifyPassword } = require('../common/password');
 
 const TaikhoanController = {
 
-  changePassword: (req, res) => {
+  changePassword: async (req, res) => {
     const id = Number(req.params.TaiKhoanID);
     const current = req.body?.MatKhauHienTai;
     const next = req.body?.MatKhauMoi;
@@ -13,13 +14,13 @@ const TaikhoanController = {
       return res.status(400).json({ message: 'Mật khẩu mới cần ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt' });
     }
     if (current === next) return res.status(400).json({ message: 'Mật khẩu mới phải khác mật khẩu hiện tại' });
-    Taikhoan.getById(id, (error, rows) => {
+    Taikhoan.getPasswordById(id, async (error, rows) => {
       if (error) return res.status(500).json({ message: 'Không thể kiểm tra tài khoản' });
       const account = rows?.[0];
       if (!account) return res.status(404).json({ message: 'Không tìm thấy tài khoản' });
       if (account.TrangThai !== 'ACTIVE') return res.status(403).json({ message: 'Tài khoản không hoạt động' });
-      if (account.MatKhau !== current) return res.status(400).json({ message: 'Mật khẩu hiện tại không đúng' });
-      Taikhoan.changePassword(id, current, next, (updateError, changed) => {
+      if (!(await verifyPassword(current, account.MatKhau))) return res.status(400).json({ message: 'Mật khẩu hiện tại không đúng' });
+      Taikhoan.changePassword(id, await hashPassword(next), (updateError, changed) => {
         if (updateError) return res.status(500).json({ message: 'Không thể đổi mật khẩu' });
         if (!changed) return res.status(409).json({ message: 'Tài khoản đã thay đổi, vui lòng thử lại' });
         res.json({ message: 'Mật khẩu đã được thay đổi.' });
@@ -56,12 +57,16 @@ const TaikhoanController = {
         });
       }
 
-      res.json(result[0]);
+      const { MatKhau, ...account } = result[0];
+      res.json(account);
     });
   },
 
-  create: (req, res) => {
+  create: async (req, res) => {
     const data = req.body;
+
+    if (typeof data?.MatKhau !== 'string' || data.MatKhau.length < 8) return res.status(400).json({ message: 'Mật khẩu không hợp lệ' });
+    data.MatKhau = await hashPassword(data.MatKhau);
 
     Taikhoan.insert(data, (err, result) => {
       if (err) {

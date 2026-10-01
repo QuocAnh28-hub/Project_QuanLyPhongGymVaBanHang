@@ -1,4 +1,4 @@
-import { baseUrl } from '@/lib/account-api';
+import { authenticatedFetch, baseUrl } from '@/lib/account-api';
 import type {
   GymPackage,
   PackageDuration,
@@ -80,7 +80,7 @@ function parseMoney(value: string | number): number {
 
 export async function getActivePackages(): Promise<ApiPackage[]> {
   try {
-    const response = await fetch(`${baseUrl}/goitap/active`);
+    const response = await authenticatedFetch(`${baseUrl}/goitap/active`);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
@@ -105,7 +105,7 @@ export async function getActivePackages(): Promise<ApiPackage[]> {
 export async function getActivePackageDetail(
   packageId: number
 ): Promise<ApiPackageDetail> {
-  const response = await fetch(`${baseUrl}/goitap/active/${packageId}`);
+  const response = await authenticatedFetch(`${baseUrl}/goitap/active/${packageId}`);
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }

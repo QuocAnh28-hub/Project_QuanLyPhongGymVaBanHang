@@ -1,4 +1,5 @@
 const db = require('../common/db');
+const { hashPassword } = require('../common/password');
 const fail = (message, status = 400) => Object.assign(new Error(message), { status });
 const id = value => Number.isSafeInteger(Number(value)) && Number(value) > 0;
 function profile(body = {}) {
@@ -41,8 +42,7 @@ exports.create = (req, res) => transaction(res, async connection => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 100) throw fail('Email đăng nhập không hợp lệ.');
   if (typeof password !== 'string' || password.length < 8 || password.length > 255) throw fail('Mật khẩu phải từ 8 đến 255 ký tự.');
   if (!['STAFF', 'ADMIN'].includes(req.body.VaiTro)) throw fail('Vai trò nhân viên không hợp lệ.');
-  // Preserve the account password contract used by login and recovery.
-  const [account] = await connection.query("INSERT INTO taikhoan (Email, MatKhau, VaiTro, TrangThai) VALUES (?, ?, ?, 'ACTIVE')", [email, password, req.body.VaiTro]);
+  const [account] = await connection.query("INSERT INTO taikhoan (Email, MatKhau, VaiTro, TrangThai) VALUES (?, ?, ?, 'ACTIVE')", [email, await hashPassword(password), req.body.VaiTro]);
   const [employee] = await connection.query('INSERT INTO nhanvien SET ?', [{ ...fields, TaiKhoanID: account.insertId }]);
   return { NhanVienID: employee.insertId };
 });

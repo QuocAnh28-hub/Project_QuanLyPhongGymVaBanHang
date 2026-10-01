@@ -58,6 +58,11 @@ function App() {
     )
     return () => window.clearTimeout(timer)
   }, [session])
+  useEffect(() => {
+    const expired = () => setSession(null)
+    window.addEventListener('qa-admin-session-expired', expired)
+    return () => window.removeEventListener('qa-admin-session-expired', expired)
+  }, [])
 
   const moduleViews: Record<string, { tabs: string[]; pages: ReactNode[] }> = {
     'Gói tập': {

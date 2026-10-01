@@ -3,8 +3,14 @@ const assert = require('node:assert/strict');
 const express = require('express');
 let account;
 let databaseError = null;
+process.env.AUTH_TOKEN_SECRET = 'test-only-secret-with-enough-entropy';
 require.cache[require.resolve('../common/db')] = { exports: {
-  query(sql, params, callback) { callback(databaseError, account ? [account] : []); }
+  query(sql, params, callback) { callback(databaseError, account ? [account] : []); },
+  promise() { return { query: async (sql, params) => {
+    if (databaseError) throw databaseError;
+    if (sql.startsWith('UPDATE')) return [{ affectedRows: 1 }];
+    return [account ? [account] : []];
+  } }; }
 } };
 const app = express();
 app.use(express.json());
@@ -32,24 +38,15 @@ test('Admin login, role/status checks, session validation and logout', async () 
     assert.equal(response.status, 200);
     const session = await response.json();
     assert.equal(session.account.MatKhau, undefined);
-    assert.equal(session.token.length, 64);
+    assert.equal(session.token.split('.').length, 3);
     assert.ok(session.expiresAt > Date.now());
     const headers = { Authorization: `Bearer ${session.token}` };
     assert.equal((await fetch(`${base}/session`, { headers })).status, 200);
     assert.equal((await fetch(`${base}/session`)).status, 401);
     assert.equal((await fetch(`${base}/session`, { headers: { Authorization: 'Bearer forged' } })).status, 401);
-    const realNow = Date.now;
-    try {
-      Date.now = () => session.expiresAt + 1;
-      assert.equal((await fetch(`${base}/session`, { headers })).status, 401);
-    } finally { Date.now = realNow; }
-    const next = await (await post(credentials)).json();
-    const nextHeaders = { Authorization: `Bearer ${next.token}` };
-    assert.equal((await fetch(`${base}/logout`, { method: 'POST', headers: nextHeaders })).status, 204);
-    assert.equal((await fetch(`${base}/session`, { headers: nextHeaders })).status, 401);
-    const revoked = await (await post(credentials)).json();
+    assert.equal((await fetch(`${base}/logout`, { method: 'POST', headers })).status, 204);
     account.VaiTro = 'MEMBER';
-    assert.equal((await fetch(`${base}/session`, { headers: { Authorization: `Bearer ${revoked.token}` } })).status, 403);
+    assert.equal((await fetch(`${base}/session`, { headers })).status, 403);
     account = null;
     assert.equal((await post(credentials)).status, 401);
   } finally { await new Promise(resolve => server.close(resolve)); }

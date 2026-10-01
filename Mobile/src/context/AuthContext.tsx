@@ -12,10 +12,12 @@ import {
 } from 'react';
 import { readLocal, writeLocal } from '@/lib/local-store';
 import {
-  getAccount,
-  getAccounts,
+  API_TOKEN,
   isActiveCustomer,
+  loginAccount,
+  logoutAccount,
   registerAccount,
+  restoreAccount,
   type ApiAccount,
 } from '@/lib/account-api';
 import { getMemberProfile } from '@/lib/profile-api';
@@ -58,24 +60,7 @@ type AuthValue = {
   refreshUser: () => Promise<void>;
 };
 
-const SEED: Account = {
-  accountId: null,
-  name: 'Admin QA-Gym',
-  email: 'admin',
-  phone: '0123456789',
-  password: '12345678',
-  role: 'member',
-  avatar: null,
-  height: 178,
-  weight: 74,
-  birthDate: '1998-09-12',
-  fitnessGoal: 'Tăng cơ siết mỡ (Lean Muscle)',
-};
-const ACCOUNTS = 'qa-gym-dev-accounts-v2';
-
-const SESSION = 'qa-gym-dev-session-v2';
 const REMEMBERED = 'qa-gym-dev-credential-v2';
-const API_SESSION = 'qa-gym-api-session-v1';
 const AuthContext = createContext<AuthValue | null>(null);
 
 async function profileIdentity(
@@ -96,21 +81,6 @@ async function profileIdentity(
   };
 }
 
-function asMember(account: Registration & Partial<Account>): Account {
-  const profile =
-    account.email.toLowerCase() === SEED.email
-      ? SEED
-      : {
-          accountId: null,
-          avatar: null,
-          height: null,
-          weight: null,
-          birthDate: null,
-          fitnessGoal: null,
-        };
-  return { ...profile, ...account, role: 'member' };
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<AuthValue['user']>(null);
@@ -121,13 +91,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const [remembered, apiSession] = await Promise.all([
           readLocal(REMEMBERED),
-          readLocal(API_SESSION),
+          readLocal(API_TOKEN),
         ]);
         if (apiSession) {
-          const account = await getAccount(Number(apiSession));
+          const account = await restoreAccount();
           if (account && isActiveCustomer(account))
             setUser(await profileIdentity(account));
-          else await writeLocal(API_SESSION, null);
+          else await writeLocal(API_TOKEN, null);
         }
         setSavedCredential(remembered ?? '');
       } catch {
@@ -142,13 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     remember: boolean
   ) {
-    const normalized = credential.trim().toLowerCase();
-    const account = (await getAccounts()).find(
-      (a) => a.Email?.toLowerCase() === normalized && a.MatKhau === password
-    );
-    if (!account || !isActiveCustomer(account)) return false;
+    const session = await loginAccount(credential.trim().toLowerCase(), password);
+    const account = session?.account;
+    if (!session || !account || !isActiveCustomer(account)) return false;
     try {
-      await writeLocal(API_SESSION, String(account.TaiKhoanID));
+      await writeLocal(API_TOKEN, session.token);
       await writeLocal(REMEMBERED, remember ? credential.trim() : null);
     } catch (error) {
       throw new Error(
@@ -161,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
   async function refreshUser() {
     if (!user?.accountId) return;
-    const account = await getAccount(user.accountId);
+    const account = await restoreAccount();
     if (account && isActiveCustomer(account))
       setUser(await profileIdentity(account));
   }
@@ -175,10 +143,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   }
   async function logout() {
-    await Promise.all([
-      writeLocal(SESSION, null),
-      writeLocal(API_SESSION, null),
-    ]);
+    await logoutAccount().catch(() => null);
+    await writeLocal(API_TOKEN, null);
     setUser(null);
     setRecovery(null);
   }

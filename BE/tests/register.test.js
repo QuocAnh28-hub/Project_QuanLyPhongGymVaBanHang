@@ -1,11 +1,13 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const bcrypt = require('bcryptjs');
 
 const dbPath = require.resolve('../common/db');
 let connection;
 require.cache[dbPath] = { id: dbPath, filename: dbPath, loaded: true,
   exports: { promise: () => ({ getConnection: async () => connection }) } };
 const register = require('../controllers/register.controller');
+const { verifyPassword, isHash } = require('../common/password');
 const valid = { name: ' Test Member ', email: ' TEST@example.com ', phone: '+84 912345678', password: 'test12345' };
 
 async function run(body, mode) {
@@ -44,6 +46,9 @@ test('create normalized customer and linked member, without returning password',
   const inserts = calls.filter(call => call.sql?.startsWith('INSERT'));
   assert.equal(inserts[0].data.VaiTro, 'CUSTOMER');
   assert.equal(inserts[0].data.Email, 'test@example.com');
+  assert.equal(isHash(inserts[0].data.MatKhau), true);
+  assert.equal(await verifyPassword(valid.password, inserts[0].data.MatKhau), true);
+  assert.equal(await bcrypt.compare(valid.password, inserts[0].data.MatKhau), true);
   assert.equal(inserts[1].data.TaiKhoanID, 12);
   assert.equal(inserts[1].data.SoDienThoai, '0912345678');
   assert.equal(inserts[1].data.HoTen, 'Test Member');

@@ -1,4 +1,4 @@
-import { baseUrl } from './account-api';
+import { authenticatedFetch, baseUrl } from './account-api';
 
 export type Transaction = {
   id: string;
@@ -14,7 +14,7 @@ export type Transaction = {
 export async function getTransactionHistory(
   accountId: number
 ): Promise<Transaction[]> {
-  const response = await fetch(
+  const response = await authenticatedFetch(
     `${baseUrl}/thanhtoan/history/account/${accountId}`
   );
   if (!response.ok) throw new Error('Không tải được lịch sử giao dịch');

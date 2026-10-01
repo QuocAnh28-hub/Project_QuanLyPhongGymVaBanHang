@@ -2,14 +2,14 @@ const router = require('express').Router();
 const db = require('../common/db');
 const { sendRecoveryCode } = require('../common/mailer');
 const { createRecoveryService } = require('../services/recovery');
+const { hashPassword } = require('../common/password');
 const service = createRecoveryService({
   async findAccount(email) {
     const [rows] = await db.promise().query("SELECT TaiKhoanID FROM taikhoan WHERE Email = ? AND VaiTro = 'CUSTOMER' AND TrangThai = 'ACTIVE' LIMIT 1", [email]);
     return rows[0];
   },
   async updatePassword(id, password) {
-    // Compatible with the existing account/login password format.
-    const [result] = await db.promise().query("UPDATE taikhoan SET MatKhau = ? WHERE TaiKhoanID = ? AND VaiTro = 'CUSTOMER' AND TrangThai = 'ACTIVE'", [password, id]);
+    const [result] = await db.promise().query("UPDATE taikhoan SET MatKhau = ? WHERE TaiKhoanID = ? AND VaiTro = 'CUSTOMER' AND TrangThai = 'ACTIVE'", [await hashPassword(password), id]);
     return result.affectedRows > 0;
   },
   sendCode: sendRecoveryCode,
