@@ -46,7 +46,10 @@ export default function PackagesScreen() {
 
   const [apiError, setApiError] = useState('');
   const months = [...new Set(displayPackages.flatMap((item) => item.durations.map((row) => row.months)))].sort((a, b) => a - b);
-  const comparePackages = displayPackages.filter((item) =>
+  const visiblePackages = displayPackages.filter((item) =>
+    item.durations.some((row) => row.months === selectedDuration)
+  );
+  const comparePackages = visiblePackages.filter((item) =>
     [1, 2, 3].includes(item.apiId)
   );
 
@@ -184,7 +187,7 @@ export default function PackagesScreen() {
           </View>
           {error ? <Text style={s.error}>{error}</Text> : null}
           {apiError ? <Text style={s.error}>{apiError}</Text> : null}
-          {displayPackages.map((item) => {
+          {visiblePackages.map((item) => {
             const option = item.durations.find(
               (row) => row.months === selectedDuration
             );
@@ -195,22 +198,14 @@ export default function PackagesScreen() {
             return (
               <Pressable
                 key={item.apiId}
-                style={[s.card, item.apiId === 4 && s.student]}
+                style={s.card}
                 onPress={() =>
                   owned ? router.push('/membership-detail') : open(item)
                 }
                 accessibilityRole="button"
               >
                 <View style={s.cardTop}>
-                  <Text
-                    style={[
-                      s.tag,
-                      item.apiId === 3 && s.blue,
-                      item.apiId === 4 && s.green,
-                    ]}
-                  >
-                    {item.popular ? '✦ BÁN CHẠY NHẤT' : item.tier}
-                  </Text>
+                  <Text style={s.tag}>QA-GYM</Text>
                   <Pressable
                     hitSlop={12}
                     onPress={(event) => {
@@ -228,7 +223,7 @@ export default function PackagesScreen() {
                 {option ? (
                   <>
                     <View style={s.priceRow}>
-                      <Text style={[s.price, item.popular && s.lime]}>
+                      <Text style={s.price}>
                         {formatVND(option.monthlyPrice)}
                       </Text>
                       <Text style={s.perMonth}>/tháng</Text>
@@ -302,21 +297,13 @@ export default function PackagesScreen() {
                     Cần xác minh thẻ HSSV còn hiệu lực
                   </Text>
                 ) : null}
-                <View style={[s.button, !item.popular && s.mutedButton]}>
-                  <Text style={[s.buttonText, !item.popular && s.mutedText]}>
+                <View style={s.button}>
+                  <Text style={s.buttonText}>
                     {owned
                       ? 'XEM GÓI ĐANG DÙNG'
                       : item.availability !== 'active'
                         ? 'CHƯA MỞ BÁN'
-                        : item.apiId === 1
-                          ? 'CHỌN SILVER PASS'
-                          : item.apiId === 2
-                            ? 'ĐĂNG KÝ GÓI GOLD VIP'
-                            : item.apiId === 4
-                              ? 'ĐĂNG KÝ HSSV'
-                              : item.apiId === 3
-                                ? 'XEM CHI TIẾT DIAMOND'
-                                : 'XEM CHI TIẾT GÓI'}
+                        : 'XEM CHI TIẾT GÓI'}
                   </Text>
                   <Text style={s.arrow}>↗</Text>
                 </View>
@@ -413,7 +400,6 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2c3133',
   },
-  student: { backgroundColor: '#1c2022' },
   cardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -429,13 +415,10 @@ const s = StyleSheet.create({
     borderRadius: 5,
     overflow: 'hidden',
   },
-  blue: { color: '#59c8f1', backgroundColor: '#182e3b' },
-  green: { color: '#071c17', backgroundColor: '#0ba879' },
   star: { color: '#d9ff00', fontSize: 26 },
   name: { color: '#e5e8e3', fontSize: 15, fontWeight: '900', marginTop: 8 },
   priceRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 2 },
   price: { color: '#e0e4df', fontSize: 28, fontWeight: '900' },
-  lime: { color: '#d9ff00' },
   perMonth: { color: '#88908b', fontSize: 10, marginLeft: 3 },
   priceSummary: {
     backgroundColor: C.surfaceLowest,
@@ -529,7 +512,7 @@ const s = StyleSheet.create({
   },
   restriction: { color: '#50d9a9', fontSize: 10, marginTop: 9 },
   button: {
-    backgroundColor: '#caff00',
+    backgroundColor: '#3b3e42',
     minHeight: 34,
     borderRadius: 5,
     justifyContent: 'center',
@@ -537,10 +520,8 @@ const s = StyleSheet.create({
     marginTop: 10,
     flexDirection: 'row',
   },
-  buttonText: { color: '#1b2600', fontSize: 11, fontWeight: '900' },
-  arrow: { color: '#1b2600', marginLeft: 6 },
-  mutedButton: { backgroundColor: '#3b3e42' },
-  mutedText: { color: '#e1e4df' },
+  buttonText: { color: '#e1e4df', fontSize: 11, fontWeight: '900' },
+  arrow: { color: '#e1e4df', marginLeft: 6 },
   tableKicker: {
     color: '#cbed00',
     textAlign: 'center',
