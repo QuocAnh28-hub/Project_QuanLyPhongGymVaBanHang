@@ -21,7 +21,6 @@ const categories = [
 const emptyPackage: GymPackage = {
   id: 0,
   name: '',
-  sku: '',
   category: 'all',
   badge: 'NEW PACKAGE',
   durations: [1, 3, 6, 12].map((months) => ({
@@ -62,7 +61,7 @@ export default function PackagesPage() {
               ? p.category === 'all'
               : p.category === category)) &&
           (!search ||
-            `${p.name} ${p.sku} ${p.features.join(' ')}`
+            `${p.name} ${p.features.join(' ')}`
               .toLowerCase()
               .includes(search.toLowerCase())) &&
           (duration === 'all' || p.durations.some((d) => d.active && d.months === +duration)) &&
@@ -162,7 +161,7 @@ export default function PackagesPage() {
                 setSearch(e.target.value)
                 setPage(1)
               }}
-              placeholder="Tìm tên gói, mã SKU, tiện ích..."
+              placeholder="Tìm tên gói, tiện ích..."
             />
           </label>
           <select
@@ -309,7 +308,6 @@ function PackageCard({
       <header>
         <div>
           <span className="tag">{item.badge}</span>
-          <small>SKU: {item.sku}</small>
           <h2>{item.name}</h2>
         </div>
         <button
@@ -464,14 +462,6 @@ function PackageForm({
               required
               value={form.name}
               onChange={(e) => field('name', e.target.value)}
-            />
-          </label>
-          <label>
-            SKU
-            <input
-              required
-              value={form.sku}
-              onChange={(e) => field('sku', e.target.value)}
             />
           </label>
           <label>

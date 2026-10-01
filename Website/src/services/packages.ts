@@ -1,7 +1,6 @@
 export type GymPackage = {
   id: number
   name: string
-  sku: string
   category: string
   badge: string
   durations: PackageDurationAdmin[]
@@ -63,7 +62,6 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 const mapPackage = (p: ApiPackageDetail, members = 0): GymPackage => ({
   id: p.GoiTapID,
   name: p.TenGoi,
-  sku: `PKG-${p.GoiTapID}`,
   category: 'all',
   badge: p.TrangThai,
   durations: p.ThoiHan.map(row => ({
