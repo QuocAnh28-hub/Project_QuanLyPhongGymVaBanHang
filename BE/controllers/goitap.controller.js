@@ -21,9 +21,11 @@ function packageInput(body) {
   const value = {
     TenGoi: String(body?.TenGoi || '').trim(), MoTa: String(body?.MoTa || '').trim(),
     ThoiHan: durations, TrangThai: body?.TrangThai,
-    QuyenLoi: Array.isArray(body?.QuyenLoi) ? body.QuyenLoi.map(String).map(x => x.trim()).filter(Boolean) : []
+    QuyenLoi: Array.isArray(body?.QuyenLoi) ? body.QuyenLoi.map(row => typeof row === 'string'
+      ? { QuyenLoiID: null, TenQuyenLoi: row.trim(), MoTa: '' }
+      : { QuyenLoiID: id(row?.QuyenLoiID), TenQuyenLoi: String(row?.TenQuyenLoi || '').trim(), MoTa: String(row?.MoTa || '').trim() }) : []
   };
-  return value.TenGoi && ['ACTIVE', 'INACTIVE'].includes(value.TrangThai) &&
+  return value.TenGoi && value.QuyenLoi.every(row => row.TenQuyenLoi) && ['ACTIVE', 'INACTIVE'].includes(value.TrangThai) &&
     (value.TrangThai !== 'ACTIVE' || durations.some(row => row.TrangThai === 'ACTIVE')) ? value : null;
 }
 

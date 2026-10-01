@@ -39,7 +39,7 @@ Goitap.getAll = (callback) => {
     db.query(`SELECT GoiTapThoiHanID,GoiTapID,SoThang,ThangTang,GiaGoc,GiaBan,TrangThai
       FROM GoiTapThoiHan WHERE GoiTapID IN (?) ORDER BY SoThang,GoiTapThoiHanID`, [ids], (durationError, durations) => {
       if (durationError) return callback(durationError);
-      db.query(`SELECT GoiTapID,TenQuyenLoi,TrangThai FROM QuyenLoiGoiTap
+      db.query(`SELECT QuyenLoiID,GoiTapID,TenQuyenLoi,MoTa,TrangThai FROM QuyenLoiGoiTap
         WHERE GoiTapID IN (?) ORDER BY ThuTu,QuyenLoiID`, [ids], (privilegeError, privileges) => {
         if (privilegeError) return callback(privilegeError);
         callback(null, packages.map(row => ({
@@ -87,8 +87,16 @@ Goitap.saveAdmin = (id, data, callback) => {
       }
       await q.query("UPDATE GoiTapThoiHan SET TrangThai='INACTIVE' WHERE GoiTapID=? AND GoiTapThoiHanID NOT IN (?)", [packageId, kept]);
       await q.query("UPDATE QuyenLoiGoiTap SET TrangThai='INACTIVE' WHERE GoiTapID=?", [packageId]);
-      for (const [index, name] of data.QuyenLoi.entries()) {
-        await q.query(`INSERT INTO QuyenLoiGoiTap (GoiTapID,MaQuyenLoi,TenQuyenLoi,ThuTu,TrangThai) VALUES (?,?,?,?, 'ACTIVE') ON DUPLICATE KEY UPDATE TenQuyenLoi=VALUES(TenQuyenLoi),ThuTu=VALUES(ThuTu),TrangThai='ACTIVE'`, [packageId, `ADMIN_${index + 1}`, name, index]);
+      for (const [index, input] of data.QuyenLoi.entries()) {
+        const benefit = typeof input === 'string' ? { TenQuyenLoi: input, MoTa: '' } : input;
+        if (benefit.QuyenLoiID) {
+          const [existing] = await q.query('SELECT QuyenLoiID FROM QuyenLoiGoiTap WHERE QuyenLoiID=? AND GoiTapID=?', [benefit.QuyenLoiID, packageId]);
+          if (!existing.length) throw Object.assign(new Error('Quyền lợi không thuộc gói tập'), { status: 400 });
+          await q.query("UPDATE QuyenLoiGoiTap SET TenQuyenLoi=?,MoTa=?,ThuTu=?,TrangThai='ACTIVE' WHERE QuyenLoiID=? AND GoiTapID=?", [benefit.TenQuyenLoi, benefit.MoTa || null, index, benefit.QuyenLoiID, packageId]);
+        } else {
+          const code = `ADMIN_${require('crypto').randomUUID()}`;
+          await q.query("INSERT INTO QuyenLoiGoiTap (GoiTapID,MaQuyenLoi,TenQuyenLoi,MoTa,ThuTu,TrangThai) VALUES (?,?,?,?,?,'ACTIVE')", [packageId, code, benefit.TenQuyenLoi, benefit.MoTa || null, index]);
+        }
       }
       await q.commit();
       callback(null, { GoiTapID: packageId });

@@ -7705,6 +7705,43 @@ select {
   gap: 12px;
 }
 
+.package-benefit-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.package-benefit-section p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.package-benefit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) auto;
+  align-items: end;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #30343a;
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.package-benefit-row label {
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .package-benefit-row {
+    grid-template-columns: 1fr;
+  }
+
+  .package-benefit-row .duration-delete {
+    justify-self: end;
+  }
+}
+
 .package-duration-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr) auto;

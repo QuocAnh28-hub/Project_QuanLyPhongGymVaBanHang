@@ -49,6 +49,25 @@ test('admin synchronizes every package duration without deleting history', async
     assert.equal(rows.filter(row => Number(row.SoThang) === 8).length, 1);
     assert.ok(rows.some(row => Number(row.SoThang) === 18));
 
+    await save(id, { ...base, QuyenLoi: [{ TenQuyenLoi: 'Yoga', MoTa: 'Lớp yoga mỗi ngày' }] });
+    const [benefits] = await connection.query('SELECT * FROM QuyenLoiGoiTap WHERE GoiTapID=? AND TrangThai=\'ACTIVE\'', [id]);
+    assert.equal(benefits.length, 1);
+    assert.equal(benefits[0].MoTa, 'Lớp yoga mỗi ngày');
+    await connection.query('UPDATE QuyenLoiGoiTap SET MaQuyenLoi=?,SoLuong=? WHERE QuyenLoiID=?', ['YOGA', 3, benefits[0].QuyenLoiID]);
+    await save(id, { ...base, QuyenLoi: [
+      { QuyenLoiID: benefits[0].QuyenLoiID, TenQuyenLoi: 'Yoga nâng cao', MoTa: 'Học cùng huấn luyện viên' },
+      { TenQuyenLoi: 'Tủ đồ', MoTa: 'Tủ đồ cá nhân' },
+    ] });
+    const detail = await new Promise((resolve, reject) => packages.getAdminDetailById(id, (error, result) => error ? reject(error) : resolve(result)));
+    const yoga = detail.QuyenLoi.find(row => row.QuyenLoiID === benefits[0].QuyenLoiID);
+    assert.equal(yoga.TenQuyenLoi, 'Yoga nâng cao');
+    assert.equal(yoga.MoTa, 'Học cùng huấn luyện viên');
+    assert.equal(yoga.MaQuyenLoi, 'YOGA');
+    assert.equal(Number(yoga.SoLuong), 3);
+    await save(id, { ...base, QuyenLoi: [] });
+    const afterDelete = await new Promise((resolve, reject) => packages.getActiveDetailById(id, (error, result) => error ? reject(error) : resolve(result)));
+    assert.equal(afterDelete.QuyenLoi.length, 0);
+
     const duplicateResponse = { statusCode: 200, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } };
     controller.create({ body: { ...base, ThoiHan: [duration(8, 1), duration(8, 2)] } }, duplicateResponse);
     assert.equal(duplicateResponse.statusCode, 400);

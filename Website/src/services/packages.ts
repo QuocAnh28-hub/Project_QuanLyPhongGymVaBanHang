@@ -1,3 +1,9 @@
+export type PackageBenefit = {
+  id?: number
+  name: string
+  description: string
+}
+
 export type GymPackage = {
   id: number
   name: string
@@ -6,7 +12,7 @@ export type GymPackage = {
   durations: PackageDurationAdmin[]
   active: boolean
   description: string
-  features: string[]
+  features: PackageBenefit[]
   members: number
 }
 
@@ -48,7 +54,7 @@ type ApiPackageDetail = {
     GiaBan: number | string
     TrangThai: 'ACTIVE' | 'INACTIVE'
   }>
-  QuyenLoi: Array<{ TenQuyenLoi: string; TrangThai: 'ACTIVE' | 'INACTIVE' }>
+  QuyenLoi: Array<{ QuyenLoiID: number; TenQuyenLoi: string; MoTa?: string | null; TrangThai: 'ACTIVE' | 'INACTIVE' }>
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
@@ -76,7 +82,7 @@ const mapPackage = (p: ApiPackageDetail, members = 0): GymPackage => ({
   })),
   active: p.TrangThai === 'ACTIVE',
   description: p.MoTa || '',
-  features: p.QuyenLoi.filter(row => row.TrangThai === 'ACTIVE').map(row => row.TenQuyenLoi),
+  features: p.QuyenLoi.filter(row => row.TrangThai === 'ACTIVE').map(row => ({ id: row.QuyenLoiID, name: row.TenQuyenLoi, description: row.MoTa || '' })),
   members,
 })
 
@@ -109,7 +115,7 @@ export async function savePackage(value: GymPackage) {
         GiaBan: row.salePrice,
         TrangThai: row.active ? 'ACTIVE' : 'INACTIVE',
       })),
-      QuyenLoi: value.features,
+      QuyenLoi: value.features.map(row => ({ QuyenLoiID: row.id, TenQuyenLoi: row.name, MoTa: row.description })),
     }),
   })
 }

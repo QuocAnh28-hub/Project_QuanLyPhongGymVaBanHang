@@ -32,7 +32,7 @@ const emptyPackage: GymPackage = {
   })),
   active: true,
   description: '',
-  features: [''],
+  features: [],
   members: 0,
 }
 
@@ -61,7 +61,7 @@ export default function PackagesPage() {
               ? p.category === 'all'
               : p.category === category)) &&
           (!search ||
-            `${p.name} ${p.features.join(' ')}`
+            `${p.name} ${p.features.map((f) => `${f.name} ${f.description}`).join(' ')}`
               .toLowerCase()
               .includes(search.toLowerCase())) &&
           (duration === 'all' || p.durations.some((d) => d.active && d.months === +duration)) &&
@@ -327,9 +327,9 @@ function PackageCard({
       </div>
       <ul>
         {item.features.map((f, i) => (
-          <li key={f}>
+          <li key={f.id ?? i}>
             <b>{['◉', '♧', '▣', '♙'][i]}</b>
-            {f}
+            {f.name}
           </li>
         ))}
       </ul>
@@ -437,7 +437,7 @@ function PackageForm({
   const [formError, setFormError] = useState('')
   const field = (
     key: keyof GymPackage,
-    val: string | number | boolean | string[]
+    val: string | number | boolean
   ) => setForm({ ...form, [key]: val })
   const durationField = (index: number, patch: Partial<PackageDurationAdmin>) =>
     setForm({ ...form, durations: form.durations.map((row, i) => i === index ? { ...row, ...patch } : row) })
@@ -447,7 +447,8 @@ function PackageForm({
     if (new Set(form.durations.map((row) => row.months)).size !== form.durations.length) return setFormError('Không được trùng số tháng.')
     if (form.active && !form.durations.some((row) => row.active)) return setFormError('Gói ACTIVE phải có ít nhất một mốc ACTIVE.')
     setFormError('')
-    onSave(form)
+    if (form.features.some((feature) => !feature.name.trim())) return setFormError('Vui lòng nhập tên quyền lợi hoặc xóa dòng trống.')
+    onSave({ ...form, features: form.features.map((feature) => ({ ...feature, name: feature.name.trim(), description: feature.description.trim() })) })
   }
   return (
     <Modal
@@ -607,13 +608,56 @@ function PackageForm({
               onChange={(e) => field('description', e.target.value)}
             />
           </label>
-          <label className="full">
-            Quyền lợi (mỗi dòng một quyền lợi)
-            <textarea
-              value={form.features.join('\n')}
-              onChange={(e) => field('features', e.target.value.split('\n'))}
-            />
-          </label>
+          <div className="full package-benefit-section">
+            <b>QUYỀN LỢI GÓI TẬP</b>
+            <p>Thêm, chỉnh sửa hoặc xóa quyền lợi, sau đó bấm Lưu gói.</p>
+            {!form.features.length && <p>Chưa có quyền lợi. Bấm Thêm quyền lợi để bổ sung.</p>}
+            {form.features.map((feature, index) => (
+              <div className="package-benefit-row" key={feature.id ?? `new-${index}`}>
+                <label>
+                  Quyền lợi {index + 1}
+                  <input
+                    required
+                    placeholder="Nhập tên quyền lợi"
+                    value={feature.name}
+                    onChange={(e) => setForm((current) => ({
+                      ...current,
+                      features: current.features.map((row, i) => i === index ? { ...row, name: e.target.value } : row),
+                    }))}
+                  />
+                </label>
+                <label>
+                  Mô tả quyền lợi
+                  <textarea
+                    placeholder="Nhập mô tả chi tiết quyền lợi"
+                    value={feature.description}
+                    onChange={(e) => setForm((current) => ({
+                      ...current,
+                      features: current.features.map((row, i) => i === index ? { ...row, description: e.target.value } : row),
+                    }))}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="duration-delete"
+                  aria-label={`Xóa quyền lợi ${index + 1}`}
+                  onClick={() => setForm((current) => ({
+                    ...current,
+                    features: current.features.filter((_, i) => i !== index),
+                  }))}
+                >
+                  Xóa quyền lợi
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="duration-add"
+              onClick={() => setForm((current) => ({ ...current, features: [...current.features, { name: '', description: '' }] }))}
+            >
+              + THÊM QUYỀN LỢI
+            </button>
+          </div>
         </div>
         {formError && <div className="empty-state">{formError}</div>}
         <footer className="modal-actions">
