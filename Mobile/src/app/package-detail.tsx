@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { PackageClass } from '@/constants/package-detail';
+import { diamondPackage, type PackageClass } from '@/constants/package-detail';
 import { type GymPackage } from '@/lib/packages';
 import {
   getActivePackageDetail,
@@ -390,21 +390,17 @@ export default function PackageDetailScreen() {
         {!item.privileges.length ? (
           <Text style={s.sectionCopy}>Chưa có quyền lợi được cấu hình.</Text>
         ) : null}
-        {item.classes.length ? (
-          <>
+        <>
             <SectionHeading
               title="LỚP GROUP-X & YOGA ĐI KÈM"
               badge="100% Free"
             />
-            <Text style={s.sectionCopy}>
-              Tham gia các lớp theo lịch đăng ký qua app.
-            </Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={s.classScroll}
             >
-              {item.classes.map((groupClass) => (
+              {diamondPackage.classes.map((groupClass) => (
                 <Pressable
                   key={groupClass.id}
                   style={s.classCard}
@@ -431,40 +427,13 @@ export default function PackageDetailScreen() {
                 </Pressable>
               ))}
             </ScrollView>
-          </>
-        ) : null}
-        {item.reviews.length ? (
-          <>
-            <SectionHeading
-              title="ĐÁNH GIÁ TỪ HỘI VIÊN"
-              badge={`★ ${item.rating}`}
-            />
-            <Text style={s.reviewCount}>{item.reviewCount}</Text>
-            {item.reviews.map((review) => (
-              <View style={s.reviewCard} key={review.id}>
-                <View style={s.reviewHead}>
-                  <Image source={review.avatar} style={s.reviewAvatar} />
-                  <View style={{ flex: 1 }}>
-                    <View style={s.reviewNameRow}>
-                      <Text style={s.reviewName}>{review.name}</Text>
-                      <Text style={s.verified}>ĐÃ XÁC THỰC</Text>
-                    </View>
-                    <Text style={s.reviewDetail}>{review.detail}</Text>
-                  </View>
-                  <Text style={s.stars}>★★★★★</Text>
-                </View>
-                <Text style={s.reviewQuote}>{review.quote}</Text>
-              </View>
-            ))}
-          </>
-        ) : null}
-        {item.policies.length ? (
-          <View style={s.policyCard}>
+        </>
+        <View style={s.policyCard}>
             <View style={s.policyHeading}>
               <Icon name="shield-checkmark-outline" />
               <Text style={s.policyTitle}>CAM KẾT & CHÍNH SÁCH LINH HOẠT</Text>
             </View>
-            {item.policies.map((policy) => (
+            {diamondPackage.policies.map((policy) => (
               <View style={s.policy} key={policy.id}>
                 <Icon
                   name={policy.icon as keyof typeof Ionicons.glyphMap}
@@ -477,8 +446,7 @@ export default function PackageDetailScreen() {
                 </View>
               </View>
             ))}
-          </View>
-        ) : null}
+        </View>
       </ScrollView>
       {toast ? (
         <View style={s.toast}>
@@ -886,30 +854,6 @@ const s = StyleSheet.create({
   },
   classMetric: { color: C.muted, fontSize: 11 },
   classKcal: { color: C.lime, fontSize: 11, fontWeight: '800' },
-  reviewCount: { color: C.muted, fontSize: 11, marginBottom: 10 },
-  reviewCard: {
-    backgroundColor: C.surface,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 9,
-  },
-  reviewHead: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  reviewAvatar: { width: 34, height: 34, borderRadius: 17 },
-  reviewNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  reviewName: { color: C.text, fontSize: 13, fontWeight: '800' },
-  verified: {
-    color: '#283500',
-    backgroundColor: C.lime,
-    borderRadius: 3,
-    overflow: 'hidden',
-    fontSize: 8,
-    fontWeight: '900',
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-  },
-  reviewDetail: { color: C.muted, fontSize: 11, marginTop: 3 },
-  stars: { color: C.lime, fontSize: 12 },
-  reviewQuote: { color: C.text, fontSize: 12, lineHeight: 16, marginTop: 9 },
   policyCard: {
     backgroundColor: C.surfaceLow,
     borderRadius: 12,
