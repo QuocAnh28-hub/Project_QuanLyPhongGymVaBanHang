@@ -21,6 +21,7 @@ const categories = [
 const emptyPackage: GymPackage = {
   id: 0,
   name: '',
+  tier: 'QA-GYM',
   category: 'all',
   badge: 'NEW PACKAGE',
   durations: [1, 3, 6, 12].map((months) => ({
@@ -462,6 +463,15 @@ function PackageForm({
               required
               value={form.name}
               onChange={(e) => field('name', e.target.value)}
+            />
+          </label>
+          <label>
+            Tier
+            <input
+              required
+              maxLength={50}
+              value={form.tier}
+              onChange={(e) => field('tier', e.target.value)}
             />
           </label>
           <label>

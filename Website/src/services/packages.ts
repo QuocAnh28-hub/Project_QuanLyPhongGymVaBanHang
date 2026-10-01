@@ -1,6 +1,7 @@
 export type GymPackage = {
   id: number
   name: string
+  tier: string
   category: string
   badge: string
   durations: PackageDurationAdmin[]
@@ -23,6 +24,7 @@ type ApiPackage = {
   GoiTapID: number
   GoiTapThoiHanID?: number
   TenGoi: string
+  Tier: string
   MoTa?: string
   SoThang?: number
   GiaGoc?: number
@@ -38,6 +40,7 @@ type ApiPackage = {
 type ApiPackageDetail = {
   GoiTapID: number
   TenGoi: string
+  Tier: string
   MoTa?: string
   TrangThai: 'ACTIVE' | 'INACTIVE'
   ThoiHan: Array<{
@@ -64,6 +67,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 const mapPackage = (p: ApiPackageDetail, members = 0): GymPackage => ({
   id: p.GoiTapID,
   name: p.TenGoi,
+  tier: p.Tier || 'QA-GYM',
   category: 'all',
   badge: p.TrangThai,
   durations: p.ThoiHan.map(row => ({
@@ -88,6 +92,7 @@ export const getPackages = async () => {
   return rows.map(row => mapPackage({
     GoiTapID: row.GoiTapID,
     TenGoi: row.TenGoi,
+    Tier: row.Tier,
     MoTa: row.MoTa,
     TrangThai: row.TrangThai,
     ThoiHan: row.ThoiHan,
@@ -99,6 +104,7 @@ export async function savePackage(value: GymPackage) {
     method: value.id ? 'PUT' : 'POST',
     body: JSON.stringify({
       TenGoi: value.name,
+      Tier: value.tier,
       MoTa: value.description,
       TrangThai: value.active ? 'ACTIVE' : 'INACTIVE',
       ThoiHan: value.durations.map(row => ({

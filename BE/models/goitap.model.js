@@ -4,6 +4,7 @@ const Goitap = (goitap) => {
   this.GoiTapID = goitap.GoiTapID;
   this.TenGoi = goitap.TenGoi;
   this.MoTa = goitap.MoTa;
+  this.Tier = goitap.Tier;
   this.ThoiHan = goitap.ThoiHan;
   this.Gia = goitap.Gia;
   this.TrangThai = goitap.TrangThai;
@@ -21,7 +22,7 @@ Goitap.getById = (GoiTapID, callback) => {
 };
 
 Goitap.getAll = (callback) => {
-  const sqlString = `SELECT g.GoiTapID, g.TenGoi, g.MoTa, g.ThoiHan, g.Gia,
+  const sqlString = `SELECT g.GoiTapID, g.TenGoi, g.MoTa, g.Tier, g.ThoiHan, g.Gia,
     g.TrangThai, g.NgayTao, th.GoiTapThoiHanID, th.SoThang, th.ThangTang,
     th.GiaGoc, th.GiaBan, th.TrangThai AS TrangThaiThoiHan,
     COUNT(DISTINCT CASE WHEN dk.TrangThai = 'ACTIVE' AND dk.NgayKetThuc >= CURDATE() THEN dk.HoiVienID END) AS SoHoiVienActive,
@@ -64,9 +65,9 @@ Goitap.saveAdmin = (id, data, callback) => {
       if (id) {
         const [packages] = await q.query('SELECT GoiTapID FROM goitap WHERE GoiTapID=? FOR UPDATE', [id]);
         if (!packages.length) throw Object.assign(new Error('Khong tim thay goi tap'), { status: 404 });
-        await q.query('UPDATE goitap SET TenGoi=?,MoTa=?,ThoiHan=?,Gia=?,TrangThai=? WHERE GoiTapID=?', [data.TenGoi, data.MoTa, preferred.SoThang * 30, preferred.GiaBan, data.TrangThai, id]);
+        await q.query('UPDATE goitap SET TenGoi=?,MoTa=?,Tier=?,ThoiHan=?,Gia=?,TrangThai=? WHERE GoiTapID=?', [data.TenGoi, data.MoTa, data.Tier, preferred.SoThang * 30, preferred.GiaBan, data.TrangThai, id]);
       } else {
-        const [created] = await q.query('INSERT INTO goitap (TenGoi,MoTa,ThoiHan,Gia,TrangThai) VALUES (?,?,?,?,?)', [data.TenGoi, data.MoTa, preferred.SoThang * 30, preferred.GiaBan, data.TrangThai]);
+        const [created] = await q.query('INSERT INTO goitap (TenGoi,MoTa,Tier,ThoiHan,Gia,TrangThai) VALUES (?,?,?,?,?,?)', [data.TenGoi, data.MoTa, data.Tier, preferred.SoThang * 30, preferred.GiaBan, data.TrangThai]);
         packageId = created.insertId;
       }
 
@@ -126,7 +127,7 @@ Goitap.safeDelete = (id, callback) => {
 };
 
 Goitap.getAdminDetailById = (GoiTapID, callback) => {
-  db.query('SELECT GoiTapID,TenGoi,MoTa,TrangThai FROM goitap WHERE GoiTapID=? LIMIT 1', [GoiTapID], (packageError, packages) => {
+  db.query('SELECT GoiTapID,TenGoi,MoTa,Tier,TrangThai FROM goitap WHERE GoiTapID=? LIMIT 1', [GoiTapID], (packageError, packages) => {
     if (packageError || !packages.length) return callback(packageError, null);
     db.query('SELECT GoiTapThoiHanID,SoThang,ThangTang,GiaGoc,GiaBan,TrangThai FROM GoiTapThoiHan WHERE GoiTapID=? ORDER BY SoThang,GoiTapThoiHanID', [GoiTapID], (durationError, durations) => {
       if (durationError) return callback(durationError);
@@ -139,7 +140,7 @@ Goitap.getAdminDetailById = (GoiTapID, callback) => {
 };
 
 Goitap.getActive = (callback) => {
-  const sqlString = `SELECT GoiTapID, TenGoi, MoTa, ThoiHan, Gia, TrangThai, NgayTao
+  const sqlString = `SELECT GoiTapID, TenGoi, MoTa, Tier, ThoiHan, Gia, TrangThai, NgayTao
     FROM \`goitap\`
     WHERE TrangThai = 'ACTIVE'
     ORDER BY Gia ASC, GoiTapID ASC`;
@@ -151,6 +152,7 @@ Goitap.getActiveDetailById = (GoiTapID, callback) => {
       GoiTapID,
       TenGoi,
       MoTa,
+      Tier,
       ThoiHan AS ThoiHanNgay,
       Gia,
       TrangThai,

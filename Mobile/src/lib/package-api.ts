@@ -10,6 +10,7 @@ export type ApiPackage = {
   GoiTapID: number;
   TenGoi: string;
   MoTa: string | null;
+  Tier: string;
   ThoiHan: number;
   Gia: string | number;
   TrangThai: 'ACTIVE' | 'INACTIVE';
@@ -39,6 +40,7 @@ export type ApiPackageDetail = {
   GoiTapID: number;
   TenGoi: string;
   MoTa: string | null;
+  Tier: string;
   ThoiHanNgay: number;
   Gia: string | number;
   TrangThai: 'ACTIVE' | 'INACTIVE';
@@ -183,6 +185,7 @@ export function packageFromApi(apiPackage: ApiPackage): GymPackage {
 
   return {
     ...presentation,
+    tier: apiPackage.Tier?.trim() || 'QA-GYM',
     id: String(apiPackage.GoiTapID),
     apiId: apiPackage.GoiTapID,
     name: apiPackage.TenGoi?.trim() || `Gói tập #${apiPackage.GoiTapID}`,
@@ -212,6 +215,7 @@ export function packageFromApiDetail(apiPackage: ApiPackageDetail): GymPackage {
 
   return {
     ...presentation,
+    tier: apiPackage.Tier?.trim() || 'QA-GYM',
     id: String(apiPackage.GoiTapID),
     apiId: apiPackage.GoiTapID,
     name: apiPackage.TenGoi?.trim() || `Gói tập #${apiPackage.GoiTapID}`,
