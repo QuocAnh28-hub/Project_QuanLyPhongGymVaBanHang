@@ -19,15 +19,10 @@ import RegistrationsPage from './pages/RegistrationsPage'
 import CheckInLivePage from './pages/CheckInLivePage'
 import CheckInHistoryPage from './pages/CheckInHistoryPage'
 import CheckInQrPage from './pages/CheckInQrPage'
-import TrainerManagementPage from './pages/TrainerManagementPage'
-import PtSessionsPage from './pages/PtSessionsPage'
-import TrainerRosterPage from './pages/TrainerRosterPage'
-import ShopProductsPage from './pages/ShopProductsPage'
-import ShopCategoriesPage from './pages/ShopCategoriesPage'
+import TrainerPages from './pages/TrainerPages'
+import CatalogPage from './pages/CatalogPage'
 import ShopOrdersPage from './pages/ShopOrdersPage'
-import WarehouseInboundPage from './pages/WarehouseInboundPage'
-import WarehouseInventoryPage from './pages/WarehouseInventoryPage'
-import WarehouseHistoryPage from './pages/WarehouseHistoryPage'
+import WarehousePages from './pages/WarehousePages'
 import RevenueInvoicePage from './pages/RevenueInvoicePage'
 import { metrics, clubs, hours } from './data/dashboard'
 import type { Member } from './services/members'
@@ -83,23 +78,27 @@ function App() {
     'Huấn luyện viên': {
       tabs: ['Danh sách HLV', 'Lịch PT', 'Phân ca'],
       pages: [
-        <TrainerManagementPage
+        <TrainerPages
           key="trainers"
+          mode="trainers"
           onOpenRoster={() => setModuleTab(2)}
         />,
-        <PtSessionsPage key="sessions" />,
-        <TrainerRosterPage key="roster" />,
+        <TrainerPages key="sessions" mode="bookings" />,
+        <TrainerPages key="roster" mode="roster" />,
       ],
     },
-    'Sản phẩm': { tabs: [], pages: [<ShopProductsPage key="products" />] },
-    'Danh mục': { tabs: [], pages: [<ShopCategoriesPage key="categories" />] },
+    'Sản phẩm': { tabs: [], pages: [<CatalogPage key="products" products />] },
+    'Danh mục': {
+      tabs: [],
+      pages: [<CatalogPage key="categories" products={false} />],
+    },
     'Đơn hàng': { tabs: [], pages: [<ShopOrdersPage key="orders" />] },
     'Kho hàng': {
       tabs: ['Nhập kho', 'Tồn kho', 'Lịch sử kho'],
       pages: [
-        <WarehouseInboundPage key="inbound" />,
-        <WarehouseInventoryPage key="inventory" />,
-        <WarehouseHistoryPage key="audit" />,
+        <WarehousePages key="inbound" mode="inbound" />,
+        <WarehousePages key="inventory" mode="inventory" />,
+        <WarehousePages key="audit" mode="history" />,
       ],
     },
     'Hóa đơn': { tabs: [], pages: [<RevenueInvoicePage key="vat" />] },
