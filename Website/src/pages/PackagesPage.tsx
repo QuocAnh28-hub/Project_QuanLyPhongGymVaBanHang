@@ -3,10 +3,12 @@ import { MetricCard, Modal } from '../components/AdminLayout'
 import { money } from '../data/admin-utils'
 import {
   deletePackage,
+  getPackageAdminDetail,
   getPackages,
   savePackage,
   setPackageStatus,
   type GymPackage,
+  type PackageDurationAdmin,
 } from '../services/packages'
 
 const categories = [
@@ -22,8 +24,13 @@ const emptyPackage: GymPackage = {
   sku: '',
   category: 'all',
   badge: 'NEW PACKAGE',
-  duration: 12,
-  price: 0,
+  durations: [1, 3, 6, 12].map((months) => ({
+    months,
+    bonusMonths: 0,
+    originalPrice: 0,
+    salePrice: 0,
+    active: true,
+  })),
   active: true,
   description: '',
   features: [''],
@@ -58,7 +65,7 @@ export default function PackagesPage() {
             `${p.name} ${p.sku} ${p.features.join(' ')}`
               .toLowerCase()
               .includes(search.toLowerCase())) &&
-          (duration === 'all' || p.duration === +duration) &&
+          (duration === 'all' || p.durations.some((d) => d.active && d.months === +duration)) &&
           (status === 'all' || p.active === (status === 'active'))
       ),
     [packages, category, search, duration, status]
@@ -68,6 +75,7 @@ export default function PackagesPage() {
     (Math.min(page, pages) - 1) * pageSize,
     Math.min(page, pages) * pageSize
   )
+  const durationOptions = [...new Set(packages.flatMap((p) => p.durations.filter((d) => d.active).map((d) => d.months)))].sort((a, b) => a - b)
   const load = async () => {
     try {
       setPackages(await getPackages())
@@ -162,10 +170,9 @@ export default function PackagesPage() {
             onChange={(e) => setDuration(e.target.value)}
           >
             <option value="all">Thời hạn: Tất cả thời hạn</option>
-            <option value="3">3 tháng</option>
-            <option value="6">6 tháng</option>
-            <option value="12">12 tháng</option>
-            <option value="0">14 ngày</option>
+            {durationOptions.map((months) => (
+              <option value={months} key={months}>{months} tháng</option>
+            ))}
           </select>
           <select value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="all">Trạng thái: Tất cả</option>
@@ -184,7 +191,11 @@ export default function PackagesPage() {
           <PackageCard
             key={item.id}
             item={item}
-            onEdit={() => setEditing(item)}
+            onEdit={() => {
+              void getPackageAdminDetail(item.id, item.members)
+                .then(setEditing)
+                .catch((e) => notify(e.message))
+            }}
             onDuplicate={() => {
               void deletePackage(item.id)
                 .then((result) => load().then(() => notify(result.message)))
@@ -291,6 +302,8 @@ function PackageCard({
   onReport: () => void
   onToggle: () => void
 }) {
+  const activeDurations = item.durations.filter((d) => d.active).sort((a, b) => a.months - b.months)
+  const fromPrice = activeDurations.length ? Math.min(...activeDurations.map((d) => d.salePrice)) : 0
   return (
     <article className={`package-card ${item.active ? '' : 'paused'}`}>
       <header>
@@ -308,13 +321,10 @@ function PackageCard({
         </button>
       </header>
       <div className="price">
-        <strong>{money(item.price).replace(' đ', '')}</strong>
-        <span>
-          VNĐ / {item.duration || 14}
-          <br />
-          {item.duration ? 'Tháng' : 'Ngày'}
-        </span>
-        {item.originalPrice && <del>{money(item.originalPrice)}</del>}
+        <strong>{money(fromPrice).replace(' đ', '')}</strong>
+        <span>VNĐ<br />Giá từ</span>
+        <small>{activeDurations.length} mốc thời hạn</small>
+        <small>{activeDurations.map((d) => d.months).join(' · ')} tháng</small>
         <small>{item.description}</small>
       </div>
       <ul>
@@ -426,12 +436,19 @@ function PackageForm({
   onSave: (v: GymPackage) => void
 }) {
   const [form, setForm] = useState(value)
+  const [formError, setFormError] = useState('')
   const field = (
     key: keyof GymPackage,
     val: string | number | boolean | string[]
   ) => setForm({ ...form, [key]: val })
+  const durationField = (index: number, patch: Partial<PackageDurationAdmin>) =>
+    setForm({ ...form, durations: form.durations.map((row, i) => i === index ? { ...row, ...patch } : row) })
   const submit = (e: FormEvent) => {
     e.preventDefault()
+    if (!form.durations.length || form.durations.some((row) => !Number.isInteger(row.months) || row.months <= 0 || !Number.isInteger(row.bonusMonths) || row.bonusMonths < 0 || !Number.isFinite(row.originalPrice) || row.originalPrice < 0 || !Number.isFinite(row.salePrice) || row.salePrice < 0)) return setFormError('Mỗi mốc phải có số tháng nguyên > 0, tháng tặng và giá >= 0.')
+    if (new Set(form.durations.map((row) => row.months)).size !== form.durations.length) return setFormError('Không được trùng số tháng.')
+    if (form.active && !form.durations.some((row) => row.active)) return setFormError('Gói ACTIVE phải có ít nhất một mốc ACTIVE.')
+    setFormError('')
     onSave(form)
   }
   return (
@@ -469,31 +486,20 @@ function PackageForm({
               <option value="trial">Trải nghiệm</option>
             </select>
           </label>
-          <label>
-            Thời hạn (tháng)
-            <input
-              type="number"
-              value={form.duration}
-              onChange={(e) => field('duration', +e.target.value)}
-            />
-          </label>
-          <label>
-            Giá
-            <input
-              required
-              type="number"
-              value={form.price}
-              onChange={(e) => field('price', +e.target.value)}
-            />
-          </label>
-          <label>
-            Giá gốc
-            <input
-              type="number"
-              value={form.originalPrice || ''}
-              onChange={(e) => field('originalPrice', +e.target.value)}
-            />
-          </label>
+          <div className="full">
+            <b>CÁC MỐC THỜI HẠN</b>
+            {form.durations.map((row, index) => (
+              <div className="form-grid" key={row.durationId ?? `new-${index}`}>
+                <label>Số tháng<input required min="1" step="1" type="number" value={row.months} onChange={(e) => durationField(index, { months: +e.target.value })} /></label>
+                <label>Tháng tặng<input required min="0" step="1" type="number" value={row.bonusMonths} onChange={(e) => durationField(index, { bonusMonths: +e.target.value })} /></label>
+                <label>Giá gốc<input required min="0" type="number" value={row.originalPrice} onChange={(e) => durationField(index, { originalPrice: +e.target.value })} /></label>
+                <label>Giá bán<input required min="0" type="number" value={row.salePrice} onChange={(e) => durationField(index, { salePrice: +e.target.value })} /></label>
+                <label>Trạng thái<select value={String(row.active)} onChange={(e) => durationField(index, { active: e.target.value === 'true' })}><option value="true">ACTIVE</option><option value="false">INACTIVE</option></select></label>
+                <button type="button" onClick={() => setForm({ ...form, durations: form.durations.filter((_, i) => i !== index) })}>Xóa mốc</button>
+              </div>
+            ))}
+            <button type="button" onClick={() => setForm({ ...form, durations: [...form.durations, { months: 1, bonusMonths: 0, originalPrice: 0, salePrice: 0, active: true }] })}>+ THÊM MỐC THỜI HẠN</button>
+          </div>
           <label>
             Trạng thái
             <select
@@ -519,6 +525,7 @@ function PackageForm({
             />
           </label>
         </div>
+        {formError && <div className="empty-state">{formError}</div>}
         <footer className="modal-actions">
           <button type="button" onClick={onClose}>
             Hủy

@@ -47,17 +47,34 @@ Goitap.saveAdmin = (id, data, callback) => {
     const q = connection.promise();
     try {
       await q.beginTransaction();
+      const preferred = [...data.ThoiHan].filter(x => x.TrangThai === 'ACTIVE').sort((a, b) => a.SoThang - b.SoThang)[0]
+        || [...data.ThoiHan].sort((a, b) => a.SoThang - b.SoThang)[0];
       let packageId = id;
       if (id) {
-        const [updated] = await q.query("UPDATE goitap SET TenGoi=?,MoTa=?,ThoiHan=?,Gia=?,TrangThai=? WHERE GoiTapID=?", [data.TenGoi, data.MoTa, data.SoThang * 30, data.GiaBan, data.TrangThai, id]);
-        if (!updated.affectedRows) throw Object.assign(new Error("Không tìm thấy gói tập"), { status: 404 });
-        const [duration] = await q.query("UPDATE GoiTapThoiHan SET SoThang=?,ThangTang=?,GiaGoc=?,GiaBan=?,TrangThai=? WHERE GoiTapThoiHanID=? AND GoiTapID=?", [data.SoThang, data.ThangTang, data.GiaGoc, data.GiaBan, data.TrangThai, data.GoiTapThoiHanID, id]);
-        if (!duration.affectedRows) throw Object.assign(new Error("Không tìm thấy thời hạn gói tập"), { status: 400 });
+        const [packages] = await q.query('SELECT GoiTapID FROM goitap WHERE GoiTapID=? FOR UPDATE', [id]);
+        if (!packages.length) throw Object.assign(new Error('Khong tim thay goi tap'), { status: 404 });
+        await q.query('UPDATE goitap SET TenGoi=?,MoTa=?,ThoiHan=?,Gia=?,TrangThai=? WHERE GoiTapID=?', [data.TenGoi, data.MoTa, preferred.SoThang * 30, preferred.GiaBan, data.TrangThai, id]);
       } else {
-        const [created] = await q.query("INSERT INTO goitap (TenGoi,MoTa,ThoiHan,Gia,TrangThai) VALUES (?,?,?,?,?)", [data.TenGoi, data.MoTa, data.SoThang * 30, data.GiaBan, data.TrangThai]);
+        const [created] = await q.query('INSERT INTO goitap (TenGoi,MoTa,ThoiHan,Gia,TrangThai) VALUES (?,?,?,?,?)', [data.TenGoi, data.MoTa, preferred.SoThang * 30, preferred.GiaBan, data.TrangThai]);
         packageId = created.insertId;
-        await q.query("INSERT INTO GoiTapThoiHan (GoiTapID,SoThang,ThangTang,GiaGoc,GiaBan,TrangThai) VALUES (?,?,?,?,?,?)", [packageId, data.SoThang, data.ThangTang, data.GiaGoc, data.GiaBan, data.TrangThai]);
       }
+
+      const [current] = await q.query('SELECT GoiTapThoiHanID,SoThang FROM GoiTapThoiHan WHERE GoiTapID=? FOR UPDATE', [packageId]);
+      const byId = new Map(current.map(row => [Number(row.GoiTapThoiHanID), row]));
+      const byMonths = new Map(current.map(row => [Number(row.SoThang), row]));
+      const kept = [];
+      for (const duration of data.ThoiHan) {
+        const existing = duration.GoiTapThoiHanID ? byId.get(duration.GoiTapThoiHanID) : byMonths.get(duration.SoThang);
+        if (duration.GoiTapThoiHanID && !existing) throw Object.assign(new Error('Thoi han khong thuoc goi tap'), { status: 400 });
+        if (existing) {
+          await q.query('UPDATE GoiTapThoiHan SET SoThang=?,ThangTang=?,GiaGoc=?,GiaBan=?,TrangThai=? WHERE GoiTapThoiHanID=? AND GoiTapID=?', [duration.SoThang, duration.ThangTang, duration.GiaGoc, duration.GiaBan, duration.TrangThai, existing.GoiTapThoiHanID, packageId]);
+          kept.push(existing.GoiTapThoiHanID);
+        } else {
+          const [created] = await q.query('INSERT INTO GoiTapThoiHan (GoiTapID,SoThang,ThangTang,GiaGoc,GiaBan,TrangThai) VALUES (?,?,?,?,?,?)', [packageId, duration.SoThang, duration.ThangTang, duration.GiaGoc, duration.GiaBan, duration.TrangThai]);
+          kept.push(created.insertId);
+        }
+      }
+      await q.query("UPDATE GoiTapThoiHan SET TrangThai='INACTIVE' WHERE GoiTapID=? AND GoiTapThoiHanID NOT IN (?)", [packageId, kept]);
       await q.query("UPDATE QuyenLoiGoiTap SET TrangThai='INACTIVE' WHERE GoiTapID=?", [packageId]);
       for (const [index, name] of data.QuyenLoi.entries()) {
         await q.query(`INSERT INTO QuyenLoiGoiTap (GoiTapID,MaQuyenLoi,TenQuyenLoi,ThuTu,TrangThai) VALUES (?,?,?,?, 'ACTIVE') ON DUPLICATE KEY UPDATE TenQuyenLoi=VALUES(TenQuyenLoi),ThuTu=VALUES(ThuTu),TrangThai='ACTIVE'`, [packageId, `ADMIN_${index + 1}`, name, index]);
@@ -77,8 +94,11 @@ Goitap.setStatus = (id, status, callback) => {
     const q = connection.promise();
     try {
       await q.beginTransaction();
+      if (status === 'ACTIVE') {
+        const [durations] = await q.query("SELECT 1 FROM GoiTapThoiHan WHERE GoiTapID=? AND TrangThai='ACTIVE' LIMIT 1", [id]);
+        if (!durations.length) throw Object.assign(new Error('Goi tap phai co it nhat mot thoi han ACTIVE'), { status: 400 });
+      }
       const [result] = await q.query("UPDATE goitap SET TrangThai=? WHERE GoiTapID=?", [status, id]);
-      await q.query("UPDATE GoiTapThoiHan SET TrangThai=? WHERE GoiTapID=?", [status, id]);
       await q.commit(); callback(null, result);
     } catch (e) { try { await q.rollback(); } catch (_) {} callback(e); }
     finally { connection.release(); }
@@ -91,6 +111,19 @@ Goitap.safeDelete = (id, callback) => {
     if (!rows.length) return callback(Object.assign(new Error('Không tìm thấy gói tập'), { status: 404 }));
     if (Number(rows[0].total)) return db.query("UPDATE goitap SET TrangThai='INACTIVE' WHERE GoiTapID=?", [id], (e) => callback(e, { deleted: false }));
     db.query("DELETE FROM goitap WHERE GoiTapID=?", [id], (e, result) => callback(e, { deleted: !!result?.affectedRows }));
+  });
+};
+
+Goitap.getAdminDetailById = (GoiTapID, callback) => {
+  db.query('SELECT GoiTapID,TenGoi,MoTa,TrangThai FROM goitap WHERE GoiTapID=? LIMIT 1', [GoiTapID], (packageError, packages) => {
+    if (packageError || !packages.length) return callback(packageError, null);
+    db.query('SELECT GoiTapThoiHanID,SoThang,ThangTang,GiaGoc,GiaBan,TrangThai FROM GoiTapThoiHan WHERE GoiTapID=? ORDER BY SoThang,GoiTapThoiHanID', [GoiTapID], (durationError, durations) => {
+      if (durationError) return callback(durationError);
+      db.query('SELECT QuyenLoiID,MaQuyenLoi,TenQuyenLoi,MoTa,SoLuong,ThuTu,TrangThai FROM QuyenLoiGoiTap WHERE GoiTapID=? ORDER BY ThuTu,QuyenLoiID', [GoiTapID], (privilegeError, privileges) => {
+        if (privilegeError) return callback(privilegeError);
+        callback(null, { ...packages[0], ThoiHan: durations, QuyenLoi: privileges });
+      });
+    });
   });
 };
 

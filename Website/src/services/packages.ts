@@ -1,17 +1,23 @@
 export type GymPackage = {
   id: number
-  durationId?: number
   name: string
   sku: string
   category: string
   badge: string
-  duration: number
-  price: number
-  originalPrice?: number
+  durations: PackageDurationAdmin[]
   active: boolean
   description: string
   features: string[]
   members: number
+}
+
+export type PackageDurationAdmin = {
+  durationId?: number
+  months: number
+  bonusMonths: number
+  originalPrice: number
+  salePrice: number
+  active: boolean
 }
 
 type ApiPackage = {
@@ -28,6 +34,22 @@ type ApiPackage = {
   QuyenLoi?: string
 }
 
+type ApiPackageDetail = {
+  GoiTapID: number
+  TenGoi: string
+  MoTa?: string
+  TrangThai: 'ACTIVE' | 'INACTIVE'
+  ThoiHan: Array<{
+    GoiTapThoiHanID: number
+    SoThang: number
+    ThangTang: number
+    GiaGoc: number | string
+    GiaBan: number | string
+    TrangThai: 'ACTIVE' | 'INACTIVE'
+  }>
+  QuyenLoi: Array<{ TenQuyenLoi: string; TrangThai: 'ACTIVE' | 'INACTIVE' }>
+}
+
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await adminFetch(url, {
     ...options,
@@ -38,36 +60,48 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   return body
 }
 
-const mapPackage = (p: ApiPackage): GymPackage => ({
+const mapPackage = (p: ApiPackageDetail, members = 0): GymPackage => ({
   id: p.GoiTapID,
-  durationId: p.GoiTapThoiHanID,
   name: p.TenGoi,
   sku: `PKG-${p.GoiTapID}`,
   category: 'all',
   badge: p.TrangThai,
-  duration: Number(p.SoThang || 1),
-  price: Number(p.GiaBan ?? p.Gia),
-  originalPrice: Number(p.GiaGoc || 0),
+  durations: p.ThoiHan.map(row => ({
+    durationId: row.GoiTapThoiHanID,
+    months: Number(row.SoThang),
+    bonusMonths: Number(row.ThangTang),
+    originalPrice: Number(row.GiaGoc),
+    salePrice: Number(row.GiaBan),
+    active: row.TrangThai === 'ACTIVE',
+  })),
   active: p.TrangThai === 'ACTIVE',
   description: p.MoTa || '',
-  features: p.QuyenLoi?.split('||').filter(Boolean) || [],
-  members: Number(p.SoHoiVienActive || 0),
+  features: p.QuyenLoi.filter(row => row.TrangThai === 'ACTIVE').map(row => row.TenQuyenLoi),
+  members,
 })
 
-export const getPackages = async () =>
-  (await request<ApiPackage[]>('/api/goitap')).map(mapPackage)
+export const getPackageAdminDetail = async (id: number, members = 0) =>
+  mapPackage(await request<ApiPackageDetail>(`/api/goitap/admin/${id}`), members)
+
+export const getPackages = async () => {
+  const rows = await request<ApiPackage[]>('/api/goitap')
+  return Promise.all(rows.map(row => getPackageAdminDetail(row.GoiTapID, Number(row.SoHoiVienActive || 0))))
+}
 export async function savePackage(value: GymPackage) {
   await request(value.id ? `/api/goitap/${value.id}` : '/api/goitap', {
     method: value.id ? 'PUT' : 'POST',
     body: JSON.stringify({
       TenGoi: value.name,
       MoTa: value.description,
-      GoiTapThoiHanID: value.durationId,
-      SoThang: value.duration,
-      ThangTang: 0,
-      GiaGoc: value.originalPrice || value.price,
-      GiaBan: value.price,
       TrangThai: value.active ? 'ACTIVE' : 'INACTIVE',
+      ThoiHan: value.durations.map(row => ({
+        GoiTapThoiHanID: row.durationId,
+        SoThang: row.months,
+        ThangTang: row.bonusMonths,
+        GiaGoc: row.originalPrice,
+        GiaBan: row.salePrice,
+        TrangThai: row.active ? 'ACTIVE' : 'INACTIVE',
+      })),
       QuyenLoi: value.features,
     }),
   })

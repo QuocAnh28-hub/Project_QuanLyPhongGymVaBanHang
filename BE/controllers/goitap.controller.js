@@ -3,14 +3,28 @@ const id = value => Number.isInteger(Number(value)) && Number(value) > 0 ? Numbe
 const fail = (res, error, message) => res.status(error.status || 500).json({ message: error.message || message });
 
 function packageInput(body) {
+  if (!Array.isArray(body?.ThoiHan) || !body.ThoiHan.length) return null;
+  const durations = body.ThoiHan.map(row => ({
+    GoiTapThoiHanID: id(row?.GoiTapThoiHanID),
+    SoThang: Number(row?.SoThang),
+    ThangTang: Number(row?.ThangTang ?? 0),
+    GiaGoc: Number(row?.GiaGoc),
+    GiaBan: Number(row?.GiaBan),
+    TrangThai: row?.TrangThai
+  }));
+  if (!durations.every(row => Number.isInteger(row.SoThang) && row.SoThang > 0 &&
+    Number.isInteger(row.ThangTang) && row.ThangTang >= 0 &&
+    Number.isFinite(row.GiaGoc) && row.GiaGoc >= 0 &&
+    Number.isFinite(row.GiaBan) && row.GiaBan >= 0 &&
+    ['ACTIVE', 'INACTIVE'].includes(row.TrangThai)) ||
+    new Set(durations.map(row => row.SoThang)).size !== durations.length) return null;
   const value = {
     TenGoi: String(body?.TenGoi || '').trim(), MoTa: String(body?.MoTa || '').trim(),
-    GoiTapThoiHanID: id(body?.GoiTapThoiHanID), SoThang: Number(body?.SoThang),
-    ThangTang: Number(body?.ThangTang || 0), GiaGoc: Number(body?.GiaGoc ?? body?.GiaBan),
-    GiaBan: Number(body?.GiaBan), TrangThai: body?.TrangThai,
+    ThoiHan: durations, TrangThai: body?.TrangThai,
     QuyenLoi: Array.isArray(body?.QuyenLoi) ? body.QuyenLoi.map(String).map(x => x.trim()).filter(Boolean) : []
   };
-  return value.TenGoi && Number.isInteger(value.SoThang) && value.SoThang > 0 && value.ThangTang >= 0 && value.GiaGoc >= 0 && value.GiaBan >= 0 && ['ACTIVE', 'INACTIVE'].includes(value.TrangThai) ? value : null;
+  return value.TenGoi && ['ACTIVE', 'INACTIVE'].includes(value.TrangThai) &&
+    (value.TrangThai !== 'ACTIVE' || durations.some(row => row.TrangThai === 'ACTIVE')) ? value : null;
 }
 
 module.exports = {
@@ -22,6 +36,11 @@ module.exports = {
     if (!packageId) return res.status(400).json({ message: 'GoiTapID không hợp lệ' });
     Goitap.getActiveDetailById(packageId, (e, row) => e ? fail(res, e, 'Không thể tải gói tập') : row ? res.json(row) : res.status(404).json({ message: 'Không tìm thấy gói tập đang hoạt động' }));
   },
+  getAdminById: (req, res) => {
+    const packageId = id(req.params.GoiTapID);
+    if (!packageId) return res.status(400).json({ message: 'GoiTapID khong hop le' });
+    Goitap.getAdminDetailById(packageId, (e, row) => e ? fail(res, e, 'Khong the tai goi tap') : row ? res.json(row) : res.status(404).json({ message: 'Khong tim thay goi tap' }));
+  },
   create: (req, res) => {
     const data = packageInput(req.body);
     if (!data) return res.status(400).json({ message: 'Dữ liệu gói tập không hợp lệ' });
@@ -29,7 +48,7 @@ module.exports = {
   },
   update: (req, res) => {
     const packageId = id(req.params.GoiTapID), data = packageInput(req.body);
-    if (!packageId || !data?.GoiTapThoiHanID) return res.status(400).json({ message: 'Dữ liệu gói tập không hợp lệ' });
+    if (!packageId || !data) return res.status(400).json({ message: 'Dữ liệu gói tập không hợp lệ' });
     Goitap.saveAdmin(packageId, data, (e, result) => e ? fail(res, e, 'Cập nhật gói tập thất bại') : res.json({ message: 'Đã cập nhật gói tập', data: result }));
   },
   setStatus: (req, res) => {

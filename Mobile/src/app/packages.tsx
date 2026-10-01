@@ -21,7 +21,6 @@ import {
 import { formatVND } from '@/lib/package-logic';
 import { type GymPackage, type PrivilegeCode } from '@/lib/packages';
 
-const months = [1, 3, 6, 12];
 const comparison: { label: string; code?: PrivilegeCode; hours?: true }[] = [
   { label: 'Khung giờ tập', hours: true },
   { label: 'Yoga', code: 'YOGA' },
@@ -35,7 +34,7 @@ const comparison: { label: string; code?: PrivilegeCode; hours?: true }[] = [
 ];
 export default function PackagesScreen() {
   const { user } = useAuth();
-  const [selectedDuration, setSelectedDuration] = useState(12);
+  const [selectedDuration, setSelectedDuration] = useState(0);
   const [displayPackages, setDisplayPackages] = useState<readonly GymPackage[]>(
     []
   );
@@ -46,6 +45,7 @@ export default function PackagesScreen() {
   const [error, setError] = useState('');
 
   const [apiError, setApiError] = useState('');
+  const months = [...new Set(displayPackages.flatMap((item) => item.durations.map((row) => row.months)))].sort((a, b) => a - b);
   const comparePackages = displayPackages.filter((item) =>
     [1, 2, 3].includes(item.apiId)
   );
@@ -68,6 +68,8 @@ export default function PackagesScreen() {
               : { ...packageFromApi(row), durations: [], privileges: [] };
           });
           setDisplayPackages(packagesFromApi);
+          const availableMonths = [...new Set(packagesFromApi.flatMap((item) => item.durations.map((row) => row.months)))].sort((a, b) => a - b);
+          setSelectedDuration((current) => availableMonths.includes(current) ? current : (availableMonths[0] ?? 0));
           setApiError(
             !packagesFromApi.length
               ? 'Hiện chưa có gói tập đang mở.'

@@ -106,7 +106,7 @@ export default function PackageDetailScreen() {
       active = false;
     };
   }, [packageId, validPackageId]);
-  const [selectedMonths, setSelectedMonths] = useState(Number(duration) || 12);
+  const [selectedDurationId, setSelectedDurationId] = useState<number | null>(null);
   const [favorite, setFavoriteState] = useState(false);
   const [studentVerified, setStudentVerified] = useState(false);
   const [toast, setToast] = useState('');
@@ -147,6 +147,15 @@ export default function PackageDetailScreen() {
     },
     []
   );
+  useEffect(() => {
+    if (!item?.durations.length) return;
+    const legacy = item.durations.find((row) => row.months === Number(duration));
+    setSelectedDurationId((current) =>
+      item.durations.some((row) => row.durationId === current)
+        ? current
+        : (legacy ?? item.durations[0]).durationId ?? null
+    );
+  }, [duration, item]);
   const showToast = useCallback((message: string) => {
     setToast(message);
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -175,7 +184,7 @@ export default function PackageDetailScreen() {
       </SafeAreaView>
     );
   const option =
-    item.durations.find((x) => x.months === selectedMonths) ??
+    item.durations.find((x) => x.durationId === selectedDurationId) ??
     item.durations[0];
   async function toggleFavorite() {
     const next = !favorite;
@@ -303,7 +312,7 @@ export default function PackageDetailScreen() {
               </View>
               <View style={s.priceMeta}>
                 <Text style={s.original}>
-                  {formatVND(option.originalMonthlyPrice)}
+                  {formatVND(option.baseAmount)}
                 </Text>
                 <Text style={s.discount}>{option.discountLabel}</Text>
               </View>
@@ -312,20 +321,24 @@ export default function PackageDetailScreen() {
           <View style={s.durationHead}>
             <Text style={s.tinyLabel}>THỜI HẠN ĐÓNG GÓI</Text>
           </View>
-          <View style={s.durationRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.durationRow}
+          >
             {item.durations.map((row) => (
               <Pressable
-                key={row.months}
-                onPress={() => setSelectedMonths(row.months)}
+                key={row.durationId}
+                onPress={() => setSelectedDurationId(row.durationId ?? null)}
                 style={[
                   s.duration,
-                  option.months === row.months && s.durationActive,
+                  option?.durationId === row.durationId && s.durationActive,
                 ]}
               >
                 <Text
                   style={[
                     s.durationTitle,
-                    option.months === row.months && s.durationTextActive,
+                    option?.durationId === row.durationId && s.durationTextActive,
                   ]}
                 >
                   {row.months} Tháng
@@ -333,7 +346,7 @@ export default function PackageDetailScreen() {
                 <Text
                   style={[
                     s.durationSubtitle,
-                    option.months === row.months && s.durationTextActive,
+                    option?.durationId === row.durationId && s.durationTextActive,
                   ]}
                 >
                   {row.subtitle}
@@ -341,7 +354,7 @@ export default function PackageDetailScreen() {
                 {row.badge ? <Text style={s.hotDeal}>{row.badge}</Text> : null}
               </Pressable>
             ))}
-          </View>
+          </ScrollView>
           {!item.durations.length ? (
             <Text style={s.sectionCopy}>Chưa cấu hình thời hạn đăng ký.</Text>
           ) : null}
@@ -746,8 +759,7 @@ const s = StyleSheet.create({
   tinyAccent: { color: C.mint, fontSize: 11, fontWeight: '700' },
   durationRow: { flexDirection: 'row', gap: 7 },
   duration: {
-    flex: 1,
-    minWidth: 0,
+    width: 110,
     backgroundColor: C.surface,
     borderRadius: 9,
     minHeight: 64,
