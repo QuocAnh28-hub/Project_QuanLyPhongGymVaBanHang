@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useState, useCallback } from 'react';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import {
   Pressable,
   ScrollView,
@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
-import { requestStudentVerification } from '@/lib/student-verification';
+import { requestStudentVerification, getStudentVerification } from '@/lib/student-verification';
 
 export default function StudentVerificationScreen() {
   const { user } = useAuth();
@@ -22,11 +22,19 @@ export default function StudentVerificationScreen() {
   const [studentId, setStudentId] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+  useFocusEffect(useCallback(() => {
+    if (user?.accountId) getStudentVerification(String(user.accountId)).then(row => {
+      if (row) { setSchoolName(row.schoolName); setStudentId(row.studentId); setExpiryDate(row.expiryDate); setMessage(`Trạng thái: ${row.status}`); }
+    }).catch(e => setMessage(e.message));
+  }, [user?.accountId]));
   async function submit() {
-    if (!user) return setMessage('Vui lòng đăng nhập.');
+    if (busy) return;
+    if (!user?.accountId) return setMessage('Vui lòng đăng nhập.');
+    setBusy(true);
     try {
       await requestStudentVerification({
-        userId: user.email,
+        userId: String(user.accountId),
         schoolName,
         studentId,
         expiryDate,
@@ -38,15 +46,14 @@ export default function StudentVerificationScreen() {
       setMessage(
         error instanceof Error ? error.message : 'Không thể lưu yêu cầu.'
       );
-    }
+    } finally { setBusy(false); }
   }
   return (
     <SafeAreaView style={s.safe}>
       <ScrollView contentContainerStyle={s.content}>
         <Text style={s.title}>Xác minh HSSV</Text>
         <Text style={s.note}>
-          Thông tin được lưu trên thiết bị ở trạng thái chờ duyệt; ứng dụng
-          không tự xác minh thẻ.
+          Gửi thông tin thẻ để Admin xác minh. Gói HSSV chỉ được đăng ký sau khi duyệt và thẻ còn hạn.
         </Text>
         <TextInput
           style={s.input}
@@ -69,7 +76,7 @@ export default function StudentVerificationScreen() {
           value={expiryDate}
           onChangeText={setExpiryDate}
         />
-        <Pressable style={s.button} onPress={submit}>
+        <Pressable style={s.button} disabled={busy} onPress={submit}>
           <Text style={s.buttonText}>GỬI YÊU CẦU XÁC MINH</Text>
         </Pressable>
         {message ? <Text style={s.note}>{message}</Text> : null}

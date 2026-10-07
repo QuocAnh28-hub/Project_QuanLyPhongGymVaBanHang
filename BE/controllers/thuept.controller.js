@@ -31,7 +31,9 @@ const ThueptController = {
     if (!TaiKhoanID || !LichPTID) {
       return res.status(400).json({ message: 'TaiKhoanID hoặc LichPTID không hợp lệ' });
     }
-    Thuept.book({ TaiKhoanID, LichPTID, GhiChu }, (err, result) => {
+    const PhuongThucThanhToan = req.body?.PhuongThucThanhToan || 'TIEN_MAT';
+    if (!['TIEN_MAT','CHUYEN_KHOAN','THE'].includes(PhuongThucThanhToan)) return res.status(400).json({ message: 'Phương thức thanh toán không hợp lệ.' });
+    Thuept.book({ TaiKhoanID, LichPTID, GhiChu, PhuongThucThanhToan, MaKhuyenMai: req.body?.MaKhuyenMai }, (err, result) => {
       if (err) return respondError(res, err);
       notifyBooking(result, 'Đã gửi yêu cầu thuê PT');
       res.status(201).json({ message: 'Đăng ký lịch PT thành công', data: result });
@@ -67,6 +69,15 @@ const ThueptController = {
     });
   },
 
+  confirmPayment: (req, res) => {
+    const id = positiveInteger(req.params.ThuePTID);
+    if (!id) return res.status(400).json({ message: 'ThuePTID không hợp lệ.' });
+    Thuept.confirmPayment(id, (e, result) => {
+      if (e) return respondError(res, e);
+      if (!result.alreadyConfirmed) notifyBooking(result, 'Thanh toán PT thành công');
+      res.json({ data: result });
+    });
+  },
   complete: (req, res) => {
     const id = positiveInteger(req.params.ThuePTID);
     if (!id) return res.status(400).json({ message: 'ThuePTID khong hop le' });

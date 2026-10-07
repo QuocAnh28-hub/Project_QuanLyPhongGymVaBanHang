@@ -282,7 +282,7 @@ export default function PackageEnrollmentScreen() {
         throw new Error('Gói hiện không mở đăng ký.');
       if (
         selectedItem.requiresStudentVerification &&
-        (await getStudentVerification(currentUser.email))?.status !== 'verified'
+        (await getStudentVerification(String(currentUser.accountId)))?.status !== 'verified'
       )
         throw new Error('Thẻ HSSV chưa được xác minh.');
       if (!currentUser.accountId)

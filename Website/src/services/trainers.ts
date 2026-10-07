@@ -24,6 +24,9 @@ export type Shift = {
   TrangThai: string
 }
 export type Booking = {
+  ThanhToanID: number | null
+  TrangThaiThanhToan: string | null
+  SoTien: number | string | null
   ThuePTID: number
   HoiVienID: number
   PTID: number
@@ -235,7 +238,7 @@ export async function updateBooking(
     const TaiKhoanID = accountId
     if (action === 'cancel' && !TaiKhoanID)
       throw new Error('Hội viên chưa có tài khoản liên kết.')
-    await catalogRequest(`thuept/${b.ThuePTID}/${action}`, {
+    await catalogRequest(`thuept/${b.ThuePTID}/${action === 'confirm' ? 'confirm-payment' : action}`, {
       method: 'POST',
       body: JSON.stringify(action === 'cancel' ? { TaiKhoanID } : {}),
     })

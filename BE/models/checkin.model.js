@@ -173,8 +173,10 @@ async function readEligibility(query, input, lock = false) {
     `SELECT CheckInID FROM checkin WHERE HoiVienID = ? AND TrangThai = 'CHECKED_IN'
       AND ThoiGianCheckOut IS NULL ORDER BY CheckInID DESC LIMIT 1${suffix}`, [input.HoiVienID],
   );
+  const [freezes] = await query.query("SELECT b.BaoLuuID FROM baoluugoitap b JOIN dangkygoitap d ON d.DangKyID=b.DangKyID WHERE d.HoiVienID=? AND b.TrangThai='APPROVED' AND CURDATE() BETWEEN b.NgayBatDau AND b.NgayKetThuc" + suffix, [input.HoiVienID]);
   const reasons = [];
   const add = (condition, code, message) => { if (condition) reasons.push({ code, message }); };
+  add(freezes.length > 0, 'MEMBERSHIP_FROZEN', 'Package is currently frozen.');
   add(membership.TrangThaiTaiKhoan !== 'ACTIVE', 'ACCOUNT_NOT_ACTIVE', 'Tài khoản chưa hoạt động hoặc đã bị khóa.');
   add(membership.TrangThaiHoiVien !== 'ACTIVE', 'MEMBER_NOT_ACTIVE', 'Hội viên chưa hoạt động hoặc đã bị khóa.');
   add(membership.TrangThaiDangKy !== 'ACTIVE', 'MEMBERSHIP_NOT_ACTIVE', 'Đăng ký gói tập chưa hoạt động.');

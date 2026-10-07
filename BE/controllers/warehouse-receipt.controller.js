@@ -30,7 +30,8 @@ exports.create = async (req, res) => {
   let connection;
   try {
     connection = await db.promise().getConnection();
-    await connection.beginTransaction();
+    await connection.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
+      await connection.beginTransaction();
     const [warehouses] = await connection.query("SELECT KhoID FROM kho WHERE KhoID = ? AND TrangThai = 'ACTIVE' FOR UPDATE", [input.KhoID]);
     const [employees] = await connection.query("SELECT NhanVienID FROM nhanvien WHERE NhanVienID = ? AND TrangThai = 'ACTIVE' FOR UPDATE", [input.NhanVienID]);
     if (!warehouses.length || !employees.length) { const e = new Error('Kho hoặc nhân viên không còn hoạt động.'); e.status = 409; throw e; }
@@ -46,11 +47,33 @@ exports.create = async (req, res) => {
     res.status(e.status || 500).json({ message: e.status ? e.message : 'Không thể tạo phiếu nhập. Không có dòng hàng nào được lưu riêng lẻ.' });
   } finally { connection?.release(); }
 };
+exports.stock = async (req, res, next) => {
+  try { const [rows] = await db.promise().query('SELECT KhoID,SanPhamID,SoLuongTon FROM tonkho ORDER BY KhoID,SanPhamID'); res.json(rows); }
+  catch (e) { next(e); }
+};
 exports.transition = async (req, res) => {
-  if (!positiveId(req.params.PhieuNhapID) || !['COMPLETED', 'CANCELLED'].includes(req.body?.TrangThai)) return res.status(400).json({ message: 'Trạng thái phiếu nhập không hợp lệ.' });
+  if (!positiveId(req.params.PhieuNhapID) || !['COMPLETED', 'CANCELLED'].includes(req.body?.TrangThai)) return res.status(400).json({ message: 'Trạng thái không hợp lệ.' });
+  let connection;
   try {
-    const [result] = await db.promise().query("UPDATE phieunhap SET TrangThai = ? WHERE PhieuNhapID = ? AND TrangThai = 'PENDING' AND EXISTS (SELECT 1 FROM chitietphieunhap c WHERE c.PhieuNhapID = phieunhap.PhieuNhapID)", [req.body.TrangThai, Number(req.params.PhieuNhapID)]);
-    if (!result.affectedRows) return res.status(409).json({ message: 'Phiếu đã đổi trạng thái, không tồn tại hoặc chưa có chi tiết hàng.' });
-    res.json({ message: 'Đã cập nhật phiếu nhập.' });
-  } catch { res.status(500).json({ message: 'Không thể cập nhật phiếu nhập.' }); }
+    connection = await db.promise().getConnection();
+    await connection.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
+      await connection.beginTransaction();
+    const [rows] = await connection.query('SELECT * FROM phieunhap WHERE PhieuNhapID=? FOR UPDATE', [req.params.PhieuNhapID]);
+    const receipt = rows[0];
+    if (!receipt) throw Object.assign(new Error('Không tìm thấy phiếu.'), { status: 404 });
+    if (receipt.TrangThai !== req.body.TrangThai) {
+      if (receipt.TrangThai !== 'PENDING') throw Object.assign(new Error('Phiếu đã kết thúc.'), { status: 409 });
+      const [items] = await connection.query('SELECT SanPhamID,SoLuong FROM chitietphieunhap WHERE PhieuNhapID=? ORDER BY SanPhamID FOR UPDATE', [receipt.PhieuNhapID]);
+      if (req.body.TrangThai === 'COMPLETED') {
+        if (!items.length || items.some(i => !positiveId(i.SoLuong))) throw Object.assign(new Error('Chi tiết nhập kho không hợp lệ.'), { status: 409 });
+        for (const item of items) await connection.query('INSERT INTO tonkho (KhoID,SanPhamID,SoLuongTon) VALUES (?,?,?) ON DUPLICATE KEY UPDATE SoLuongTon=SoLuongTon+VALUES(SoLuongTon)', [receipt.KhoID,item.SanPhamID,item.SoLuong]);
+      }
+      await connection.query('UPDATE phieunhap SET TrangThai=? WHERE PhieuNhapID=?', [req.body.TrangThai,receipt.PhieuNhapID]);
+    }
+    await connection.commit();
+    res.json({ message: 'Đã cập nhật phiếu nhập.', TrangThai: req.body.TrangThai });
+  } catch (e) {
+    if (connection) await connection.rollback().catch(() => {});
+    res.status(e.status || 500).json({ message: e.status ? e.message : 'Không thể cập nhật phiếu nhập.' });
+  } finally { connection?.release(); }
 };

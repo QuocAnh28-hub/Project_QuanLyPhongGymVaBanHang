@@ -24,6 +24,10 @@ export type ApiPTSchedule = {
 };
 
 export type ApiPTBooking = {
+  ThanhToanID: number;
+  TrangThaiThanhToan: 'PENDING' | 'SUCCESS' | 'CANCELLED' | 'FAILED';
+  SoTien: string | number;
+  PhuongThucThanhToan: string;
   ThuePTID: number;
   HoiVienID: number;
   PTID: number;
@@ -80,6 +84,7 @@ export async function bookPT(input: {
   accountId: number;
   scheduleId: number;
   note?: string;
+  paymentMethod?: 'TIEN_MAT' | 'CHUYEN_KHOAN';
 }): Promise<ApiPTBooking> {
   const response = await authenticatedFetch(`${baseUrl}/thuept/book`, {
     method: 'POST',
@@ -87,6 +92,7 @@ export async function bookPT(input: {
     body: JSON.stringify({
       TaiKhoanID: input.accountId,
       LichPTID: input.scheduleId,
+      PhuongThucThanhToan: input.paymentMethod || 'TIEN_MAT',
       GhiChu: input.note?.trim() || undefined,
     }),
   });

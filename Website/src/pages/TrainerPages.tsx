@@ -354,7 +354,7 @@ export default function TrainerPages({
                             )}
                           </td>
                           <td>{money(Number(b.GiaThue))}</td>
-                          <td>{badge(b.TrangThai)}</td>
+                          <td>{badge(b.TrangThai)}<small>{b.TrangThaiThanhToan || 'Chưa có thanh toán'}</small></td>
                           <td>
                             <div className="catalog-row-actions">
                               {canConfirm && (
@@ -367,7 +367,7 @@ export default function TrainerPages({
                                     })
                                   }
                                 >
-                                  Xác nhận
+                                  Xác nhận đã thu tiền
                                 </button>
                               )}
                               {showCancel && (
@@ -648,7 +648,7 @@ export default function TrainerPages({
               {editor.kind === 'action' && (
                 <p className="catalog-full">
                   {editor.action === 'confirm'
-                    ? 'Xác nhận'
+                    ? 'Xác nhận đã thu tiền'
                     : editor.action === 'cancel'
                       ? 'Hủy'
                       : 'Đánh dấu hoàn thành'}{' '}

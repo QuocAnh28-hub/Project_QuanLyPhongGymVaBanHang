@@ -22,10 +22,11 @@ const bookingDetailSql = `
     TIME_FORMAT(l.GioKetThuc, '%H:%i:%s') AS GioKetThuc,
     tp.GiaThue,
     tp.TrangThai,
-    tp.GhiChu
+    tp.GhiChu, tt.ThanhToanID, tt.SoTien, tt.TrangThai AS TrangThaiThanhToan, tt.PhuongThucThanhToan
   FROM thuept tp
   INNER JOIN pt p ON p.PTID = tp.PTID
   INNER JOIN lichpt l ON l.LichPTID = tp.LichPTID
+  LEFT JOIN thanhtoan tt ON tt.ThuePTID=tp.ThuePTID
 `;
 
 const Thuept = (thuept) => {
@@ -40,7 +41,7 @@ const Thuept = (thuept) => {
 };
 
 Thuept.getById = (ThuePTID, callback) => {
-  const sqlString = "SELECT * FROM `thuept` WHERE `ThuePTID` = ?";
+  const sqlString = `${bookingDetailSql} WHERE tp.ThuePTID=?`;
   db.query(sqlString, [ThuePTID], (err, result) => {
     if (err) {
       return callback(err);
@@ -50,7 +51,7 @@ Thuept.getById = (ThuePTID, callback) => {
 };
 
 Thuept.getAll = (callback) => {
-  const sqlString = "SELECT * FROM `thuept`";
+  const sqlString = `${bookingDetailSql}`;
   db.query(sqlString, (err, result) => {
     if (err) {
       return callback(err);
@@ -64,6 +65,7 @@ Thuept.book = (input, callback) => {
     if (connectionError) return callback(connectionError);
     const query = connection.promise();
     try {
+      await query.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
       await query.beginTransaction();
       const [members] = await query.query(
         `SELECT hv.HoiVienID
@@ -117,6 +119,7 @@ Thuept.book = (input, callback) => {
         throw appError(409, "SLOT_NOT_AVAILABLE", "Lịch PT đã qua");
       }
 
+      const promotion = input.MaKhuyenMai ? await require('./khuyenmai.model').quote(query, input.MaKhuyenMai, members[0].HoiVienID, 'PT', Number(schedule.GiaThue)) : null;
       const [insertResult] = await query.query(
         `INSERT INTO thuept
           (HoiVienID, PTID, LichPTID, NgayDat, GiaThue, TrangThai, GhiChu)
@@ -129,6 +132,8 @@ Thuept.book = (input, callback) => {
           input.GhiChu,
         ],
       );
+      await query.query('UPDATE thuept SET KhuyenMaiID=?,SoTienGiam=? WHERE ThuePTID=?', [promotion?.KhuyenMaiID || null,promotion?.discount || 0,insertResult.insertId]);
+      await query.query("INSERT INTO thanhtoan (ThuePTID,HoiVienID,SoTien,PhuongThucThanhToan,NoiDung,TrangThai) VALUES (?,?,?,?,?,'PENDING')", [insertResult.insertId,members[0].HoiVienID,Number(schedule.GiaThue)-(promotion?.discount || 0),input.PhuongThucThanhToan || 'TIEN_MAT',`PT #${insertResult.insertId}`]);
       const [updateResult] = await query.query(
         "UPDATE lichpt SET TrangThai = 'BOOKED' WHERE LichPTID = ? AND TrangThai = 'AVAILABLE'",
         [schedule.LichPTID],
@@ -176,7 +181,10 @@ Thuept.confirmBooking = (ThuePTID, callback) => {
     if (connectionError) return callback(connectionError);
     const query = connection.promise();
     try {
+      await query.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
       await query.beginTransaction();
+      const [owners] = await query.query('SELECT HoiVienID FROM thuept WHERE ThuePTID=?', [ThuePTID]);
+      if (owners.length) await query.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [owners[0].HoiVienID]);
       const [bookings] = await query.query(
         `SELECT
            tp.*,
@@ -197,6 +205,9 @@ Thuept.confirmBooking = (ThuePTID, callback) => {
       }
 
       const booking = bookings[0];
+      const [payments] = await query.query('SELECT * FROM thanhtoan WHERE ThuePTID=? FOR UPDATE', [ThuePTID]);
+      const payment = payments[0];
+      if (!payment || payment.TrangThai !== 'SUCCESS') throw appError(409, 'PAYMENT_NOT_SUCCESS', 'PT chưa thanh toán.');
       if (booking.TrangThai === "CONFIRMED") {
         const [current] = await query.query(
           `${bookingDetailSql} WHERE tp.ThuePTID = ?`,
@@ -235,12 +246,49 @@ Thuept.confirmBooking = (ThuePTID, callback) => {
   });
 };
 
+Thuept.confirmPayment = (ThuePTID, callback) => {
+  db.getConnection(async (connectionError, connection) => {
+    if (connectionError) return callback(connectionError);
+    const q = connection.promise();
+    try {
+      await q.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
+      await q.beginTransaction();
+      const [owners] = await q.query('SELECT HoiVienID FROM thuept WHERE ThuePTID=?', [ThuePTID]);
+      if (owners.length) await q.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [owners[0].HoiVienID]);
+      const [bookings] = await q.query('SELECT tp.*,l.TrangThai TrangThaiLich FROM thuept tp JOIN lichpt l ON l.LichPTID=tp.LichPTID WHERE tp.ThuePTID=? FOR UPDATE', [ThuePTID]);
+      const booking = bookings[0];
+      if (!booking) throw appError(404,'BOOKING_NOT_FOUND','Không tìm thấy lịch PT.');
+      const [payments] = await q.query('SELECT * FROM thanhtoan WHERE ThuePTID=? FOR UPDATE', [ThuePTID]);
+      const payment = payments[0];
+      if (!payment) throw appError(409,'PAYMENT_NOT_FOUND','Không có thanh toán PT.');
+      const alreadyConfirmed = payment.TrangThai === 'SUCCESS';
+      if (!alreadyConfirmed) {
+        if (payment.TrangThai !== 'PENDING' || booking.TrangThai !== 'PENDING' || booking.TrangThaiLich !== 'BOOKED') throw appError(409,'PAYMENT_NOT_PENDING','Lịch không còn chờ thanh toán.');
+        if (booking.KhuyenMaiID) {
+          await require('./khuyenmai.model').validateUsage(q, booking.KhuyenMaiID, booking.HoiVienID, 'PT', Number(booking.GiaThue));
+          await q.query('INSERT INTO apdungkhuyenmaipt (KhuyenMaiID,ThuePTID,SoTienGiam) VALUES (?,?,?) ON DUPLICATE KEY UPDATE ThuePTID=VALUES(ThuePTID)', [booking.KhuyenMaiID,ThuePTID,booking.SoTienGiam]);
+        }
+        await q.query("UPDATE thanhtoan SET TrangThai='SUCCESS',NgayThanhToan=NOW() WHERE ThanhToanID=?", [payment.ThanhToanID]);
+        await q.query("UPDATE thuept SET TrangThai='CONFIRMED' WHERE ThuePTID=?", [ThuePTID]);
+      }
+      await q.query("INSERT INTO hoadon (ThanhToanID,TongTien,TrangThai) VALUES (?,?,'ACTIVE') ON DUPLICATE KEY UPDATE ThanhToanID=VALUES(ThanhToanID)", [payment.ThanhToanID,payment.SoTien]);
+      const [rows] = await q.query(`${bookingDetailSql} WHERE tp.ThuePTID=?`, [ThuePTID]);
+      await q.commit();
+      callback(null, { ...rows[0], alreadyConfirmed });
+    } catch (e) { await q.rollback().catch(() => {}); callback(e); }
+    finally { connection.release(); }
+  });
+};
+
 Thuept.completeBooking = (ThuePTID, callback) => {
   db.getConnection(async (connectionError, connection) => {
     if (connectionError) return callback(connectionError);
     const query = connection.promise();
     try {
+      await query.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
       await query.beginTransaction();
+      const [owners] = await query.query('SELECT HoiVienID FROM thuept WHERE ThuePTID=?', [ThuePTID]);
+      if (owners.length) await query.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [owners[0].HoiVienID]);
       const [bookings] = await query.query(
         `SELECT tp.TrangThai, l.NgayLam, l.GioKetThuc
          FROM thuept tp
@@ -254,6 +302,8 @@ Thuept.completeBooking = (ThuePTID, callback) => {
       if (bookings[0].TrangThai !== "CONFIRMED") {
         throw appError(409, "INVALID_BOOKING_STATUS", "Chi co the hoan thanh lich da xac nhan");
       }
+      const [payments] = await query.query('SELECT TrangThai FROM thanhtoan WHERE ThuePTID=? FOR UPDATE', [ThuePTID]);
+      if (payments[0]?.TrangThai !== 'SUCCESS') throw appError(409,'PAYMENT_NOT_SUCCESS','PT chưa thanh toán.');
       const [timeCheck] = await query.query(
         "SELECT TIMESTAMP(?, ?) <= NOW() AS HasEnded",
         [bookings[0].NgayLam, bookings[0].GioKetThuc],
@@ -282,7 +332,10 @@ Thuept.cancel = (input, callback) => {
     if (connectionError) return callback(connectionError);
     const query = connection.promise();
     try {
+      await query.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
       await query.beginTransaction();
+      const [owners] = await query.query('SELECT HoiVienID FROM thuept WHERE ThuePTID=?', [input.ThuePTID]);
+      if (owners.length) await query.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [owners[0].HoiVienID]);
       const [bookings] = await query.query(
         `SELECT tp.ThuePTID, tp.LichPTID, tp.TrangThai, l.NgayLam, l.GioBatDau
          FROM thuept tp
@@ -296,6 +349,10 @@ Thuept.cancel = (input, callback) => {
         throw appError(404, "BOOKING_NOT_FOUND", "Không tìm thấy lịch thuê PT");
       }
       const booking = bookings[0];
+      const [payments] = await query.query('SELECT ThanhToanID,TrangThai FROM thanhtoan WHERE ThuePTID=? FOR UPDATE', [booking.ThuePTID]);
+      if (payments[0]?.TrangThai === 'SUCCESS') throw appError(409,'REFUND_REQUIRED','Đã thanh toán; cần quy trình refund.');
+      if (payments[0]?.TrangThai !== 'PENDING') throw appError(409,'PAYMENT_NOT_PENDING','Thanh toán không còn chờ.');
+      await query.query("UPDATE thanhtoan SET TrangThai='CANCELLED' WHERE ThanhToanID=?", [payments[0].ThanhToanID]);
       if (!['PENDING', 'CONFIRMED'].includes(booking.TrangThai)) {
         throw appError(409, "BOOKING_NOT_CANCELLABLE", "Lịch này không thể hủy");
       }

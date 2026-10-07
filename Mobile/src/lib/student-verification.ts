@@ -1,42 +1,23 @@
-import { readLocal, writeLocal } from '@/lib/local-store';
-
+import { authenticatedFetch, baseUrl } from '@/lib/account-api';
 export type StudentVerification = {
-  userId: string;
-  schoolName: string;
-  studentId: string;
-  expiryDate: string;
-  imageFront?: string;
+  userId: string; schoolName: string; studentId: string; expiryDate: string;
   status: 'pending' | 'verified' | 'rejected';
 };
-const KEY = 'qa-gym-student-verifications';
-export async function getStudentVerification(
-  userId: string
-): Promise<StudentVerification | null> {
-  const rows: StudentVerification[] = JSON.parse(
-    (await readLocal(KEY)) ?? '[]'
-  );
-  return rows.find((row) => row.userId === userId) ?? null;
+type Row = { TenTruong: string; MaHSSV: string; expiryDate: string; TrangThai: 'PENDING' | 'VERIFIED' | 'REJECTED' };
+async function request<T>(body?: object): Promise<T> {
+  const res = await authenticatedFetch(`${baseUrl}/member-requests/student/me`, {
+    method: body ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
+  return data as T;
 }
-export async function requestStudentVerification(
-  input: Omit<StudentVerification, 'status'>
-) {
-  if (
-    !input.schoolName.trim() ||
-    !input.studentId.trim() ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(input.expiryDate) ||
-    input.expiryDate < new Date().toISOString().slice(0, 10)
-  )
-    throw new Error('Thông tin thẻ HSSV không hợp lệ hoặc đã hết hạn.');
-  const rows: StudentVerification[] = JSON.parse(
-    (await readLocal(KEY)) ?? '[]'
-  );
-  const request = { ...input, status: 'pending' as const };
-  await writeLocal(
-    KEY,
-    JSON.stringify([
-      request,
-      ...rows.filter((row) => row.userId !== input.userId),
-    ])
-  );
-  return request;
+export async function getStudentVerification(userId: string): Promise<StudentVerification | null> {
+  const row = await request<Row | null>();
+  return row ? { userId, schoolName: row.TenTruong, studentId: row.MaHSSV, expiryDate: row.expiryDate,
+    status: row.TrangThai.toLowerCase() as StudentVerification['status'] } : null;
+}
+export async function requestStudentVerification(input: Omit<StudentVerification, 'status'>) {
+  await request({ TenTruong: input.schoolName, MaHSSV: input.studentId, NgayHetHan: input.expiryDate });
+  return { ...input, status: 'pending' as const };
 }

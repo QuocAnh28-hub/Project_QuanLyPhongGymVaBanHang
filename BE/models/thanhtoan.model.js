@@ -17,11 +17,12 @@ function addMonthsClamped(dateString, months) {
   return new Date(Date.UTC(targetYear, targetMonth, Math.min(day, lastDay))).toISOString().slice(0, 10);
 }
 function nextDay(value) {
-  const date = new Date(`${String(value).slice(0, 10)}T00:00:00Z`);
+  const day = value instanceof Date ? `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,'0')}-${String(value.getDate()).padStart(2,'0')}` : String(value).slice(0,10);
+  const date = new Date(`${day}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + 1);
   return date.toISOString().slice(0, 10);
 }
-const activationMode = payment => String(payment.NoiDung || '').includes('REPLACE_NOW') ? 'REPLACE_NOW' : 'QUEUE_AFTER_CURRENT';
+const activationMode = payment => payment.ActivationMode;
 
 const packagePaymentDetailSql = `
   SELECT
@@ -38,7 +39,7 @@ const packagePaymentDetailSql = `
     dk.GiaThanhToan,
     tt.SoTien,
       tt.PhuongThucThanhToan,
-      CASE WHEN tt.NoiDung LIKE '%REPLACE_NOW%' THEN 'REPLACE_NOW' ELSE 'QUEUE_AFTER_CURRENT' END AS ActivationMode,
+      tt.ActivationMode,
     tt.TrangThai AS TrangThaiThanhToan,
     dk.TrangThai AS TrangThaiDangKy
   FROM thanhtoan tt
@@ -65,7 +66,10 @@ Thanhtoan.createPackagePayment = (input, callback) => {
     const query = connection.promise();
 
     try {
+      await query.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
       await query.beginTransaction();
+      const [owners] = await query.query('SELECT HoiVienID FROM dangkygoitap WHERE DangKyID=?', [input.DangKyID]);
+      if (owners.length) await query.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [owners[0].HoiVienID]);
       const [registrations] = await query.query(
         `SELECT DangKyID, HoiVienID, GiaThanhToan, TrangThai
          FROM dangkygoitap
@@ -80,7 +84,7 @@ Thanhtoan.createPackagePayment = (input, callback) => {
       const registration = registrations[0];
       const [payments] = await query.query(
         `SELECT ThanhToanID, DangKyID, HoiVienID, SoTien,
-                PhuongThucThanhToan, TrangThai
+                PhuongThucThanhToan, ActivationMode, TrangThai
          FROM thanhtoan
          WHERE DangKyID = ?
            AND TrangThai IN ('PENDING', 'SUCCESS')
@@ -91,9 +95,10 @@ Thanhtoan.createPackagePayment = (input, callback) => {
 
       if (payments.length) {
         if (payments[0].TrangThai === 'PENDING') {
-          const note = `PACKAGE_ACTIVATION:${input.ActivationMode || 'QUEUE_AFTER_CURRENT'}; đăng ký #${registration.DangKyID}`;
-          await query.query('UPDATE thanhtoan SET NoiDung=? WHERE ThanhToanID=?', [note, payments[0].ThanhToanID]);
+          const note = `Đăng ký #${registration.DangKyID}`;
+          await query.query('UPDATE thanhtoan SET NoiDung=?,ActivationMode=? WHERE ThanhToanID=?', [note,input.ActivationMode || 'QUEUE_AFTER_CURRENT', payments[0].ThanhToanID]);
           payments[0].NoiDung = note;
+          payments[0].ActivationMode = input.ActivationMode || 'QUEUE_AFTER_CURRENT';
         }
         await query.commit();
         return callback(null, { payment: payments[0], existing: true });
@@ -105,14 +110,15 @@ Thanhtoan.createPackagePayment = (input, callback) => {
       const [result] = await query.query(
         `INSERT INTO thanhtoan
           (DangKyID, HoiVienID, NhanVienID, SoTien, PhuongThucThanhToan,
-           NgayThanhToan, NoiDung, TrangThai)
-         VALUES (?, ?, NULL, ?, ?, NOW(), ?, 'PENDING')`,
+           NgayThanhToan, NoiDung, ActivationMode, TrangThai)
+         VALUES (?, ?, NULL, ?, ?, NOW(), ?, ?, 'PENDING')`,
         [
           registration.DangKyID,
           registration.HoiVienID,
           registration.GiaThanhToan,
           input.PhuongThucThanhToan,
-          `PACKAGE_ACTIVATION:${input.ActivationMode || 'QUEUE_AFTER_CURRENT'}; đăng ký #${registration.DangKyID}`,
+          `Đăng ký #${registration.DangKyID}`,
+          input.ActivationMode || 'QUEUE_AFTER_CURRENT',
         ],
       );
       const payment = {
@@ -179,7 +185,10 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
     const query = connection.promise();
 
     try {
+      await query.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
       await query.beginTransaction();
+      const [owners] = await query.query('SELECT HoiVienID FROM thanhtoan WHERE ThanhToanID=?', [ThanhToanID]);
+      if (owners.length) await query.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [owners[0].HoiVienID]);
       const [payments] = await query.query(
         "SELECT * FROM thanhtoan WHERE ThanhToanID = ? FOR UPDATE",
         [ThanhToanID],
@@ -206,7 +215,7 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
       const [registrations] = await query.query(
         `SELECT
   d.DangKyID,
-  d.HoiVienID,
+  d.HoiVienID,d.KhuyenMaiID,d.SoTienGiam,d.GoiTapID,
   DATE_FORMAT(d.NgayBatDau,'%Y-%m-%d') AS NgayBatDau,
   DATE_FORMAT(d.NgayKetThuc,'%Y-%m-%d') AS NgayKetThuc,
   d.TrangThai,
@@ -223,23 +232,29 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
       }
 
       const registration = registrations[0];
+      const [packageNames] = await query.query('SELECT TenGoi FROM goitap WHERE GoiTapID=?', [registration.GoiTapID]);
+      await require('./member-requests.model').requireStudent(query, registration.HoiVienID, packageNames[0].TenGoi);
+      if (registration.KhuyenMaiID) await require('./khuyenmai.model').validateUsage(query, registration.KhuyenMaiID, registration.HoiVienID, 'PACKAGE', Number(payment.SoTien)+Number(registration.SoTienGiam));
       await query.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [registration.HoiVienID]);
       const mode = activationMode(payment);
       const months = Number(registration.SoThang) + Number(registration.ThangTang || 0);
       let start = registration.NgayBatDau;
       if (mode === 'REPLACE_NOW') {
+        const [freezes] = await query.query("SELECT b.BaoLuuID FROM baoluugoitap b JOIN dangkygoitap d ON d.DangKyID=b.DangKyID WHERE d.HoiVienID=? AND b.TrangThai='APPROVED' FOR UPDATE", [registration.HoiVienID]);
+        if (freezes.length) throw appError(409,'FREEZE_ACTIVE','Finish the approved freeze before replacing the current package.');
         start = registration.Today;
         await query.query(`UPDATE dangkygoitap d
           INNER JOIN thanhtoan p ON p.DangKyID=d.DangKyID AND p.TrangThai='SUCCESS'
-          SET d.NgayKetThuc=DATE_SUB(CURDATE(),INTERVAL 1 DAY)
+          SET d.NgayKetThuc=DATE_SUB(CURDATE(),INTERVAL 1 DAY),d.TrangThai='EXPIRED'
           WHERE d.HoiVienID=? AND d.DangKyID<>? AND d.TrangThai='ACTIVE'
             AND d.NgayBatDau<=CURDATE() AND d.NgayKetThuc>=CURDATE()`, [registration.HoiVienID, payment.DangKyID]);
       } else {
-        const [queue] = await query.query(`SELECT MAX(d.NgayKetThuc) MaxNgayKetThuc
+        const [queue] = await query.query(`SELECT MAX(DATE_ADD(d.NgayKetThuc, INTERVAL COALESCE((SELECT SUM(DATEDIFF(b.NgayKetThuc,b.NgayBatDau)+1) FROM baoluugoitap b WHERE b.DangKyID=d.DangKyID AND b.TrangThai='APPROVED'),0) DAY)) MaxNgayKetThuc
           FROM dangkygoitap d INNER JOIN thanhtoan p ON p.DangKyID=d.DangKyID AND p.TrangThai='SUCCESS'
-          WHERE d.HoiVienID=? AND d.DangKyID<>? AND d.TrangThai='ACTIVE' AND d.NgayKetThuc>=CURDATE()`, [registration.HoiVienID, payment.DangKyID]);
+          WHERE d.HoiVienID=? AND d.DangKyID<>? AND d.TrangThai='ACTIVE' AND (d.NgayKetThuc>=CURDATE() OR EXISTS (SELECT 1 FROM baoluugoitap b WHERE b.DangKyID=d.DangKyID AND b.TrangThai='APPROVED'))`, [registration.HoiVienID, payment.DangKyID]);
         if (queue[0].MaxNgayKetThuc) start = nextDay(queue[0].MaxNgayKetThuc);
       }
+      if (start < registration.Today) start = registration.Today;
       const end = addMonthsClamped(start, months);
       await query.query("UPDATE thanhtoan SET TrangThai = 'SUCCESS', NgayThanhToan = NOW() WHERE ThanhToanID = ?", [ThanhToanID]);
       const [registrationUpdate] = await query.query(
@@ -264,6 +279,7 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
         }
       }
 
+      if (registration.KhuyenMaiID) await query.query('INSERT INTO apdungkhuyenmaigoitap (KhuyenMaiID,DangKyID,SoTienGiam,NgayApDung) VALUES (?,?,?,NOW()) ON DUPLICATE KEY UPDATE DangKyID=VALUES(DangKyID)', [registration.KhuyenMaiID,registration.DangKyID,registration.SoTienGiam]);
       const [invoice] = await query.query(
         `INSERT INTO hoadon (ThanhToanID, NhanVienID, TongTien, TrangThai)
          VALUES (?, ?, ?, 'ACTIVE')
@@ -298,7 +314,10 @@ Thanhtoan.cancelPackagePayment = (ThanhToanID, callback) => {
     if (connectionError) return callback(connectionError);
     const query = connection.promise();
     try {
+      await query.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
       await query.beginTransaction();
+      const [owners] = await query.query('SELECT HoiVienID FROM thanhtoan WHERE ThanhToanID=?', [ThanhToanID]);
+      if (owners.length) await query.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [owners[0].HoiVienID]);
       const [payments] = await query.query(
         'SELECT ThanhToanID, DangKyID, TrangThai FROM thanhtoan WHERE ThanhToanID = ? FOR UPDATE', [ThanhToanID],
       );
@@ -350,25 +369,15 @@ Thanhtoan.getAll = (callback) => {
       tt.TrangThai, hd.HoaDonID,
       CASE WHEN tt.DangKyID IS NOT NULL THEN 'PACKAGE'
            WHEN sc.DonHangID IS NOT NULL THEN 'SHOP'
+           WHEN tt.ThuePTID IS NOT NULL THEN 'PT'
            ELSE 'UNKNOWN' END AS Loai,
-      tt.DangKyID, sc.DonHangID
+      tt.DangKyID, tt.ThuePTID, sc.DonHangID
     FROM thanhtoan tt
     JOIN hoivien hv ON hv.HoiVienID = tt.HoiVienID
     LEFT JOIN hoadon hd ON hd.ThanhToanID = tt.ThanhToanID
     LEFT JOIN shopcheckout sc ON sc.ThanhToanID = tt.ThanhToanID
     ORDER BY tt.NgayThanhToan DESC, tt.ThanhToanID DESC`;
-  db.query(`INSERT IGNORE INTO hoadon (ThanhToanID, NhanVienID, TongTien, TrangThai)
-    SELECT tt.ThanhToanID,tt.NhanVienID,tt.SoTien,'ACTIVE' FROM thanhtoan tt
-    LEFT JOIN hoadon hd ON hd.ThanhToanID=tt.ThanhToanID
-    WHERE tt.TrangThai='SUCCESS' AND tt.DangKyID IS NOT NULL AND hd.HoaDonID IS NULL`, error => {
-    if (error) return callback(error);
-    db.query(sqlString, (err, result) => {
-      if (err) {
-        return callback(err);
-      }
-      callback(null, result);
-    });
-  });
+  db.query(sqlString, callback);
 };
 
 Thanhtoan.insert = (thanhtoan, callback) => {

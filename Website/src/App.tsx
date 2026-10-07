@@ -23,6 +23,7 @@ import CheckInScanPage from './pages/CheckInScanPage'
 import TrainerPages from './pages/TrainerPages'
 import CatalogPage from './pages/CatalogPage'
 import ShopOrdersPage from './pages/ShopOrdersPage'
+import MemberRequestsPage from './pages/MemberRequestsPage'
 import WarehousePages from './pages/WarehousePages'
 import RevenueInvoicePage from './pages/RevenueInvoicePage'
 import DashboardPage from './pages/DashboardPage'
@@ -67,10 +68,12 @@ function App() {
 
   const moduleViews: Record<string, { tabs: string[]; pages: ReactNode[] }> = {
     'Gói tập': {
-      tabs: ['Danh sách gói tập', 'Quản lý đăng ký'],
+      tabs: ['Danh sách gói tập', 'Quản lý đăng ký', 'Xác minh HSSV', 'Bảo lưu'],
       pages: [
         <PackagesPage key="packages" />,
         <RegistrationsPage key="registrations" />,
+        <MemberRequestsPage key="student" kind="student" />,
+        <MemberRequestsPage key="freeze" kind="freeze" />,
       ],
     },
     'Check-In': {

@@ -7,7 +7,6 @@ import {
   setReceiptStatus,
   loadWarehouse,
   receiptLabel,
-  summarizeInbound,
   type Receipt,
   type ReceiptDraftLine,
 } from './warehouse'
@@ -61,7 +60,7 @@ export function useWarehousePage(mode: WarehouseMode) {
     )
     .sort((a, b) => b.PhieuNhapID - a.PhieuNhapID)
   const stock = data
-    ? summarizeInbound(data).filter(
+    ? data.stock.filter(
         (r) =>
           (!warehouse || Number(r.KhoID) === Number(warehouse)) &&
           searchText(
@@ -129,12 +128,11 @@ export function useWarehousePage(mode: WarehouseMode) {
       `${mode}.csv`,
       mode === 'inventory'
         ? [
-            ['Kho', 'Sản phẩm', 'Lượng đã nhập', 'Giá trị nhập'],
+            ['Kho', 'Sản phẩm', 'Tồn thực tế'],
             ...stock.map((r) => [
               warehouseName(r.KhoID),
               productName(r.SanPhamID),
-              r.quantity,
-              r.value,
+              r.SoLuongTon,
             ]),
           ]
         : [

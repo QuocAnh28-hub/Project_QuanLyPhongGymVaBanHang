@@ -67,9 +67,12 @@ Donhang.transitionStatus = (DonHangID, nextStatus, callback) => {
     if (connectionError) return callback(connectionError);
     const query = connection.promise();
     try {
+      await query.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
       await query.beginTransaction();
+      const [owners] = await query.query('SELECT HoiVienID FROM donhang WHERE DonHangID=?', [DonHangID]);
+      if (owners.length) await query.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [owners[0].HoiVienID]);
       const [orders] = await query.query(
-        `SELECT o.*, t.TrangThai AS TrangThaiThanhToan
+        `SELECT o.*, t.ThanhToanID, t.TrangThai AS TrangThaiThanhToan
          FROM donhang o
          LEFT JOIN shopcheckout x ON x.DonHangID = o.DonHangID
          LEFT JOIN thanhtoan t ON t.ThanhToanID = x.ThanhToanID
@@ -82,10 +85,14 @@ Donhang.transitionStatus = (DonHangID, nextStatus, callback) => {
         throw appError(409, 'INVALID_ORDER_TRANSITION', 'Chuyen trang thai don hang khong hop le');
       }
       if (order.TrangThaiThanhToan === 'SUCCESS' && nextStatus === 'CANCELLED') {
-        throw appError(409, 'PAID_ORDER_NOT_CANCELLABLE', 'Don da thanh toan khong the huy tu dong');
+        throw appError(409, 'PAID_ORDER_NOT_CANCELLABLE', 'Đơn đã thanh toán; cần quy trình refund.');
       }
       if (nextStatus !== 'CANCELLED' && order.TrangThaiThanhToan && order.TrangThaiThanhToan !== 'SUCCESS') {
         throw appError(409, 'PAYMENT_NOT_SUCCESSFUL', 'Thanh toan chua thanh cong');
+      }
+      if (nextStatus === 'CANCELLED' && order.ThanhToanID) {
+        if (order.TrangThaiThanhToan !== 'PENDING') throw appError(409, 'PAYMENT_NOT_PENDING', 'Chỉ hủy thanh toán đang chờ.');
+        await query.query("UPDATE thanhtoan SET TrangThai='CANCELLED' WHERE ThanhToanID=?", [order.ThanhToanID]);
       }
       await query.query('UPDATE donhang SET TrangThai = ? WHERE DonHangID = ?', [nextStatus, DonHangID]);
       await query.commit();

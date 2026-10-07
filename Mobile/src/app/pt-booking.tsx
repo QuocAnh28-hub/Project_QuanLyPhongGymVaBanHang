@@ -88,7 +88,7 @@ export default function PTBookingScreen() {
     setLoading(true);
     try {
       await bookPT({ accountId: user.accountId, scheduleId: selected, note });
-      Alert.alert('Thành công', 'Đăng ký lịch PT thành công', [
+      Alert.alert('Thành công', 'Đã tạo lịch và thanh toán chờ thu tiền tại quầy. Admin/Staff xác nhận sau khi thu tiền.', [
         { text: 'Xem lịch', onPress: () => router.replace('/pt-schedule') },
       ]);
     } catch (submitError) {

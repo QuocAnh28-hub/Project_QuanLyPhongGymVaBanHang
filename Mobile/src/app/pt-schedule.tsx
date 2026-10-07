@@ -19,7 +19,7 @@ import {
 } from '@/lib/pt-api';
 
 const labels: Record<ApiPTBooking['TrangThai'], string> = {
-  PENDING: 'CHỜ XÁC NHẬN',
+  PENDING: 'CHỜ THANH TOÁN',
   CONFIRMED: 'ĐÃ XÁC NHẬN',
   COMPLETED: 'HOÀN THÀNH',
   CANCELLED: 'ĐÃ HỦY',
@@ -126,7 +126,7 @@ export default function PTScheduleScreen() {
         {bookings?.map((booking) => {
           const start = new Date(`${booking.NgayLam}T${booking.GioBatDau}`);
           const cancellable =
-            ['PENDING', 'CONFIRMED'].includes(booking.TrangThai) &&
+            booking.TrangThai === 'PENDING' && booking.TrangThaiThanhToan === 'PENDING' &&
             start.getTime() > now;
           return (
             <View key={booking.ThuePTID} style={s.card}>
@@ -156,7 +156,8 @@ export default function PTScheduleScreen() {
                 label="Khung giờ"
                 value={`${booking.GioBatDau.slice(0, 5)} - ${booking.GioKetThuc.slice(0, 5)}`}
               />
-              <Row label="Giá thuê" value={money(booking.GiaThue)} />
+              <Row label="Thanh toán" value={`${booking.TrangThaiThanhToan} · ${money(booking.SoTien)}`} />
+              <Row label="Mã thanh toán" value={`#${booking.ThanhToanID}`} />
               {booking.GhiChu ? (
                 <Row label="Ghi chú" value={booking.GhiChu} />
               ) : null}

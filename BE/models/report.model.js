@@ -8,7 +8,8 @@ exports.getAdmin = async (from, to) => {
     shop, topProducts, pt, topTrainers] = await Promise.all([
     one(`SELECT COALESCE(SUM(tt.SoTien),0) total,
       COALESCE(SUM(CASE WHEN tt.DangKyID IS NOT NULL THEN tt.SoTien ELSE 0 END),0) package,
-      COALESCE(SUM(CASE WHEN sc.DonHangID IS NOT NULL THEN tt.SoTien ELSE 0 END),0) shop
+      COALESCE(SUM(CASE WHEN sc.DonHangID IS NOT NULL THEN tt.SoTien ELSE 0 END),0) shop,
+      COALESCE(SUM(CASE WHEN tt.ThuePTID IS NOT NULL THEN tt.SoTien ELSE 0 END),0) pt
       FROM thanhtoan tt LEFT JOIN shopcheckout sc ON sc.ThanhToanID=tt.ThanhToanID
       WHERE tt.TrangThai='SUCCESS' AND tt.NgayThanhToan>=? AND tt.NgayThanhToan<?`),
     one(`SELECT DATE(tt.NgayThanhToan) date, SUM(tt.SoTien) amount FROM thanhtoan tt
@@ -28,16 +29,18 @@ exports.getAdmin = async (from, to) => {
     one(`SELECT COUNT(*) total, SUM(o.TrangThai='COMPLETED') completed, SUM(o.TrangThai='CANCELLED') cancelled,
       COALESCE(SUM(CASE WHEN tt.TrangThai='SUCCESS' THEN tt.SoTien ELSE 0 END),0) revenue
       FROM donhang o LEFT JOIN shopcheckout sc ON sc.DonHangID=o.DonHangID LEFT JOIN thanhtoan tt ON tt.ThanhToanID=sc.ThanhToanID
-      WHERE o.NgayDat>=? AND o.NgayDat<?`),
+      WHERE tt.TrangThai='SUCCESS' AND tt.NgayThanhToan>=? AND tt.NgayThanhToan<?`),
     one(`SELECT sp.SanPhamID,sp.TenSanPham,SUM(ct.SoLuong) quantity FROM chitietdonhang ct
       JOIN donhang o ON o.DonHangID=ct.DonHangID JOIN sanpham sp ON sp.SanPhamID=ct.SanPhamID
-      WHERE o.NgayDat>=? AND o.NgayDat<? AND o.TrangThai<>'CANCELLED' GROUP BY sp.SanPhamID,sp.TenSanPham ORDER BY quantity DESC LIMIT 5`),
+      JOIN shopcheckout sc ON sc.DonHangID=o.DonHangID JOIN thanhtoan tt ON tt.ThanhToanID=sc.ThanhToanID
+      WHERE tt.TrangThai='SUCCESS' AND tt.NgayThanhToan>=? AND tt.NgayThanhToan<? GROUP BY sp.SanPhamID,sp.TenSanPham ORDER BY quantity DESC LIMIT 5`),
     one(`SELECT COUNT(*) total,SUM(TrangThai='PENDING') pending,SUM(TrangThai='CONFIRMED') confirmed,
       SUM(TrangThai='COMPLETED') completed,SUM(TrangThai='CANCELLED') cancelled FROM thuept WHERE NgayDat>=? AND NgayDat<?`),
     one(`SELECT p.PTID,p.HoTen,COUNT(*) rentals FROM thuept t JOIN pt p ON p.PTID=t.PTID
-      WHERE t.NgayDat>=? AND t.NgayDat<? GROUP BY p.PTID,p.HoTen ORDER BY rentals DESC LIMIT 5`),
+      JOIN thanhtoan tt ON tt.ThuePTID=t.ThuePTID AND tt.TrangThai='SUCCESS'
+      WHERE tt.NgayThanhToan>=? AND tt.NgayThanhToan<? GROUP BY p.PTID,p.HoTen ORDER BY rentals DESC LIMIT 5`),
   ]);
-  return { range: { from, to }, revenue: { ...revenue[0], pt: null }, revenueByDay, revenueByMethod,
+  return { range: { from, to }, revenue: revenue[0], revenueByDay, revenueByMethod,
     members: members[0], checkins: checkins[0], checkinsByDay, peakHours,
     shop: shop[0], topProducts, pt: pt[0], topTrainers };
 };

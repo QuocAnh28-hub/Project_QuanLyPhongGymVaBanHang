@@ -292,14 +292,14 @@ export function useTrainerPage(mode: Mode) {
     const shift = bookingShift(b)
     return {
       shift,
-      canConfirm: b.TrangThai === 'PENDING',
+      canConfirm: b.TrangThai === 'PENDING' && b.TrangThaiThanhToan === 'PENDING',
       showCancel:
-        ['PENDING', 'CONFIRMED'].includes(b.TrangThai) &&
+        b.TrangThai === 'PENDING' && b.TrangThaiThanhToan === 'PENDING' &&
         !!shift &&
         shiftStart(shift) > now,
       canCancel: !!member(b.HoiVienID)?.TaiKhoanID,
       canComplete:
-        b.TrangThai === 'CONFIRMED' && !!shift && shiftEnd(shift) <= now,
+        b.TrangThai === 'CONFIRMED' && b.TrangThaiThanhToan === 'SUCCESS' && !!shift && shiftEnd(shift) <= now,
     }
   }
   return {

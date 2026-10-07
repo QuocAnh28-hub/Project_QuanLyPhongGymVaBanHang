@@ -130,13 +130,13 @@ export default function PackageDetailScreen() {
   useEffect(() => {
     if (!user || !item?.requiresStudentVerification) return;
     let active = true;
-    getStudentVerification(user.email).then((value) => {
+    getStudentVerification(String(user.accountId)).then((value) => {
       if (active)
         setStudentVerified(
           value?.status === 'verified' &&
             value.expiryDate >= new Date().toISOString().slice(0, 10)
         );
-    });
+    }).catch(() => { if (active) setStudentVerified(false); });
     return () => {
       active = false;
     };

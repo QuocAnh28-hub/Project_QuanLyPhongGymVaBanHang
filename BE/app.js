@@ -98,11 +98,13 @@ const routes = [
   ['/taikhoan', './routes/taikhoan.route'],
   ['/thanhtoan', './routes/thanhtoan.route'],
   ['/thongbao', './routes/thongbao.route'],
-  ['/thuept', './routes/thuept.route']
+  ['/thuept', './routes/thuept.route'],
+  ['/member-requests', './routes/member-requests.route']
 ];
 
 const adminOnly = new Set(['/apdungkhuyenmaidonhang','/apdungkhuyenmaigoitap','/apdungkhuyenmaipt','/danhmuc','/goitap','/hoadon','/kho','/khuyenmai','/nhanvien','/phieunhap','/reports','/sanpham','/taikhoan']);
 const customerPaths = [
+  /^(?:GET|POST) \/member-requests\/(?:student|freeze)\/me$/,
   /^GET \/(?:goitap\/active|pt\/active|lichpt\/available|sanpham|danhmuc)(?:\/|$)/,
   /^(?:GET|PUT) \/hoivien\/account\/\d+$/, /^POST \/taikhoan\/\d+\/change-password$/,
   /^GET \/dangkygoitap\/(?:(?:current|owned)\/account\/\d+|detail\/\d+)$/, /^POST \/dangkygoitap\/(?:register|\d+\/renew)$/,
@@ -111,6 +113,9 @@ const customerPaths = [
   /^(?:GET|POST|PUT) \/giohang\/account\/\d+\/items$/, /^(?:GET|POST) \/donhang\/(?:checkout\/\d+|account\/\d+\/)/
 ];
 async function authorizeApi(req, res, next) {
+  // Derived financial rows and receipt/order lines are written only by their transactions.
+  if (!['GET','HEAD'].includes(req.method) && ['/hoadon','/apdungkhuyenmaidonhang','/apdungkhuyenmaigoitap','/apdungkhuyenmaipt','/chitietdonhang','/chitietphieunhap'].includes(req.baseUrl))
+    return res.status(405).json({ message: 'Use the receipt, checkout or payment transaction API.' });
   if (req.auth.VaiTro === 'ADMIN') return next();
   if (req.auth.VaiTro === 'STAFF') return adminOnly.has(req.baseUrl) ? res.status(403).json({ message: 'Chỉ Admin được thực hiện thao tác này.' }) : next();
   const fullPath = req.baseUrl + req.path;
@@ -121,7 +126,7 @@ async function authorizeApi(req, res, next) {
     return res.status(403).json({ message: 'Không được truy cập dữ liệu của tài khoản khác.' });
   let ownershipSql;
   let resourceId;
-  const registration = fullPath.match(/^\/(?:dangkygoitap\/detail|thanhtoan\/registration)\/(\d+)$/)?.[1] || req.body?.DangKyID;
+  const registration = fullPath.match(/^\/(?:dangkygoitap\/detail|thanhtoan\/registration)\/(\d+)$/)?.[1] || fullPath.match(/^\/dangkygoitap\/(\d+)\/renew$/)?.[1] || req.body?.DangKyID;
   if (registration) {
     resourceId = Number(registration);
     ownershipSql = 'SELECT 1 FROM dangkygoitap d JOIN hoivien h ON h.HoiVienID=d.HoiVienID WHERE d.DangKyID=? AND h.TaiKhoanID=?';
@@ -174,6 +179,10 @@ app.use((err, req, res, next) => {
 let server;
 
 if (require.main === module) {
+  const finishFreezes = () => require('./models/member-requests.model').completeDueFreezes().catch(e => console.error('Freeze completion failed:', e.message));
+  void finishFreezes();
+  const freezeTimer = setInterval(finishFreezes, 60000);
+  freezeTimer.unref();
   server = app.listen(PORT, HOST, () => {
     console.log(`🚀 QA-Gym API: http://${HOST}:${PORT}`);
     console.log(`🩺 Health check: http://localhost:${PORT}/health`);
@@ -181,6 +190,7 @@ if (require.main === module) {
 
   const shutdown = (signal) => {
     console.log(`\n${signal} - đang đóng backend...`);
+    clearInterval(freezeTimer);
     server.close(() => {
       db.end(() => {
         console.log('✅ Đã đóng HTTP server và MySQL pool.');
