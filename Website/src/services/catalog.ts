@@ -1,3 +1,5 @@
+import { isImagePath } from './images'
+
 export type Category = {
   DanhMucID: number
   TenDanhMuc: string
@@ -38,7 +40,7 @@ export async function catalogRequest<T>(
   try {
     response = await adminFetch(`${base}/${path}`, {
       ...options,
-      headers: { 'Content-Type': 'application/json', ...options.headers },
+      headers: { ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...options.headers },
       signal: options.signal
         ? AbortSignal.any([options.signal, AbortSignal.timeout(15000)])
         : AbortSignal.timeout(15000),
@@ -102,8 +104,8 @@ export function catalogPayload(form: FormData, products: boolean) {
   if (!text('unit') || text('unit').length > 30)
     throw new Error('Đơn vị tính phải từ 1 đến 30 ký tự.')
   const image = text('image')
-  if (image.length > 255 || (image && !/^https?:\/\//i.test(image)))
-    throw new Error('Ảnh phải là URL HTTP/HTTPS, tối đa 255 ký tự.')
+  if (image.length > 255 || (image && (!isImagePath(image) || (image.startsWith('/uploads/') && !image.startsWith('/uploads/products/')))))
+    throw new Error('Ảnh phải là URL HTTP/HTTPS hoặc /uploads/products/ hợp lệ, tối đa 255 ký tự.')
   return {
     ...common,
     TenSanPham: name,

@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import ImageInput from '../components/ImageInput'
 import { Modal } from '../components/AdminLayout'
 import { Pagination } from '../components/MemberUi'
 import { money } from '../services/members'
@@ -11,6 +13,7 @@ import {
 } from '../services/useCatalogPage'
 
 export default function CatalogPage({ products }: { products: boolean }) {
+  const [uploading, setUploading] = useState(false)
   const {
     changeSearch,
     changeStatus,
@@ -251,7 +254,7 @@ export default function CatalogPage({ products }: { products: boolean }) {
               ? `Xóa ${noun}`
               : `${selected ? 'Chỉnh sửa' : 'Thêm'} ${noun}`
           }
-          onClose={close}
+          onClose={() => { if (!uploading) close() }}
         >
           {editor.action === 'delete' ? (
             <div className="catalog-form">
@@ -265,12 +268,12 @@ export default function CatalogPage({ products }: { products: boolean }) {
                 </p>
               )}
               <footer>
-                <button disabled={saving} onClick={close}>
+                <button disabled={saving || uploading} onClick={close}>
                   Hủy
                 </button>
                 <button
                   className="catalog-danger"
-                  disabled={saving}
+                  disabled={saving || uploading}
                   onClick={() => void mutate()}
                 >
                   {saving ? 'Đang xóa…' : 'Xác nhận xóa'}
@@ -278,8 +281,8 @@ export default function CatalogPage({ products }: { products: boolean }) {
               </footer>
             </div>
           ) : (
-            <form className="catalog-form" onSubmit={save}>
-              <fieldset disabled={saving}>
+            <form className="catalog-form" onSubmit={event => { if (uploading) event.preventDefault(); else save(event) }}>
+              <fieldset disabled={saving || uploading}>
                 <label className="catalog-full">
                   Tên {noun} *
                   <input
@@ -347,16 +350,8 @@ export default function CatalogPage({ products }: { products: boolean }) {
                   </select>
                 </label>
                 {products && (
-                  <label className="catalog-full">
-                    Đường dẫn ảnh (HTTP/HTTPS)
-                    <input
-                      name="image"
-                      type="url"
-                      maxLength={255}
-                      placeholder="https://…"
-                      defaultValue={product?.HinhAnh || ''}
-                    />
-                  </label>
+                  <ImageInput name="image" value={product?.HinhAnh}
+                    endpoint="sanpham/upload-image" onBusyChange={setUploading} />
                 )}
                 <label className="catalog-full">
                   Mô tả
@@ -374,10 +369,10 @@ export default function CatalogPage({ products }: { products: boolean }) {
                 </p>
               )}
               <footer>
-                <button type="button" disabled={saving} onClick={close}>
+                <button type="button" disabled={saving || uploading} onClick={close}>
                   Hủy
                 </button>
-                <button className="catalog-primary" disabled={saving}>
+                <button className="catalog-primary" disabled={saving || uploading}>
                   {saving ? 'Đang lưu…' : 'Lưu thay đổi'}
                 </button>
               </footer>
@@ -390,7 +385,7 @@ export default function CatalogPage({ products }: { products: boolean }) {
 }
 
 function ProductImage({ source }: { source: string | null }) {
-  const { showImage, onError } = useProductImage(source)
+  const { showImage, onError, source: imageUrl } = useProductImage(source)
   if (!showImage)
     return (
       <span className="catalog-image-placeholder" aria-label="Chưa có ảnh">
@@ -400,7 +395,7 @@ function ProductImage({ source }: { source: string | null }) {
   return (
     <img
       className="catalog-image"
-      src={source || undefined}
+      src={imageUrl}
       alt=""
       loading="lazy"
       onError={onError}

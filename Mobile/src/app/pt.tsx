@@ -1,5 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
-import { Image } from 'expo-image';
+import BackendImage from '@/components/backend-image';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -118,10 +118,9 @@ export default function PTScreen() {
                 })
               }
             >
-              <Image
-                source={
-                  trainer.AnhDaiDien ? { uri: trainer.AnhDaiDien } : fallback
-                }
+              <BackendImage
+                value={trainer.AnhDaiDien}
+                fallback={fallback}
                 style={s.image}
                 contentFit="cover"
               />

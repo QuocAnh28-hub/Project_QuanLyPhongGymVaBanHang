@@ -1,5 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
-import { Image } from 'expo-image';
+import BackendImage from '@/components/backend-image';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
@@ -226,12 +226,9 @@ export default function ProfileScreen() {
           <>
             <View style={styles.memberHero}>
               <View style={styles.memberAvatar}>
-                <Image
-                  source={
-                    user?.avatar
-                      ? { uri: user.avatar }
-                      : require('../../assets/images/icon.png')
-                  }
+                <BackendImage
+                  value={profile ? profile.AnhDaiDien : user?.avatar}
+                  fallback={require('../../assets/images/icon.png')}
                   style={styles.memberImage}
                   contentFit="cover"
                 />

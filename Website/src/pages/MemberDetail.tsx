@@ -1,4 +1,7 @@
-import { useCallback } from 'react'
+import { useCallback, useState, type FormEvent } from 'react'
+import ImageInput from '../components/ImageInput'
+import { catalogRequest } from '../services/catalog'
+import { isImagePath, resolveBackendImageUrl } from '../services/images'
 import { DataState } from '../components/MemberUi'
 import {
   formatDate,
@@ -23,7 +26,7 @@ export default function MemberDetail({
   const loader = useCallback(
     async (signal: AbortSignal) => {
       const [profile, related] = await Promise.all([
-        getApi<Member>(`hoivien/${member.HoiVienID}`, signal),
+        getApi<Member & { AnhDaiDien?: string | null }>(`hoivien/${member.HoiVienID}`, signal),
         loadRelated(member.HoiVienID, signal),
       ])
       return { profile, ...related }
@@ -31,7 +34,32 @@ export default function MemberDetail({
     [member.HoiVienID]
   )
   const { data, loading, error, reload } = useMemberData(loader)
+  const [uploading, setUploading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [failedImage, setFailedImage] = useState<string>()
   const m = data?.profile
+  const avatar = resolveBackendImageUrl(m?.AnhDaiDien)
+  async function saveImage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (uploading || saving || !m) return
+    const image = String(new FormData(event.currentTarget).get('AnhDaiDien') || '').trim()
+    if (image && (!isImagePath(image) || image.length > 255)) {
+      setSaveError('URL / đường dẫn ảnh không hợp lệ.')
+      return
+    }
+    setSaving(true)
+    setSaveError('')
+    try {
+      await catalogRequest(`hoivien/${m.HoiVienID}`, {
+        method: 'PUT', body: JSON.stringify({ AnhDaiDien: image || null }),
+      })
+      setFailedImage(undefined)
+      reload()
+    } catch (failure) {
+      setSaveError(failure instanceof Error ? failure.message : 'Không thể lưu ảnh.')
+    } finally { setSaving(false) }
+  }
   return (
     <div className="member-detail-page member-api-page">
       <header className="member-detail-heading">
@@ -42,9 +70,9 @@ export default function MemberDetail({
           <h1>CHI TIẾT HỘI VIÊN</h1>
         </div>
         <div className="member-detail-actions">
-          <button onClick={onBack}>← Danh sách</button>
-          <button onClick={onActivityHistory}>◷ Lịch sử hoạt động</button>
-          <button disabled={loading} onClick={reload}>
+          <button disabled={uploading || saving} onClick={onBack}>← Danh sách</button>
+          <button disabled={uploading || saving} onClick={onActivityHistory}>◷ Lịch sử hoạt động</button>
+          <button disabled={loading || uploading || saving} onClick={reload}>
             ↻ Làm mới
           </button>
         </div>
@@ -62,8 +90,18 @@ export default function MemberDetail({
             <aside className="member-detail-sidebar">
               <section className="member-id-card">
                 <div className="member-detail-avatar">
-                  {m.HoTen?.slice(0, 1)}
+                  {avatar && failedImage !== avatar
+                    ? <img src={avatar} alt={m.HoTen} onError={() => setFailedImage(avatar)} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                    : m.HoTen?.slice(0, 1)}
                 </div>
+                <form onSubmit={saveImage}>
+                  <fieldset disabled={saving || uploading}>
+                    <ImageInput key={`${m.HoiVienID}:${m.AnhDaiDien || ''}`} name="AnhDaiDien" value={m.AnhDaiDien}
+                      endpoint={`hoivien/${m.HoiVienID}/upload-image`} onBusyChange={setUploading} />
+                  </fieldset>
+                  {saveError && <p role="alert" className="catalog-error">{saveError}</p>}
+                  <button disabled={saving || uploading}>{saving ? 'Đang lưu…' : 'Lưu ảnh đại diện'}</button>
+                </form>
                 <h2>{m.HoTen}</h2>
                 <p>{memberCode(m.HoiVienID)}</p>
                 <span

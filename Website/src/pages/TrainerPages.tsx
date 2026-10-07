@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import ImageInput from '../components/ImageInput'
 import { Modal } from '../components/AdminLayout'
 import { Pagination } from '../components/MemberUi'
 import { formatDate, money } from '../services/members'
@@ -11,6 +13,7 @@ export default function TrainerPages({
   mode: Mode
   onOpenRoster?: () => void
 }) {
+  const [uploading, setUploading] = useState(false)
   const {
     changeSearch,
     changeStatus,
@@ -426,10 +429,10 @@ export default function TrainerPages({
                   ? 'Đặt lịch thuê PT'
                   : 'Xác nhận thao tác'
           }
-          onClose={close}
+          onClose={() => { if (!uploading) close() }}
         >
-          <form className="catalog-form" onSubmit={submit}>
-            <fieldset disabled={busy}>
+          <form className="catalog-form" onSubmit={event => { if (uploading) event.preventDefault(); else submit(event) }}>
+            <fieldset disabled={busy || uploading}>
               {editor.kind === 'trainer' && (
                 <>
                   <label className="catalog-full">
@@ -510,15 +513,8 @@ export default function TrainerPages({
                       <option value="INACTIVE">Ngừng hoạt động</option>
                     </select>
                   </label>
-                  <label>
-                    Ảnh đại diện (URL)
-                    <input
-                      name="AnhDaiDien"
-                      type="url"
-                      maxLength={255}
-                      defaultValue={currentTrainer?.AnhDaiDien || ''}
-                    />
-                  </label>
+                  <ImageInput name="AnhDaiDien" value={currentTrainer?.AnhDaiDien}
+                    endpoint="pt/upload-image" onBusyChange={setUploading} />
                   <label className="catalog-full">
                     Kinh nghiệm
                     <textarea
@@ -677,12 +673,12 @@ export default function TrainerPages({
               </p>
             )}
             <footer>
-              <button type="button" disabled={busy} onClick={close}>
+              <button type="button" disabled={busy || uploading} onClick={close}>
                 Đóng
               </button>
               <button
                 className="catalog-primary"
-                disabled={busy || (editor.kind === 'book' && !available.length)}
+                disabled={uploading || busy || (editor.kind === 'book' && !available.length)}
               >
                 {busy ? 'Đang xử lý…' : 'Xác nhận lưu'}
               </button>

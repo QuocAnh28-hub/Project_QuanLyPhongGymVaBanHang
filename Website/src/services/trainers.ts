@@ -1,4 +1,5 @@
 import { catalogRequest } from './catalog'
+import { isImagePath } from './images'
 import type { Member } from './members'
 
 export type Trainer = {
@@ -106,10 +107,10 @@ export function trainerPayload(form: FormData) {
     throw new Error('Email không hợp lệ.')
   if (
     text('AnhDaiDien') &&
-    (!/^https?:\/\//i.test(text('AnhDaiDien')) ||
+    (!isImagePath(text('AnhDaiDien')) ||
       text('AnhDaiDien').length > 255)
   )
-    throw new Error('Ảnh phải là URL HTTP/HTTPS, tối đa 255 ký tự.')
+    throw new Error('Ảnh phải là URL HTTP/HTTPS hoặc /uploads/ hợp lệ, tối đa 255 ký tự.')
   if (!['ACTIVE', 'INACTIVE'].includes(text('TrangThai')))
     throw new Error('Trạng thái không hợp lệ.')
   if (text('GioiTinh') && !['NAM', 'NU', 'KHAC'].includes(text('GioiTinh')))

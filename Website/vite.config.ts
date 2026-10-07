@@ -8,6 +8,10 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       proxy: {
+        '/uploads': {
+          target: env.API_PROXY_TARGET || 'http://127.0.0.1:3000',
+          changeOrigin: true,
+        },
         '/api': {
           target: env.API_PROXY_TARGET || 'http://127.0.0.1:3000',
           changeOrigin: true,

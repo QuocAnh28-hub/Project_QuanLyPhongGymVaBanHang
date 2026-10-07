@@ -1,4 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
+import { resolveBackendImageUrl } from './images'
 import { exportCsv, useMemberData } from './members'
 import {
   saveCatalogItem,
@@ -202,7 +203,8 @@ export function useCatalogPage(products: boolean) {
 export function useProductImage(source: string | null) {
   const [failed, setFailed] = useState(false)
   return {
-    showImage: !!source && !failed && /^https?:\/\//i.test(source),
+    source: resolveBackendImageUrl(source),
+    showImage: !!resolveBackendImageUrl(source) && !failed,
     onError: () => setFailed(true),
   }
 }

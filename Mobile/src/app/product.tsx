@@ -1,5 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
-import { Image } from 'expo-image';
+import BackendImage from '@/components/backend-image';
 import { DEFAULT_PRODUCT_IMAGE } from '@/constants/shop-image';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -218,8 +218,9 @@ export default function ProductsScreen() {
                       accessibilityLabel={`Xem chi tiết ${p.TenSanPham}`}
                     >
                       <View style={styles.productImageWrap}>
-                        <Image
-                          source={DEFAULT_PRODUCT_IMAGE}
+                        <BackendImage
+                          value={p.HinhAnh}
+                          fallback={DEFAULT_PRODUCT_IMAGE}
                           style={styles.productImage}
                           contentFit="contain"
                         />

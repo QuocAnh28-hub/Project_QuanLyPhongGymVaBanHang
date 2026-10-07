@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 const PtController = require('../controllers/pt.controller');
+const imageUpload = require('../middleware/image-upload');
+
+router.post('/upload-image', imageUpload('pt'));
 
 router.get('/', PtController.getAll);
 router.get('/active', PtController.getActive);

@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image } from 'expo-image';
+import BackendImage from '@/components/backend-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -66,10 +66,9 @@ export default function PTDetailScreen() {
         ) : null}
         {trainer ? (
           <>
-            <Image
-              source={
-                trainer.AnhDaiDien ? { uri: trainer.AnhDaiDien } : fallback
-              }
+            <BackendImage
+              value={trainer.AnhDaiDien}
+              fallback={fallback}
               style={s.hero}
               contentFit="cover"
             />
