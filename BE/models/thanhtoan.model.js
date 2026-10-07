@@ -126,7 +126,7 @@ Thanhtoan.createPackagePayment = (input, callback) => {
       await query.commit();
       callback(null, { payment, existing: false });
     } catch (error) {
-      try { await query.rollback(); } catch (_) {}
+      try { await query.rollback(); } catch (_) { }
       callback(error);
     } finally {
       connection.release();
@@ -204,7 +204,12 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
       }
 
       const [registrations] = await query.query(
-        `SELECT d.DangKyID,d.HoiVienID,d.NgayBatDau,d.NgayKetThuc,d.TrangThai,
+        `SELECT
+  d.DangKyID,
+  d.HoiVienID,
+  DATE_FORMAT(d.NgayBatDau,'%Y-%m-%d') AS NgayBatDau,
+  DATE_FORMAT(d.NgayKetThuc,'%Y-%m-%d') AS NgayKetThuc,
+  d.TrangThai,
           th.SoThang,th.ThangTang,DATE_FORMAT(CURDATE(),'%Y-%m-%d') Today
          FROM dangkygoitap d INNER JOIN GoiTapThoiHan th ON th.GoiTapThoiHanID=d.GoiTapThoiHanID
          WHERE d.DangKyID = ? FOR UPDATE`,
@@ -221,7 +226,7 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
       await query.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID=? FOR UPDATE', [registration.HoiVienID]);
       const mode = activationMode(payment);
       const months = Number(registration.SoThang) + Number(registration.ThangTang || 0);
-      let start = String(registration.NgayBatDau).slice(0, 10);
+      let start = registration.NgayBatDau;
       if (mode === 'REPLACE_NOW') {
         start = registration.Today;
         await query.query(`UPDATE dangkygoitap d
@@ -280,7 +285,7 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
         alreadyConfirmed: false,
       });
     } catch (error) {
-      try { await query.rollback(); } catch (_) {}
+      try { await query.rollback(); } catch (_) { }
       callback(error);
     } finally {
       connection.release();
@@ -289,17 +294,43 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
 };
 
 Thanhtoan.cancelPackagePayment = (ThanhToanID, callback) => {
-  db.query(
-    "UPDATE thanhtoan SET TrangThai = 'CANCELLED' WHERE ThanhToanID = ? AND TrangThai = 'PENDING'",
-    [ThanhToanID],
-    (error, result) => {
-      if (error) return callback(error);
-      if (!result.affectedRows) {
-        return callback(appError(409, "PAYMENT_NOT_PENDING", "Chỉ thanh toán PENDING mới được hủy"));
-      }
-      callback(null, { ThanhToanID, TrangThai: "CANCELLED" });
-    },
-  );
+  db.getConnection(async (connectionError, connection) => {
+    if (connectionError) return callback(connectionError);
+    const query = connection.promise();
+    try {
+      await query.beginTransaction();
+      const [payments] = await query.query(
+        'SELECT ThanhToanID, DangKyID, TrangThai FROM thanhtoan WHERE ThanhToanID = ? FOR UPDATE', [ThanhToanID],
+      );
+      const payment = payments[0];
+      if (!payment) throw appError(404, 'PAYMENT_NOT_FOUND', 'Không tìm thấy thanh toán');
+      if (payment.TrangThai !== 'PENDING')
+        throw appError(409, 'PAYMENT_NOT_PENDING', payment.TrangThai === 'CANCELLED' ? 'Thanh toán đã bị hủy' : 'Chỉ thanh toán PENDING mới được từ chối');
+      if (!payment.DangKyID) throw appError(409, 'REGISTRATION_NOT_FOUND', 'Thanh toán không thuộc đăng ký gói tập');
+      const [registrations] = await query.query(
+        'SELECT DangKyID, TrangThai FROM dangkygoitap WHERE DangKyID = ? FOR UPDATE', [payment.DangKyID],
+      );
+      const registration = registrations[0];
+      if (!registration) throw appError(404, 'REGISTRATION_NOT_FOUND', 'Không tìm thấy đăng ký gói tập');
+      if (registration.TrangThai !== 'PENDING')
+        throw appError(409, 'REGISTRATION_NOT_PENDING', registration.TrangThai === 'CANCELLED' ? 'Đăng ký đã bị hủy' : 'Chỉ đăng ký PENDING mới được từ chối');
+      const [paymentUpdate] = await query.query(
+        "UPDATE thanhtoan SET TrangThai = 'CANCELLED' WHERE ThanhToanID = ? AND TrangThai = 'PENDING'", [ThanhToanID],
+      );
+      if (paymentUpdate.affectedRows !== 1) throw appError(409, 'PAYMENT_UPDATE_FAILED', 'Không thể hủy thanh toán');
+      const [registrationUpdate] = await query.query(
+        "UPDATE dangkygoitap SET TrangThai = 'CANCELLED' WHERE DangKyID = ? AND TrangThai = 'PENDING'", [payment.DangKyID],
+      );
+      if (registrationUpdate.affectedRows !== 1) throw appError(409, 'REGISTRATION_UPDATE_FAILED', 'Không thể từ chối đăng ký');
+      await query.commit();
+      callback(null, { ThanhToanID, DangKyID: payment.DangKyID, TrangThai: 'CANCELLED', TrangThaiDangKy: 'CANCELLED' });
+    } catch (error) {
+      try { await query.rollback(); } catch (_) {}
+      callback(error);
+    } finally {
+      connection.release();
+    }
+  });
 };
 
 Thanhtoan.getById = (ThanhToanID, callback) => {
@@ -332,10 +363,10 @@ Thanhtoan.getAll = (callback) => {
     WHERE tt.TrangThai='SUCCESS' AND tt.DangKyID IS NOT NULL AND hd.HoaDonID IS NULL`, error => {
     if (error) return callback(error);
     db.query(sqlString, (err, result) => {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, result);
+      if (err) {
+        return callback(err);
+      }
+      callback(null, result);
     });
   });
 };

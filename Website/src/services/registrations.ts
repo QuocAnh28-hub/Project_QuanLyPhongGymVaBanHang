@@ -86,4 +86,8 @@ export const confirmPayment = (id: number) =>
   request<{ message: string }>(`/api/thanhtoan/${id}/confirm`, {
     method: 'POST',
   })
+export const cancelPayment = (paymentId: number) =>
+  request<{ message: string }>(`/api/thanhtoan/${paymentId}/cancel`, {
+    method: 'POST',
+  })
 import { adminFetch } from './auth'

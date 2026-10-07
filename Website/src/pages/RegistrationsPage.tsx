@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MetricCard } from '../components/AdminLayout'
 import { money } from '../data/admin-utils'
 import {
   confirmPayment,
+  cancelPayment,
   getRegistrations,
   renewRegistration,
   type Contract,
@@ -32,6 +33,7 @@ export default function RegistrationsPage() {
   const [confirmingPaymentId, setConfirmingPaymentId] = useState<number | null>(
     null
   )
+  const paymentBusy = useRef(false)
   const notify = (m: string) => {
     setToast(m)
     window.setTimeout(() => setToast(''), 2200)
@@ -324,9 +326,10 @@ export default function RegistrationsPage() {
         {detail && (
           <ContractDetail
             contract={detail}
-            confirming={confirmingPaymentId === detail.paymentId}
+            confirming={confirmingPaymentId !== null}
             onConfirm={async () => {
-              if (!detail.paymentId) return
+              if (!detail.paymentId || paymentBusy.current) return
+              paymentBusy.current = true
               try {
                 setConfirmingPaymentId(detail.paymentId)
                 const result = await confirmPayment(detail.paymentId)
@@ -339,6 +342,7 @@ export default function RegistrationsPage() {
                     : 'Không thể xác nhận thanh toán'
                 )
               } finally {
+                paymentBusy.current = false
                 setConfirmingPaymentId(null)
               }
             }}
@@ -351,9 +355,22 @@ export default function RegistrationsPage() {
                 notify(e instanceof Error ? e.message : 'Không thể gia hạn')
               }
             }}
-            onReject={() =>
-              notify('Hủy đăng ký phải đi qua flow thanh toán hiện tại')
-            }
+            onReject={async () => {
+              if (detail.status !== 'PENDING' || detail.paymentStatus !== 'PENDING' || !detail.paymentId || paymentBusy.current) return
+              if (!window.confirm('Bạn chắc chắn muốn từ chối đăng ký này?')) return
+              paymentBusy.current = true
+              setConfirmingPaymentId(detail.paymentId)
+              try {
+                await cancelPayment(detail.paymentId)
+                await load()
+                notify('Đã từ chối đăng ký')
+              } catch (e) {
+                notify(e instanceof Error ? e.message : 'Không thể từ chối đăng ký')
+              } finally {
+                paymentBusy.current = false
+                setConfirmingPaymentId(null)
+              }
+            }}
             onPdf={() => notify('File PDF ký số sẽ kết nối backend sau')}
           />
         )}
@@ -497,7 +514,9 @@ function ContractDetail({
           <button onClick={onRenew}>↻ GIA HẠN GÓI</button>
         )}
         <button onClick={onPdf}>◉ FILE PDF KÝ SỐ</button>
-        <button onClick={onReject}>⊗ TỪ CHỐI DUYỆT</button>
+        {c.status === 'PENDING' && c.paymentStatus === 'PENDING' && c.paymentId && (
+          <button disabled={confirming} onClick={onReject}>⊗ TỪ CHỐI DUYỆT</button>
+        )}
       </div>
     </aside>
   )

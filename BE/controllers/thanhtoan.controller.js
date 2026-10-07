@@ -102,11 +102,12 @@ const ThanhtoanController = {
   },
 
   cancelPackagePayment: (req, res) => {
+    if (req.auth?.VaiTro !== 'ADMIN') return res.status(403).json({ message: 'Chỉ Admin được từ chối đăng ký.' });
     const id = positiveInteger(req.params.ThanhToanID);
     if (!id) return res.status(400).json({ message: 'ThanhToanID không hợp lệ' });
     Thanhtoan.cancelPackagePayment(id, (error, result) => {
-      if (error) return sendError(res, error, 'Không thể hủy thanh toán');
-      res.json({ message: 'Đã hủy thanh toán', data: result });
+      if (error) return sendError(res, error, 'Không thể từ chối đăng ký');
+      res.json({ message: 'Đã từ chối đăng ký', data: result });
     });
   },
 
