@@ -139,7 +139,17 @@ async function resolveCode(value) {
   return { token, HoiVienID: payload.h, DangKyID: payload.d, exp: payload.exp };
 }
 
+function adminCheckout(req, res) {
+  const id = positiveInteger(req.params.CheckInID);
+  if (!id) return res.status(400).json({ message: 'CheckInID không hợp lệ' });
+  Checkin.checkout(id, (err, result) => {
+    if (err) return apiError(res, err);
+    res.json({ message: 'Check-out thành công', data: result });
+  });
+}
+
 const CheckinController = {
+  adminCheckout,
 
   preview: async (req, res) => {
     try {
@@ -227,12 +237,7 @@ const CheckinController = {
 
   checkout: (req, res) => {
     if (!requireGateKey(req, res)) return;
-    const id = positiveInteger(req.params.CheckInID);
-    if (!id) return res.status(400).json({ message: 'CheckInID không hợp lệ' });
-    Checkin.checkout(id, (err, result) => {
-      if (err) return apiError(res, err);
-      res.json({ message: 'Check-out thành công', data: result });
-    });
+    adminCheckout(req, res);
   },
 
   getHistoryByAccount: (req, res) => {

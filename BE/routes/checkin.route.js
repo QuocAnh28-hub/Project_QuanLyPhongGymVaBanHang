@@ -10,6 +10,7 @@ router.get('/admin/history', CheckinController.getAdminHistory);
 router.get('/admin/members', CheckinController.searchAdminMembers);
 router.post('/admin/preview', requireRole('ADMIN', 'STAFF'), CheckinController.preview);
 router.post('/admin/confirm', requireRole('ADMIN', 'STAFF'), CheckinController.confirm);
+router.post('/admin/:CheckInID/checkout', requireRole('ADMIN', 'STAFF'), CheckinController.adminCheckout);
 router.post('/token', CheckinController.createToken);
 // app.js permits the legacy /scan path through; authenticate it here.
 router.post('/scan', requireAuth, requireRole('ADMIN', 'STAFF'), CheckinController.scan);

@@ -2,6 +2,8 @@ export type CheckInRow = {
   CheckInID: number
   HoiVienID: number
   HoTen: string
+  AnhDaiDien?: string | null
+  ThoiGianDaTap?: number
   SoDienThoai?: string
   ThoiGianCheckIn: string
   ThoiGianCheckOut?: string
@@ -72,7 +74,7 @@ export const searchMembers = (q: string) =>
 export const revokeQr = (id: number) =>
   request(`/api/maqr/${id}/revoke`, { method: 'PATCH' })
 export const checkout = (CheckInID: number) =>
-  request(`/api/checkin/${CheckInID}/checkout`, { method: 'POST' })
+  request<{ message: string; data: CheckInRow }>(`/api/checkin/admin/${CheckInID}/checkout`, { method: 'POST' })
 
 export type CheckInPreview = {
   token: string

@@ -36,7 +36,8 @@ Checkin.getAll = (callback) => {
   });
 };
 
-const adminSelect = `SELECT ci.CheckInID,ci.HoiVienID,hv.HoTen,hv.SoDienThoai,
+const adminSelect = `SELECT ci.CheckInID,ci.HoiVienID,hv.HoTen,hv.SoDienThoai,hv.AnhDaiDien,
+  GREATEST(0,TIMESTAMPDIFF(SECOND,ci.ThoiGianCheckIn,COALESCE(ci.ThoiGianCheckOut,NOW()))) ThoiGianDaTap,
   DATE_FORMAT(ci.ThoiGianCheckIn,'%Y-%m-%d %H:%i:%s') ThoiGianCheckIn,
   DATE_FORMAT(ci.ThoiGianCheckOut,'%Y-%m-%d %H:%i:%s') ThoiGianCheckOut,ci.TrangThai
   FROM checkin ci INNER JOIN hoivien hv ON hv.HoiVienID=ci.HoiVienID`;
@@ -273,17 +274,25 @@ Checkin.issueToken = (token, expires, callback) => {
 Checkin.checkout = (CheckInID, callback) => {
   db.query(
     `UPDATE checkin
-     SET ThoiGianCheckOut = COALESCE(ThoiGianCheckOut, NOW()),
+     SET ThoiGianCheckOut = NOW(),
          TrangThai = 'CHECKED_OUT'
-     WHERE CheckInID = ?`,
+     WHERE CheckInID = ? AND TrangThai = 'CHECKED_IN' AND ThoiGianCheckOut IS NULL`,
     [CheckInID],
     (err, result) => {
       if (err) return callback(err);
-      if (!result.affectedRows) return callback(appError(404, "CHECKIN_NOT_FOUND", "Không tìm thấy phiên check-in"));
       db.query(
         "SELECT CheckInID, HoiVienID, ThoiGianCheckIn, ThoiGianCheckOut, TrangThai FROM checkin WHERE CheckInID = ?",
         [CheckInID],
-        (readError, rows) => callback(readError, rows?.[0]),
+        (readError, rows) => {
+          if (readError) return callback(readError);
+          if (!rows?.length) return callback(appError(404, 'CHECKIN_NOT_FOUND', 'Không tìm thấy phiên check-in'));
+          if (!result.affectedRows) {
+            if (rows[0].TrangThai === 'CHECKED_OUT' || rows[0].ThoiGianCheckOut)
+              return callback(appError(409, 'ALREADY_CHECKED_OUT', 'Hội viên đã check-out'));
+            return callback(appError(409, 'CHECKIN_NOT_ACTIVE', 'Phiên không ở trạng thái CHECKED_IN'));
+          }
+          callback(null, rows[0]);
+        },
       );
     },
   );

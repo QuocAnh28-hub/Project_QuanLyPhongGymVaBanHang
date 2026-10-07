@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/app/Common/header';
 import { useAuth } from '@/context/AuthContext';
 import { getCheckInHistory } from '@/lib/check-in-api';
+import { isCompleted } from '@/lib/check-in-summary';
 import {
   getCurrentMembership,
   type CurrentMembership,
@@ -161,7 +162,7 @@ export default function ProfileScreen() {
       let active = true;
       if (user?.accountId)
         Promise.all([
-          getCurrentMembership(user.accountId),
+          getCurrentMembership(user.accountId).catch(() => null),
           getCheckInHistory(user.accountId).catch(() => []),
         ])
           .then(async ([membership, history]) => {
@@ -173,7 +174,8 @@ export default function ProfileScreen() {
             if (active) {
               setActiveMembership(membership);
               setActivePackage(gymPackage);
-              setCheckInCount(history.length);
+              const completedSessions = history.filter(isCompleted);
+              setCheckInCount(completedSessions.length);
             }
           })
           .catch(() => {

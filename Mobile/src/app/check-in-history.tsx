@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/context/AuthContext';
 import { getCheckInHistory, type ApiCheckInRecord } from '@/lib/check-in-api';
+import { isCompleted, recordDurationMinutes, sessionDate, sessionDay, sessionsInMonth, summarizeCheckInHistory } from '@/lib/check-in-summary';
 
 const C = {
   bg: '#111316',
@@ -29,18 +30,6 @@ const durationLabel = (minutes: number) =>
   minutes < 60
     ? `${minutes}p`
     : `${Math.floor(minutes / 60)}h ${minutes % 60}p`;
-const recordDurationMinutes = (record: ApiCheckInRecord) =>
-  record.ThoiGianCheckOut
-    ? Math.max(
-        0,
-        Math.floor(
-          (new Date(record.ThoiGianCheckOut).getTime() -
-            new Date(record.ThoiGianCheckIn).getTime()) /
-            60000
-        )
-      )
-    : 0;
-
 export default function CheckInHistoryScreen() {
   const { user } = useAuth();
   const [records, setRecords] = useState<ApiCheckInRecord[]>([]);
@@ -73,44 +62,14 @@ export default function CheckInHistoryScreen() {
     }, [user])
   );
   const filtered = useMemo(
-    () =>
-      records.filter((row) => {
-        const date = new Date(row.ThoiGianCheckIn);
-        const target = month === 'previous' ? monthStart(-1) : monthStart(0);
-        return (
-          month === 'all' ||
-          (date.getFullYear() === target.getFullYear() &&
-            date.getMonth() === target.getMonth())
-        );
-      }),
+    () => sessionsInMonth(records, month === 'all' ? null : monthStart(month === 'previous' ? -1 : 0)),
     [month, records]
   );
   const summaryMonth = month === 'previous' ? monthStart(-1) : monthStart(0);
-  const summary = useMemo(() => {
-    const rows = month === 'all' ? records : filtered;
-    const days = [
-      ...new Set(rows.map((row) => new Date(row.ThoiGianCheckIn).getDate())),
-    ].sort((a, b) => a - b);
-    let streak = 0;
-    let current = 0;
-    let previous = -2;
-    days.forEach((day) => {
-      current = day === previous + 1 ? current + 1 : 1;
-      streak = Math.max(streak, current);
-      previous = day;
-    });
-    return {
-      totalSessions: rows.length,
-      totalDurationMinutes: rows.reduce(
-        (sum, row) => sum + recordDurationMinutes(row),
-        0
-      ),
-      streak,
-      attendanceByDay: days,
-      activeSessions: rows.filter((row) => row.TrangThai === 'CHECKED_IN')
-        .length,
-    };
-  }, [filtered, month, records]);
+  const summary = useMemo(
+    () => summarizeCheckInHistory(filtered),
+    [filtered]
+  );
   const back = () =>
     router.canGoBack() ? router.back() : router.replace('/check-in-pass');
   return (
@@ -143,8 +102,8 @@ export default function CheckInHistoryScreen() {
           <View style={s.summaryHead}>
             <View>
               <Text style={s.label}>
-                TỔNG QUAN THÁNG{' '}
-                {summaryMonth.toLocaleDateString('vi-VN', {
+                {month === 'all' ? 'TỔNG QUAN TẤT CẢ' : 'TỔNG QUAN THÁNG '}
+                {month !== 'all' && summaryMonth.toLocaleDateString('vi-VN', {
                   month: '2-digit',
                   year: 'numeric',
                 })}
@@ -160,7 +119,7 @@ export default function CheckInHistoryScreen() {
             {Array.from({ length: 7 }, (_, index) => {
               const day = new Date();
               day.setDate(day.getDate() - (6 - index));
-              const attended = summary.attendanceByDay.includes(day.getDate());
+              const attended = summary.attendanceByDay.includes(sessionDay(day.toISOString()) || '');
               return (
                 <View style={s.day} key={index}>
                   <Text style={s.dayName}>
@@ -211,7 +170,7 @@ export default function CheckInHistoryScreen() {
         </ScrollView>
         <Text style={s.section}>
           {filtered.length
-            ? `${filtered.length} LẦN CHECK-IN`
+            ? `${filtered.length} LƯỢT CHECK-IN`
             : 'NHẬT KÝ VÀO CỔNG'}
         </Text>
         {!filtered.length ? (
@@ -269,9 +228,8 @@ function Chip({
   );
 }
 function RecordCard({ record }: { record: ApiCheckInRecord }) {
-  const date = new Date(record.ThoiGianCheckIn);
-  const completed =
-    record.TrangThai === 'CHECKED_OUT' && !!record.ThoiGianCheckOut;
+  const date = sessionDate(record.ThoiGianCheckIn);
+  const completed = isCompleted(record);
   return (
     <View style={[s.record, !completed && s.liveRecord]}>
       <View style={s.recordHead}>
@@ -286,7 +244,7 @@ function RecordCard({ record }: { record: ApiCheckInRecord }) {
           <Text style={s.cardTitle}>QA-Gym</Text>
         </View>
         <Text style={[s.status, !completed && s.live]}>
-          {completed ? 'ĐÃ CHECK-OUT' : 'ĐANG TRONG PHÒNG'}
+          {completed ? 'HOÀN THÀNH' : record.TrangThai === 'CHECKED_IN' ? 'ĐANG TẬP' : 'CHƯA CÓ GIỜ RA'}
         </Text>
       </View>
       <View style={s.recordMeta}>
@@ -299,11 +257,11 @@ function RecordCard({ record }: { record: ApiCheckInRecord }) {
             })}
           </Text>
         </Text>
-        {record.ThoiGianCheckOut ? (
+        {completed ? (
           <Text style={s.meta}>
             GIỜ RA:{' '}
             <Text style={s.metaValue}>
-              {new Date(record.ThoiGianCheckOut).toLocaleTimeString('vi-VN', {
+              {sessionDate(record.ThoiGianCheckOut!).toLocaleTimeString('vi-VN', {
                 hour: '2-digit',
                 minute: '2-digit',
               })}
