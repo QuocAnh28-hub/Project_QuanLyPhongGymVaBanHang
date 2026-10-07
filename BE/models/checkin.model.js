@@ -40,7 +40,9 @@ Checkin.getCrowding = (callback) => {
   const q = db.promise();
   Promise.all([
     q.query(`SELECT
-      COUNT(DISTINCT CASE WHEN TrangThai='CHECKED_IN' AND ThoiGianCheckOut IS NULL THEN HoiVienID END) currentCount,
+      COUNT(CASE WHEN TrangThai='CHECKED_IN' AND ThoiGianCheckOut IS NULL
+        AND ThoiGianCheckIn>=CURDATE() AND ThoiGianCheckIn<DATE_ADD(CURDATE(),INTERVAL 1 DAY)
+        THEN 1 END) currentCount,
       COUNT(CASE WHEN TrangThai='CHECKED_OUT' AND ThoiGianCheckOut IS NOT NULL
         AND ThoiGianCheckOut>ThoiGianCheckIn
         AND ThoiGianCheckIn<CURDATE() AND ThoiGianCheckOut>DATE_SUB(CURDATE(),INTERVAL 28 DAY)

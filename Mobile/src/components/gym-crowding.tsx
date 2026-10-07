@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { getGymCrowding, type GymCrowding } from '@/lib/check-in-api';
 
@@ -9,21 +9,24 @@ const hourLabel = (hour: number) => `${String(hour).padStart(2,'0')}:00 – ${St
 export default function GymCrowdingCard() {
   const { user } = useAuth();
   const accountId = user?.accountId;
-  const [state, setState] = useState<{ accountId: number; data: GymCrowding } | null>(null);
+  const [state, setState] = useState<{ accountId: number; data: GymCrowding; updatedAt: number } | null>(null);
   const [error, setError] = useState(''), [reload, setReload] = useState(0);
   useFocusEffect(useCallback(() => {
     const controller = new AbortController();
     setError('');
     if (!accountId) return () => controller.abort();
+    let requestVersion = 0;
     const load = async () => {
+      const version = ++requestVersion;
       try {
         const data = await getGymCrowding(controller.signal);
-        if (!controller.signal.aborted) { setState({ accountId, data }); setError(''); }
-      } catch { if (!controller.signal.aborted) setError('Chưa tải được tình hình phòng tập.'); }
+        if (!controller.signal.aborted && version === requestVersion) { setState({ accountId, data, updatedAt: Date.now() }); setError(''); }
+      } catch { if (!controller.signal.aborted && version === requestVersion) { setState(null); setError('Chưa tải được tình hình phòng tập.'); } }
     };
     void load();
-    const timer = setInterval(() => void load(), 60000);
-    return () => { controller.abort(); clearInterval(timer); };
+    const timer = setInterval(() => { if (AppState.currentState === 'active') void load(); }, 15000);
+    const appState = AppState.addEventListener('change', value => { if (value === 'active') void load(); });
+    return () => { controller.abort(); clearInterval(timer); appState.remove(); };
   }, [accountId,reload]));
   if (!accountId) return null;
   const data = state?.accountId === accountId ? state.data : null;
@@ -37,7 +40,7 @@ export default function GymCrowdingCard() {
     {error ? <View style={s.errorRow}><Text style={s.note}>{error}</Text><Pressable accessibilityRole="button" onPress={() => setReload(v=>v+1)}><Text style={s.retry}>Thử lại</Text></Pressable></View> : null}
     {!data && !error ? <Text style={s.note}>Đang tải tình hình phòng tập…</Text> : null}
     {data && <>
-      <View style={s.current}><Text style={s.note}>Đang có mặt tại phòng</Text><Text style={s.count}>{data.currentCount}<Text style={s.unit}> người</Text></Text></View>
+      <View style={s.current}><View><Text style={s.note}>Đang có mặt hôm nay</Text><Text style={s.source}>Cập nhật {new Date(state!.updatedAt).toLocaleTimeString('vi-VN')}</Text></View><Text style={s.count}>{data.currentCount}<Text style={s.unit}> người</Text></Text></View>
       {canCompare ? <View style={s.periods}>
         <View style={[s.period,s.quiet]}><Text style={s.quietLabel}>Giờ thường ít người</Text>{quiet.map(h=><Text key={h.hour} style={s.time}>{hourLabel(h.hour)}</Text>)}</View>
         <View style={[s.period,s.busy]}><Text style={s.busyLabel}>Giờ thường đông người</Text>{busy.map(h=><Text key={h.hour} style={s.time}>{hourLabel(h.hour)}</Text>)}</View>
