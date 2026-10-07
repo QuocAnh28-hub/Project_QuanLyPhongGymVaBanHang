@@ -342,19 +342,19 @@ function PackageCard({
         </div>
         <nav>
           <button title="Chỉnh sửa" onClick={onEdit}>
-            ✎
+            Chỉnh sửa
           </button>
           <button title="Xóa hoặc ngừng hoạt động" onClick={onDuplicate}>
-            ×
+            Xóa
           </button>
           <button title="Báo cáo" onClick={onReport}>
-            ⌁
+            Báo cáo
           </button>
           <button
             title={item.active ? 'Tạm dừng' : 'Kích hoạt'}
             onClick={onToggle}
           >
-            {item.active ? '⏸' : '▶'}
+            {item.active ? 'Tạm dừng' : 'Kích hoạt'}
           </button>
         </nav>
       </footer>
