@@ -113,7 +113,49 @@ function requireGateKey(req, res) {
   return true;
 }
 
+// The short code identifies the existing QR row; its signature binds it to that token.
+function shortCode(id, token) {
+  const signature = crypto.createHmac('sha256', signingSecret())
+    .update(`${id}:${token}`).digest('hex').slice(0, 8).toUpperCase();
+  return `QR-${Number(id).toString(36).toUpperCase()}-${signature}`;
+}
+
+async function resolveCode(value) {
+  if (typeof value !== 'string' || !value.trim() || value.length > 255)
+    throw Object.assign(new Error('Vui lòng nhập mã QR hoặc mã ngắn hợp lệ.'), { status: 400, code: 'QR_INVALID' });
+  let token = value.trim();
+  if (!token.startsWith('v1.')) {
+    const match = token.toUpperCase().match(/^QR-([0-9A-Z]{1,10})-([0-9A-F]{8})$/);
+    const id = match && parseInt(match[1], 36);
+    if (!Number.isSafeInteger(id) || id <= 0)
+      throw Object.assign(new Error('Mã nhập tay không đúng định dạng.'), { status: 400, code: 'QR_INVALID' });
+    const row = await new Promise((resolve, reject) => Checkin.getTokenById(id, (error, result) => error ? reject(error) : resolve(result)));
+    const expected = row && shortCode(id, row.MaCode);
+    if (!expected || expected.length !== token.length || !crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(token.toUpperCase())))
+      throw Object.assign(new Error('Mã nhập tay không hợp lệ.'), { status: 400, code: 'QR_INVALID' });
+    token = row.MaCode;
+  }
+  const payload = verify(token);
+  return { token, HoiVienID: payload.h, DangKyID: payload.d, exp: payload.exp };
+}
+
 const CheckinController = {
+
+  preview: async (req, res) => {
+    try {
+      const input = await resolveCode(req.body?.code ?? req.body?.token);
+      Checkin.preview(input, (error, result) => error ? apiError(res, error) : res.json({
+        ...result, token: input.token, expiresAt: new Date(input.exp * 1000).toISOString(),
+      }));
+    } catch (error) { apiError(res, error); }
+  },
+
+  confirm: async (req, res) => {
+    try {
+      const input = await resolveCode(req.body?.code);
+      Checkin.scan(input, (error, result) => error ? apiError(res, error) : res.status(201).json({ message: 'Check-in thành công', data: result }));
+    } catch (error) { apiError(res, error); }
+  },
 
   getAdminToday: (_req, res) => {
     Checkin.getAdminToday((err, result) => err ? apiError(res, err) : res.json(result));
@@ -172,7 +214,7 @@ const CheckinController = {
         });
         Checkin.issueToken(token, expires, (saveError, saved) => {
           if (saveError) return apiError(res, saveError);
-          res.json({ token, MaQRID: saved.MaQRID, issuedAt: new Date(issued * 1000).toISOString(), expiresAt: new Date(expires * 1000).toISOString(), expiresIn: TOKEN_SECONDS, DangKyID: membership.DangKyID, HoiVienID: membership.HoiVienID });
+          res.json({ token, shortCode: shortCode(saved.MaQRID, token), MaQRID: saved.MaQRID, issuedAt: new Date(issued * 1000).toISOString(), expiresAt: new Date(expires * 1000).toISOString(), expiresIn: TOKEN_SECONDS, DangKyID: membership.DangKyID, HoiVienID: membership.HoiVienID });
         });
       } catch (error) {
         apiError(res, error);
@@ -180,28 +222,8 @@ const CheckinController = {
     });
   },
 
-  scan: (req, res) => {
-    if (!requireGateKey(req, res)) return;
-    let payload;
-    try {
-      payload = verify(req.body?.token);
-    } catch (error) {
-      return apiError(res, error);
-    }
-
-    Checkin.scan(
-      {
-        token: req.body.token,
-        HoiVienID: payload.h,
-        DangKyID: payload.d,
-        exp: payload.exp,
-      },
-      (err, result) => {
-        if (err) return apiError(res, err);
-        res.status(201).json({ message: 'Check-in thành công', data: result });
-      },
-    );
-  },
+  // Scanning only previews; /admin/confirm is the sole gate insertion action.
+  scan: (req, res) => CheckinController.preview(req, res),
 
   checkout: (req, res) => {
     if (!requireGateKey(req, res)) return;

@@ -19,6 +19,7 @@ import RegistrationsPage from './pages/RegistrationsPage'
 import CheckInLivePage from './pages/CheckInLivePage'
 import CheckInHistoryPage from './pages/CheckInHistoryPage'
 import CheckInQrPage from './pages/CheckInQrPage'
+import CheckInScanPage from './pages/CheckInScanPage'
 import TrainerPages from './pages/TrainerPages'
 import CatalogPage from './pages/CatalogPage'
 import ShopOrdersPage from './pages/ShopOrdersPage'
@@ -73,11 +74,12 @@ function App() {
       ],
     },
     'Check-In': {
-      tabs: ['Giám sát', 'Lịch sử', 'Quản lý QR'],
+      tabs: ['Giám sát', 'Lịch sử', 'Quản lý QR', 'Quét / Nhập mã'],
       pages: [
         <CheckInLivePage key="live" />,
         <CheckInHistoryPage key="history" />,
         <CheckInQrPage key="qr" />,
+        <CheckInScanPage key="scan" onShowToday={() => setModuleTab(0)} />,
       ],
     },
     'Huấn luyện viên': {

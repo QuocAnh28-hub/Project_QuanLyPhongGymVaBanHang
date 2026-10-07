@@ -2,6 +2,7 @@ import { authenticatedFetch, baseUrl } from '@/lib/account-api';
 
 export type CheckInQrToken = {
   token: string;
+  shortCode: string;
   issuedAt: string;
   expiresAt: string;
   expiresIn: number;

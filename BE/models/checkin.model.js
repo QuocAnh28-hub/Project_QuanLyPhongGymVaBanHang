@@ -133,6 +133,73 @@ Checkin.getEligibilityByAccount = (TaiKhoanID, callback) => {
   });
 };
 
+function validateQr(rows) {
+  if (!rows.length) throw appError(404, 'QR_NOT_ISSUED', 'Mã QR chưa được Backend cấp');
+  const qr = rows[0];
+  if (qr.TrangThai !== 'ACTIVE') throw appError(409, 'QR_NOT_ACTIVE', 'Mã QR đã dùng hoặc bị thu hồi');
+  if (new Date(qr.NgayHetHan).getTime() <= Date.now()) throw appError(410, 'QR_EXPIRED', 'Mã QR đã hết hạn');
+  return qr;
+}
+
+async function readEligibility(query, input, lock = false) {
+  const suffix = lock ? ' FOR UPDATE' : '';
+  // Lock the member too: two different QR codes must not create parallel sessions.
+  if (lock) await query.query('SELECT HoiVienID FROM hoivien WHERE HoiVienID = ? FOR UPDATE', [input.HoiVienID]);
+  const [memberships] = await query.query(
+    `SELECT dk.DangKyID, dk.HoiVienID, dk.TrangThai AS TrangThaiDangKy,
+      DATE_FORMAT(dk.NgayBatDau, '%Y-%m-%d') NgayBatDau,
+      DATE_FORMAT(dk.NgayKetThuc, '%Y-%m-%d') NgayKetThuc,
+      GREATEST(0, DATEDIFF(dk.NgayKetThuc, CURDATE())) SoNgayConLai,
+      CASE WHEN dk.NgayBatDau IS NULL OR dk.NgayKetThuc IS NULL THEN 'MEMBERSHIP_DATE_INVALID'
+        WHEN dk.NgayBatDau > CURDATE() THEN 'MEMBERSHIP_NOT_STARTED'
+        WHEN dk.NgayKetThuc < CURDATE() THEN 'MEMBERSHIP_EXPIRED' ELSE 'OK' END TinhTrangNgay,
+      hv.HoTen, hv.SoDienThoai, hv.AnhDaiDien,
+      hv.TrangThai AS TrangThaiHoiVien, tk.TrangThai AS TrangThaiTaiKhoan, g.TenGoi
+     FROM dangkygoitap dk
+     INNER JOIN hoivien hv ON hv.HoiVienID = dk.HoiVienID
+     INNER JOIN taikhoan tk ON tk.TaiKhoanID = hv.TaiKhoanID
+     INNER JOIN goitap g ON g.GoiTapID = dk.GoiTapID
+     WHERE dk.DangKyID = ? AND dk.HoiVienID = ?${suffix}`,
+    [input.DangKyID, input.HoiVienID],
+  );
+  if (!memberships.length) throw appError(403, 'MEMBERSHIP_NOT_ACTIVE', 'Không tìm thấy gói tập hợp lệ');
+  const membership = memberships[0];
+  const [payments] = await query.query(
+    `SELECT TrangThai FROM thanhtoan WHERE DangKyID = ?
+      ORDER BY (TrangThai = 'SUCCESS') DESC, ThanhToanID DESC LIMIT 1${suffix}`, [input.DangKyID],
+  );
+  const [sessions] = await query.query(
+    `SELECT CheckInID FROM checkin WHERE HoiVienID = ? AND TrangThai = 'CHECKED_IN'
+      AND ThoiGianCheckOut IS NULL ORDER BY CheckInID DESC LIMIT 1${suffix}`, [input.HoiVienID],
+  );
+  const reasons = [];
+  const add = (condition, code, message) => { if (condition) reasons.push({ code, message }); };
+  add(membership.TrangThaiTaiKhoan !== 'ACTIVE', 'ACCOUNT_NOT_ACTIVE', 'Tài khoản chưa hoạt động hoặc đã bị khóa.');
+  add(membership.TrangThaiHoiVien !== 'ACTIVE', 'MEMBER_NOT_ACTIVE', 'Hội viên chưa hoạt động hoặc đã bị khóa.');
+  add(membership.TrangThaiDangKy !== 'ACTIVE', 'MEMBERSHIP_NOT_ACTIVE', 'Đăng ký gói tập chưa hoạt động.');
+  add(payments[0]?.TrangThai !== 'SUCCESS', 'PAYMENT_NOT_SUCCESS', 'Thanh toán gói tập chưa hoàn tất.');
+  add(membership.TinhTrangNgay === 'MEMBERSHIP_NOT_STARTED', 'MEMBERSHIP_NOT_STARTED', 'Gói tập chưa đến ngày kích hoạt.');
+  add(membership.TinhTrangNgay === 'MEMBERSHIP_EXPIRED', 'MEMBERSHIP_EXPIRED', 'Gói tập đã hết hạn.');
+  add(membership.TinhTrangNgay === 'MEMBERSHIP_DATE_INVALID', 'MEMBERSHIP_DATE_INVALID', 'Thời hạn gói tập không hợp lệ.');
+  add(sessions.length > 0, 'ALREADY_CHECKED_IN', 'Hội viên đang có phiên check-in chưa kết thúc.');
+  return { ...membership, TrangThaiThanhToan: payments[0]?.TrangThai || 'UNPAID',
+    TrangThaiCheckIn: sessions.length ? 'CHECKED_IN' : 'NOT_CHECKED_IN',
+    CheckInID: sessions[0]?.CheckInID || null, eligible: reasons.length === 0, reasons };
+}
+
+Checkin.getTokenById = (id, callback) => {
+  db.query('SELECT MaCode FROM maqr WHERE MaQRID = ? LIMIT 1', [id], (error, rows) => callback(error, rows?.[0]));
+};
+
+Checkin.preview = (input, callback) => {
+  (async () => {
+    const query = db.promise();
+    const [codes] = await query.query('SELECT MaQRID,TrangThai,NgayHetHan FROM maqr WHERE MaCode = ? LIMIT 1', [input.token]);
+    validateQr(codes);
+    return readEligibility(query, input);
+  })().then(result => callback(null, result), callback);
+};
+
 Checkin.scan = (input, callback) => {
   db.getConnection(async (connectionError, connection) => {
     if (connectionError) return callback(connectionError);
@@ -145,76 +212,16 @@ Checkin.scan = (input, callback) => {
         "SELECT MaQRID,TrangThai,NgayHetHan FROM maqr WHERE MaCode = ? LIMIT 1 FOR UPDATE",
         [input.token],
       );
-      if (!codes.length) throw appError(404, "QR_NOT_ISSUED", "Mã QR chưa được Backend cấp");
-      const qr = codes[0];
-      if (qr.TrangThai !== "ACTIVE") throw appError(409, "QR_NOT_ACTIVE", "Mã QR đã dùng hoặc bị thu hồi");
-      if (new Date(qr.NgayHetHan).getTime() <= Date.now()) throw appError(410, "QR_EXPIRED", "Mã QR đã hết hạn");
+      const qr = validateQr(codes);
 
-      const [memberships] = await query.query(
-        `SELECT
-           dk.DangKyID,
-           dk.HoiVienID,
-           dk.TrangThai AS TrangThaiDangKy,
-           dk.NgayBatDau,
-           dk.NgayKetThuc,
-           hv.TrangThai AS TrangThaiHoiVien,
-           tk.TrangThai AS TrangThaiTaiKhoan,
-           g.TenGoi
-         FROM dangkygoitap dk
-         INNER JOIN hoivien hv ON hv.HoiVienID = dk.HoiVienID
-         INNER JOIN taikhoan tk ON tk.TaiKhoanID = hv.TaiKhoanID
-         INNER JOIN goitap g ON g.GoiTapID = dk.GoiTapID
-         WHERE dk.DangKyID = ? AND dk.HoiVienID = ?
-         FOR UPDATE`,
-        [input.DangKyID, input.HoiVienID],
-      );
-
-      if (!memberships.length) {
-        throw appError(403, "MEMBERSHIP_NOT_ACTIVE", "Không tìm thấy gói tập hợp lệ");
+      const membership = await readEligibility(query, input, true);
+      if (membership.reasons.length) {
+        const reason = membership.reasons[0];
+        throw appError(reason.code === 'ALREADY_CHECKED_IN' ? 409 : 403, reason.code, reason.message);
       }
-
-      const membership = memberships[0];
-      if (
-        membership.TrangThaiTaiKhoan !== "ACTIVE" ||
-        membership.TrangThaiHoiVien !== "ACTIVE" ||
-        membership.TrangThaiDangKy !== "ACTIVE"
-      ) {
-        throw appError(403, "MEMBERSHIP_NOT_ACTIVE", "Gói tập chưa hoạt động");
-      }
-
-      const [payments] = await query.query(
-        "SELECT ThanhToanID FROM thanhtoan WHERE DangKyID = ? AND TrangThai = 'SUCCESS' LIMIT 1 FOR UPDATE",
-        [input.DangKyID],
-      );
-      if (!payments.length) {
-        throw appError(403, "PAYMENT_NOT_SUCCESS", "Thanh toán gói tập chưa hoàn tất");
-      }
-
-      const [dateStatus] = await query.query(
-        `SELECT
-           CASE
-             WHEN ? > CURDATE() THEN 'MEMBERSHIP_NOT_STARTED'
-             WHEN ? < CURDATE() THEN 'MEMBERSHIP_EXPIRED'
-             ELSE 'OK'
-           END AS Status`,
-        [membership.NgayBatDau, membership.NgayKetThuc],
-      );
-      if (dateStatus[0].Status !== "OK") {
-        throw appError(403, dateStatus[0].Status, dateStatus[0].Status === "MEMBERSHIP_NOT_STARTED" ? "Gói tập chưa đến ngày kích hoạt" : "Gói tập đã hết hạn");
-      }
-
-      const [sessions] = await query.query(
-        `SELECT CheckInID FROM checkin
-         WHERE HoiVienID = ?
-           AND TrangThai = 'CHECKED_IN'
-           AND ThoiGianCheckOut IS NULL
-         ORDER BY CheckInID DESC
-         LIMIT 1 FOR UPDATE`,
-        [input.HoiVienID],
-      );
-      if (sessions.length) {
-        throw appError(409, "ALREADY_CHECKED_IN", "Hội viên đang có phiên check-in chưa kết thúc");
-      }
+      // A confirmation can wait for another transaction; recheck expiry after locks.
+      if (input.exp * 1000 <= Date.now() || new Date(qr.NgayHetHan).getTime() <= Date.now())
+        throw appError(410, 'QR_EXPIRED', 'Mã QR đã hết hạn');
 
       const [checkInResult] = await query.query(
         `INSERT INTO checkin

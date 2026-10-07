@@ -248,6 +248,10 @@ export default function CheckInPassScreen() {
                   ecl="M"
                 />
                 <Text style={s.qrLabel}>♢ MÃ QR ĐƯỢC BACKEND KÝ</Text>
+                {token.shortCode ? <>
+                  <Text style={s.qrLabel}>MÃ NHẬP TAY</Text>
+                  <Text selectable style={{ color: '#111316', fontSize: 20, fontWeight: '900', letterSpacing: 1 }}>{token.shortCode}</Text>
+                </> : null}
               </View>
             ) : null}
             <View style={s.localWarning}>
