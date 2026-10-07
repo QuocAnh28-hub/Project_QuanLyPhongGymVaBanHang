@@ -1,0 +1,59 @@
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useAuth } from '@/context/AuthContext';
+import { getGymCrowding, type GymCrowding } from '@/lib/check-in-api';
+
+const hourLabel = (hour: number) => `${String(hour).padStart(2,'0')}:00 – ${String((hour+1)%24).padStart(2,'0')}:00`;
+export default function GymCrowdingCard() {
+  const { user } = useAuth();
+  const accountId = user?.accountId;
+  const [state, setState] = useState<{ accountId: number; data: GymCrowding } | null>(null);
+  const [error, setError] = useState(''), [reload, setReload] = useState(0);
+  useFocusEffect(useCallback(() => {
+    const controller = new AbortController();
+    setError('');
+    if (!accountId) return () => controller.abort();
+    const load = async () => {
+      try {
+        const data = await getGymCrowding(controller.signal);
+        if (!controller.signal.aborted) { setState({ accountId, data }); setError(''); }
+      } catch { if (!controller.signal.aborted) setError('Chưa tải được tình hình phòng tập.'); }
+    };
+    void load();
+    const timer = setInterval(() => void load(), 60000);
+    return () => { controller.abort(); clearInterval(timer); };
+  }, [accountId,reload]));
+  if (!accountId) return null;
+  const data = state?.accountId === accountId ? state.data : null;
+  // Unobserved hours may be closed: never describe them as quiet hours.
+  const observed = (data?.hours || []).filter(h => h.sessions > 0).sort((a,b) => b.averageCount-a.averageCount || a.hour-b.hour);
+  const canCompare = !!data && data.sampleSessions >= 2 && observed.length > 1 && observed[0].averageCount > observed[observed.length-1].averageCount;
+  const busy = canCompare ? observed.filter(h => h.averageCount === observed[0].averageCount).slice(0,3) : [];
+  const quiet = canCompare ? [...observed].reverse().filter(h => h.averageCount === observed[observed.length-1].averageCount).slice(0,3).sort((a,b)=>a.hour-b.hour) : [];
+  return <View style={s.card}>
+    <View style={s.heading}><Ionicons name="people-outline" size={22} color="#c3f400" /><Text style={s.title}>Chọn giờ tập thoải mái</Text></View>
+    {error ? <View style={s.errorRow}><Text style={s.note}>{error}</Text><Pressable accessibilityRole="button" onPress={() => setReload(v=>v+1)}><Text style={s.retry}>Thử lại</Text></Pressable></View> : null}
+    {!data && !error ? <Text style={s.note}>Đang tải tình hình phòng tập…</Text> : null}
+    {data && <>
+      <View style={s.current}><Text style={s.note}>Đang có mặt tại phòng</Text><Text style={s.count}>{data.currentCount}<Text style={s.unit}> người</Text></Text></View>
+      {canCompare ? <View style={s.periods}>
+        <View style={[s.period,s.quiet]}><Text style={s.quietLabel}>Giờ thường ít người</Text>{quiet.map(h=><Text key={h.hour} style={s.time}>{hourLabel(h.hour)}</Text>)}</View>
+        <View style={[s.period,s.busy]}><Text style={s.busyLabel}>Giờ thường đông người</Text>{busy.map(h=><Text key={h.hour} style={s.time}>{hourLabel(h.hour)}</Text>)}</View>
+      </View> : <Text style={s.note}>Chưa đủ dữ liệu để phân biệt giờ đông và giờ ít người.</Text>}
+      <Text style={s.source}>Dựa trên {data.sampleSessions} buổi tập đã hoàn tất trong {data.days} ngày trước. Mức độ đông hôm nay có thể khác.</Text>
+    </>}
+  </View>;
+}
+const s = StyleSheet.create({
+  card: { marginBottom: 24, padding: 18, borderWidth: 1, borderColor: '#343b36', borderRadius: 14, backgroundColor: '#1a1c1f', gap: 14 },
+  heading: { flexDirection: 'row', alignItems: 'center', gap: 10 }, title: { flex: 1, color: '#e2e2e6', fontSize: 16, fontWeight: '700' },
+  note: { color: '#aeb59e', fontSize: 12, lineHeight: 18 }, current: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#343b36' },
+  count: { color: '#c3f400', fontSize: 25, fontWeight: '700' }, unit: { color: '#aeb59e', fontSize: 12, fontWeight: '400' },
+  periods: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 }, period: { flexGrow: 1, flexBasis: 145, padding: 12, borderWidth: 1, borderRadius: 10, gap: 8 },
+  quiet: { backgroundColor: '#1e3025', borderColor: '#335340' }, busy: { backgroundColor: '#302a1d', borderColor: '#55452b' },
+  quietLabel: { color: '#85dfad', fontSize: 12, fontWeight: '700' }, busyLabel: { color: '#e8cd84', fontSize: 12, fontWeight: '700' },
+  time: { color: '#e2e2e6', fontSize: 13, fontWeight: '600' }, source: { color: '#8f9b92', fontSize: 11, lineHeight: 17 },
+  errorRow: { gap: 8 }, retry: { color: '#c3f400', paddingVertical: 8, fontSize: 12, fontWeight: '600' },
+});

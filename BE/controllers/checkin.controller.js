@@ -149,6 +149,9 @@ function adminCheckout(req, res) {
 }
 
 const CheckinController = {
+  getCrowding: (_req, res) => {
+    Checkin.getCrowding((err, result) => err ? apiError(res, err) : res.json(result));
+  },
   adminCheckout,
 
   preview: async (req, res) => {

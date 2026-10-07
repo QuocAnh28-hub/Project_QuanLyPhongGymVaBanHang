@@ -321,7 +321,8 @@ export default function PackageEnrollmentScreen() {
         ) {
           throw error;
         }
-        registrationId = error.registrationId;
+        router.replace({ pathname: '/package-resume', params: { registrationId: String(error.registrationId) } });
+        return;
       }
 
       const existingPayment = await getPaymentByRegistration(registrationId);

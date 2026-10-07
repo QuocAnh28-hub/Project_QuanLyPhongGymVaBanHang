@@ -186,6 +186,18 @@ Dangkygoitap.getOwnedMembershipsByAccount = (TaiKhoanID, callback) => {
   });
 };
 
+Dangkygoitap.getPendingByAccount = (TaiKhoanID, callback) => {
+  db.query(`SELECT d.DangKyID,d.GoiTapID,d.GoiTapThoiHanID,d.GiaThanhToan,
+      g.TenGoi,th.SoThang,th.ThangTang
+    FROM dangkygoitap d JOIN hoivien h ON h.HoiVienID=d.HoiVienID
+    JOIN goitap g ON g.GoiTapID=d.GoiTapID
+    JOIN GoiTapThoiHan th ON th.GoiTapThoiHanID=d.GoiTapThoiHanID
+    WHERE h.TaiKhoanID=? AND d.TrangThai='PENDING'
+      AND NOT EXISTS (SELECT 1 FROM thanhtoan p WHERE p.DangKyID=d.DangKyID
+        AND p.TrangThai IN ('SUCCESS','CANCELLED'))
+    ORDER BY d.DangKyID DESC LIMIT 1`, [TaiKhoanID], (e, rows) => callback(e, rows?.[0] || null));
+};
+
 Dangkygoitap.getAll = (callback) => {
   db.query("SELECT * FROM `dangkygoitap`", (err, result) => {
     if (err) return callback(err);

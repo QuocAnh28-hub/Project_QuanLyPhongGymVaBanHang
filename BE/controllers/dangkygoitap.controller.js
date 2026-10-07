@@ -40,6 +40,14 @@ function dateDistanceInDays(from, to) {
 
 const DangkygoitapController = {
 
+  getPendingByAccount: (req, res) => {
+    const id = positiveInteger(req.params.TaiKhoanID);
+    if (!id) return res.status(400).json({ message: 'TaiKhoanID không hợp lệ.' });
+    Dangkygoitap.getPendingByAccount(id, (e, result) => e
+      ? res.status(500).json({ message: 'Không tải được đăng ký đang chờ.' })
+      : res.json(result));
+  },
+
   getAdminAll: (_req, res) => {
     Dangkygoitap.getAdminAll((err, rows) => err
       ? res.status(500).json({ message: 'Không thể tải danh sách đăng ký' })

@@ -4,11 +4,10 @@ import { getReport, type Report } from '../services/admin-finance'
 import './Reports.css'
 
 const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-const range = (days: number) => {
-  const to = new Date(), from = new Date()
-  from.setDate(to.getDate() - days + 1)
-  return [ymd(from), ymd(to)]
-}
+const previousMonth = (now = new Date()) => [
+  ymd(new Date(now.getFullYear(), now.getMonth() - 1, 1)),
+  ymd(new Date(now.getFullYear(), now.getMonth(), 0)),
+]
 const n = (value: unknown) => Number.isFinite(Number(value)) ? Number(value) : 0
 const count = (value: number) => value.toLocaleString('vi-VN')
 const shortMoney = (value: number) => new Intl.NumberFormat('vi-VN', { notation: 'compact', maximumFractionDigits: 1 }).format(value) + ' đ'
@@ -82,8 +81,9 @@ function ReportSection({ id, title, description, number, children }: { id: strin
   return <section id={id} className="rp-section"><header className="rp-section-heading"><span>{number}</span><div><h2>{title}</h2><p>{description}</p></div></header>{children}</section>
 }
 export default function Reports() {
-  const initial = range(7)
+  const initial = previousMonth()
   const [from, setFrom] = useState(initial[0]), [to, setTo] = useState(initial[1])
+  const [activePreset, setActivePreset] = useState<'today' | 'previousMonth' | 'month' | null>('previousMonth')
   const [data, setData] = useState<Report>(), [error, setError] = useState(''), [loading, setLoading] = useState(true)
   useEffect(() => {
     let active = true
@@ -99,20 +99,16 @@ export default function Reports() {
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [from, to])
-  const preset = (kind: 'today' | 'week' | 'month') => {
+  const preset = (kind: 'today' | 'previousMonth' | 'month') => {
     const now = new Date()
-    const [a, b] = kind === 'today' ? [ymd(now), ymd(now)] : kind === 'week' ? range(7) : [ymd(new Date(now.getFullYear(), now.getMonth(), 1)), ymd(now)]
-    setFrom(a); setTo(b)
-  }
-  const presetActive = (kind: 'today' | 'week' | 'month') => {
-    const now = new Date(), [a, b] = kind === 'today' ? [ymd(now), ymd(now)] : kind === 'week' ? range(7) : [ymd(new Date(now.getFullYear(), now.getMonth(), 1)), ymd(now)]
-    return from === a && to === b
+    const [a, b] = kind === 'today' ? [ymd(now), ymd(now)] : kind === 'previousMonth' ? previousMonth(now) : [ymd(new Date(now.getFullYear(), now.getMonth(), 1)), ymd(now)]
+    setActivePreset(kind); setFrom(a); setTo(b)
   }
   return <div className="reports-dashboard">
-    <header className="rp-heading"><div><div className="rp-eyebrow"><Icon name="chart" /> TỔNG QUAN KINH DOANH</div><h1>Báo cáo & thống kê</h1><p>Theo dõi doanh thu, hội viên, check-in, shop và PT theo khoảng thời gian</p></div><span className="rp-period">{dateLabel(from || ymd(new Date()))} — {dateLabel(to || ymd(new Date()))}</span></header>
+    <header className="rp-heading"><div><div className="rp-eyebrow"><Icon name="chart" /> TỔNG QUAN KINH DOANH</div><h1>Báo cáo & thống kê</h1><p>Theo dõi doanh thu, hội viên, check-in, shop và PT theo khoảng thời gian</p></div><span className="rp-period">{new Date((from || ymd(new Date())) + 'T00:00:00').toLocaleDateString('vi-VN')} — {new Date((to || ymd(new Date())) + 'T00:00:00').toLocaleDateString('vi-VN')}</span></header>
     <section className="rp-filters" aria-label="Khoảng thời gian báo cáo">
-      <div className="rp-presets">{([['today', 'Hôm nay'], ['week', '7 ngày'], ['month', 'Tháng này']] as const).map(([kind, label]) => <button type="button" key={kind} className={presetActive(kind) ? 'active' : ''} aria-pressed={presetActive(kind)} onClick={() => preset(kind)}>{label}</button>)}</div>
-      <div className="rp-date-inputs"><label>Từ ngày<input type="date" value={from} onChange={event => setFrom(event.target.value)} /></label><span aria-hidden="true">→</span><label>Đến ngày<input type="date" value={to} onChange={event => setTo(event.target.value)} /></label></div>
+      <div className="rp-presets">{([['today', 'Hôm nay'], ['previousMonth', 'Tháng trước'], ['month', 'Tháng này']] as const).map(([kind, label]) => <button type="button" key={kind} className={activePreset === kind ? 'active' : ''} aria-pressed={activePreset === kind} onClick={() => preset(kind)}>{label}</button>)}</div>
+      <div className="rp-date-inputs"><label>Từ ngày<input type="date" value={from} onChange={event => { setActivePreset(null); setFrom(event.target.value) }} /></label><span aria-hidden="true">→</span><label>Đến ngày<input type="date" value={to} onChange={event => { setActivePreset(null); setTo(event.target.value) }} /></label></div>
       <span className="rp-filter-note">Tự cập nhật khi chọn ngày</span>
     </section>
     {error && <div className="rp-message rp-error" role="alert">{error}</div>}

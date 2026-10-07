@@ -36,6 +36,40 @@ Checkin.getAll = (callback) => {
   });
 };
 
+Checkin.getCrowding = (callback) => {
+  const q = db.promise();
+  Promise.all([
+    q.query(`SELECT
+      COUNT(DISTINCT CASE WHEN TrangThai='CHECKED_IN' AND ThoiGianCheckOut IS NULL THEN HoiVienID END) currentCount,
+      COUNT(CASE WHEN TrangThai='CHECKED_OUT' AND ThoiGianCheckOut IS NOT NULL
+        AND ThoiGianCheckOut>ThoiGianCheckIn
+        AND ThoiGianCheckIn<CURDATE() AND ThoiGianCheckOut>DATE_SUB(CURDATE(),INTERVAL 28 DAY)
+        AND ThoiGianCheckOut<=NOW() THEN 1 END) sampleSessions,
+      DATE_FORMAT(DATE_SUB(CURDATE(),INTERVAL 28 DAY),'%Y-%m-%d') dateFrom,
+      DATE_FORMAT(DATE_SUB(CURDATE(),INTERVAL 1 DAY),'%Y-%m-%d') dateTo
+      FROM checkin`),
+    q.query(`WITH RECURSIVE days AS (
+        SELECT DATE_SUB(CURDATE(),INTERVAL 28 DAY) day
+        UNION ALL SELECT DATE_ADD(day,INTERVAL 1 DAY) FROM days WHERE day<DATE_SUB(CURDATE(),INTERVAL 1 DAY)
+      ), hours AS (
+        SELECT 0 hour UNION ALL SELECT hour+1 FROM hours WHERE hour<23
+      ), slots AS (
+        SELECT h.hour,d.day,TIMESTAMP(d.day,MAKETIME(h.hour,0,0)) startAt FROM days d CROSS JOIN hours h
+      )
+      SELECT s.hour,COUNT(DISTINCT c.CheckInID) sessions,
+        CAST(COALESCE(SUM(TIMESTAMPDIFF(SECOND,GREATEST(c.ThoiGianCheckIn,s.startAt),
+          LEAST(c.ThoiGianCheckOut,DATE_ADD(s.startAt,INTERVAL 1 HOUR)))),0) AS DECIMAL(20,6))/(28*3600) averageCount
+      FROM slots s LEFT JOIN checkin c ON c.TrangThai='CHECKED_OUT' AND c.ThoiGianCheckOut IS NOT NULL
+        AND c.ThoiGianCheckOut>c.ThoiGianCheckIn
+        AND c.ThoiGianCheckOut<=NOW() AND c.ThoiGianCheckIn<DATE_ADD(s.startAt,INTERVAL 1 HOUR)
+        AND c.ThoiGianCheckOut>s.startAt
+      GROUP BY s.hour ORDER BY s.hour`),
+  ]).then(([[summary], [hours]]) => callback(null, {
+    ...summary[0], days: 28,
+    hours: hours.map(row => ({ hour: Number(row.hour), sessions: Number(row.sessions), averageCount: Number(row.averageCount) })),
+  }), callback);
+};
+
 const adminSelect = `SELECT ci.CheckInID,ci.HoiVienID,hv.HoTen,hv.SoDienThoai,hv.AnhDaiDien,
   GREATEST(0,TIMESTAMPDIFF(SECOND,ci.ThoiGianCheckIn,COALESCE(ci.ThoiGianCheckOut,NOW()))) ThoiGianDaTap,
   DATE_FORMAT(ci.ThoiGianCheckIn,'%Y-%m-%d %H:%i:%s') ThoiGianCheckIn,
