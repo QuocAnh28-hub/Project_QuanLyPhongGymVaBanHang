@@ -4,6 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '@/app/Common/header';
+import PendingPackageNotice from '@/components/pending-package-notice';
 import { AuthColors as C } from '@/constants/theme';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -160,6 +161,7 @@ export default function PackagesScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Header />
+          <PendingPackageNotice />
           <View style={s.intro}>
             <Text style={s.eyebrow}>✦ ĐĂNG KÝ TẬP THỂ HÌNH 5 SAO</Text>
             <Text style={s.title}>Các Gói Tập & Thẻ Hội Viên{'\n'}QA-Gym</Text>

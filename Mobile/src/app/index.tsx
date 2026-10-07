@@ -6,13 +6,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import Header from '@/app/Common/header';
+import PendingPackageNotice from '@/components/pending-package-notice';
 
 const images = {
   hero: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=85',
@@ -103,6 +104,7 @@ const packages = () => {
 };
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -111,6 +113,7 @@ export default function HomeScreen() {
           contentContainerStyle={styles.content}
         >
           <Header />
+          <PendingPackageNotice />
 
           <View style={styles.greeting}>
             <Text style={styles.kicker}>Wellcome</Text>
@@ -212,6 +215,22 @@ export default function HomeScreen() {
           </Text>
         </ScrollView>
       </SafeAreaView>
+      <TouchableOpacity
+        style={[styles.checkInShortcut, { bottom: Math.max(insets.bottom, 16) + 12 }]}
+        onPress={() => router.push('/check-in-pass')}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel="Mở mã QR check-in"
+        accessibilityHint="Mở màn hình mã QR để vào phòng tập"
+      >
+        <View style={styles.checkInBot}>
+          <MaterialCommunityIcons name="robot-outline" size={30} color="#161e00" />
+          <View style={styles.checkInQrBadge}>
+            <Ionicons name="qr-code" size={13} color="#161e00" />
+          </View>
+        </View>
+        <Text style={styles.checkInShortcutLabel}>QR check-in</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -219,7 +238,46 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#101210' },
   safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' },
-  content: { paddingHorizontal: 16, paddingBottom: 24 },
+  content: { paddingHorizontal: 16, paddingBottom: 120 },
+  checkInShortcut: {
+    position: 'absolute',
+    right: 16,
+    zIndex: 10,
+    alignItems: 'center',
+    gap: 6,
+    padding: 10,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#c3f40055',
+    backgroundColor: '#1e2023',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+  },
+  checkInBot: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 24,
+    backgroundColor: '#c3f400',
+  },
+  checkInQrBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 21,
+    height: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: '#1e2023',
+    backgroundColor: '#f0f5e9',
+  },
+  checkInShortcutLabel: { color: '#e2e2e6', fontSize: 11, fontWeight: '700' },
   greeting: { marginBottom: 18 },
   kicker: {
     color: '#c1da00',

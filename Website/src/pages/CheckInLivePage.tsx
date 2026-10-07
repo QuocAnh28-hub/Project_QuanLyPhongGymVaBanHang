@@ -189,22 +189,25 @@ export default function CheckInLivePage() {
         )}
       </section>
       {current && <Modal title="Xác nhận check-out" onClose={() => { if (!busyRef.current) setSelected(null) }}>
-        <div className="catalog-form">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div className="checkout-dialog">
+          <p className="checkout-intro">Kiểm tra thông tin hội viên trước khi kết thúc buổi tập.</p>
+          <div className="checkout-member">
             {avatar && failedAvatar !== avatar
-              ? <img src={avatar} alt={current.HoTen} onError={() => setFailedAvatar(avatar)} style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: '50%' }} />
-              : <span className="catalog-image-placeholder">{current.HoTen.charAt(0)}</span>}
-            <div><h3>{current.HoTen}</h3><p>HV-{current.HoiVienID} · HoiVienID: {current.HoiVienID}</p></div>
+              ? <img src={avatar} alt={current.HoTen} onError={() => setFailedAvatar(avatar)} />
+              : <span className="checkout-avatar">{current.HoTen.charAt(0)}</span>}
+            <div><h3>{current.HoTen}</h3><p>Hội viên HV-{current.HoiVienID}</p></div>
           </div>
-          <p>SĐT: {current.SoDienThoai || 'Chưa cập nhật'}</p>
-          <p>Giờ check-in: {current.ThoiGianCheckIn}</p>
-          <p>Thời gian đã ở phòng: {duration}</p>
+          <dl className="checkout-details">
+            <div><dt>Số điện thoại</dt><dd>{current.SoDienThoai || 'Chưa cập nhật'}</dd></div>
+            <div><dt>Giờ check-in</dt><dd>{current.ThoiGianCheckIn}</dd></div>
+            <div className="checkout-duration"><dt>Thời gian tại phòng</dt><dd>{duration}</dd></div>
+          </dl>
           {current.TrangThai === 'CHECKED_OUT' && <p>Hội viên đã check-out lúc {current.ThoiGianCheckOut}.</p>}
           {checkoutError && <p className="catalog-error" role="alert">{checkoutError}</p>}
           <footer>
-            <button type="button" disabled={busy} onClick={() => setSelected(null)}>HỦY</button>
+            <button type="button" disabled={busy} onClick={() => setSelected(null)}>Hủy</button>
             <button type="button" className="catalog-primary" disabled={busy || current.TrangThai !== 'CHECKED_IN' || !!current.ThoiGianCheckOut} onClick={() => void confirmCheckout()}>
-              {busy ? 'ĐANG XỬ LÝ…' : 'XÁC NHẬN CHECK-OUT'}
+              {busy ? 'Đang xử lý…' : 'Xác nhận check-out'}
             </button>
           </footer>
         </div>

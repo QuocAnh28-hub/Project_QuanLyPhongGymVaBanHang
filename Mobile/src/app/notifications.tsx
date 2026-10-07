@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PendingPackageNotice from '@/components/pending-package-notice';
 import { useAuth } from '@/context/AuthContext';
 import {
   getNotifications,
@@ -111,6 +112,7 @@ export default function NotificationsScreen() {
   return (
     <SafeAreaView style={s.safe}>
       <ScrollView contentContainerStyle={s.content}>
+        <PendingPackageNotice />
         <Pressable onPress={() => router.back()}>
           <Text style={s.link}>‹ QUAY LẠI</Text>
         </Pressable>

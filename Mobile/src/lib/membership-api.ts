@@ -23,6 +23,22 @@ export type RegistrationResult = {
 
 export type ActivationMode = 'QUEUE_AFTER_CURRENT' | 'REPLACE_NOW';
 
+export type PendingRegistration = {
+  DangKyID: number;
+  GoiTapID: number;
+  GoiTapThoiHanID: number;
+  TenGoi: string;
+  SoThang: number;
+  ThangTang: number;
+  GiaThanhToan: string | number;
+};
+
+export async function getPendingRegistration(accountId: number): Promise<PendingRegistration | null> {
+  const response = await authenticatedFetch(`${baseUrl}/dangkygoitap/pending/account/${accountId}`);
+  if (!response.ok) throw new Error(await readError(response));
+  return response.json();
+}
+
 export type RegistrationDetail = {
   DangKyID: number;
   HoiVienID: number;
