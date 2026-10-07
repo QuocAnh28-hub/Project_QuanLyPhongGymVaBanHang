@@ -14,6 +14,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import Header from '@/app/Common/header';
 import PendingPackageNotice from '@/components/pending-package-notice';
+import GymCrowdingCard from '@/components/gym-crowding';
 
 const images = {
   hero: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=85',
@@ -146,6 +147,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
+          <GymCrowdingCard />
           <SectionTitle title="Khám phá tiện ích" />
           <View style={styles.statsGrid}>
             {workouts.map((item) => (

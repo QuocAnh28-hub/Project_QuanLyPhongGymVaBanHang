@@ -5,6 +5,7 @@ const CheckinController = require('../controllers/checkin.controller');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
 router.get('/', CheckinController.getAll);
+router.get('/crowding', CheckinController.getCrowding);
 router.get('/admin/today', CheckinController.getAdminToday);
 router.get('/admin/history', CheckinController.getAdminHistory);
 router.get('/admin/members', CheckinController.searchAdminMembers);

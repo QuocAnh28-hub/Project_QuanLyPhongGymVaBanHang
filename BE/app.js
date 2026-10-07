@@ -103,6 +103,7 @@ const routes = [
 
 const adminOnly = new Set(['/apdungkhuyenmaidonhang','/apdungkhuyenmaigoitap','/apdungkhuyenmaipt','/danhmuc','/goitap','/hoadon','/kho','/khuyenmai','/nhanvien','/phieunhap','/reports','/sanpham','/taikhoan']);
 const customerPaths = [
+  /^GET \/checkin\/crowding$/,
   /^GET \/(?:goitap\/active|pt\/active|lichpt\/available|sanpham|danhmuc)(?:\/|$)/,
   /^(?:GET|PUT) \/hoivien\/account\/\d+$/, /^POST \/taikhoan\/\d+\/change-password$/,
   /^GET \/dangkygoitap\/(?:(?:current|owned|pending)\/account\/\d+|detail\/\d+)$/, /^POST \/dangkygoitap\/(?:register|\d+\/renew)$/,

@@ -18,6 +18,19 @@ export type ApiCheckInRecord = {
   TrangThai: 'CHECKED_IN' | 'CHECKED_OUT';
 };
 
+export type GymCrowding = {
+  currentCount: number;
+  sampleSessions: number;
+  days: number;
+  dateFrom: string;
+  dateTo: string;
+  hours: { hour: number; sessions: number; averageCount: number }[];
+};
+
+export async function getGymCrowding(signal?: AbortSignal): Promise<GymCrowding> {
+  return readResponse<GymCrowding>(await authenticatedFetch(`${baseUrl}/checkin/crowding`, { signal }));
+}
+
 export class CheckInApiError extends Error {
   constructor(
     message: string,
