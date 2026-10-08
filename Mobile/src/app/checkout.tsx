@@ -120,6 +120,10 @@ export default function CheckoutScreen() {
       requestKey: preview.requestKey,
       cartVersion: preview.cartVersion,
     };
+    if (!attempt && data.paymentMethod==='CHUYEN_KHOAN' && preview.bankTransferAvailable===false) {
+      setError('Chưa cấu hình ngân hàng nhận tiền. Vui lòng chọn tiền mặt hoặc liên hệ QA-Gym.');
+      return;
+    }
     if (
       data.name.trim().length < 2 ||
       !/^(0\d{9}|\+84\d{9})$/.test(data.phone.replace(/\s/g, ''))

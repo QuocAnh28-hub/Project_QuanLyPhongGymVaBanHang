@@ -17,7 +17,15 @@ POST /donhang/:orderId/confirm-payment yêu cầu JWT của STAFF/ADMIN. Không 
 
 ## SQL
 
-003_shop_checkout.sql hiện tạo KhoID NOT NULL cùng khóa ngoại tới kho. Database dự án đã có đúng cột này, không cần ALTER hay sửa dữ liệu. Cài đặt mới chạy node scripts/migrate-shop-checkout.js. Database cũ thiếu KhoID cần migration bổ sung và xác định kho của đơn cũ trước khi dùng.
+003_shop_checkout.sql tạo bảng mới. 004_shop_checkout_warehouse.sql nâng cấp bảng cũ thiếu KhoID: thêm cột nullable và khóa ngoại, giữ nguyên mọi bản ghi và để kho lịch sử chưa biết là NULL. Không tự gán kho, xóa dữ liệu, đổi thanh toán hoặc điều chỉnh tồn kho. Chạy lại an toàn. Lệnh node scripts/migrate-shop-checkout.js áp dụng cả 003 và 004; chỉ chạy khi đã được người quản lý cho phép. Đơn cũ có KhoID NULL không hiển thị QR để thu tiền trước khi nhân viên xử lý kho.
+
+## Tồn kho và cấu hình ngân hàng
+
+Một đơn xuất từ một kho đủ tất cả sản phẩm, ưu tiên SHOP_WAREHOUSE_ID rồi dùng kho hoạt động khác theo quy tắc hiện có; không tự gộp số lượng nhiều kho. Đơn PENDING với thanh toán PENDING giữ số lượng tại kho đã gắn. Số có thể đặt = tồn vật lý trừ lượng giữ cho đơn khác. Giữ hàng và tạo đơn được tuần tự hóa bằng khóa kho trong transaction. Khi xác nhận thu tiền, loại trừ chính đơn đang xác nhận khỏi lượng giữ, trừ tồn vật lý đúng một lần. Hủy đơn giải phóng lượng giữ; không tự hết hạn hoặc hủy khi chưa biết khách đã chuyển tiền hay chưa.
+
+Nếu nhân viên điều chỉnh tồn kho ngoài luồng checkout hoặc dữ liệu cũ đã thiếu hàng, màn thanh toán kiểm tra lại và ẩn QR/hướng dẫn thu tiền, yêu cầu liên hệ nhân viên. Không thể bảo đảm hàng còn đủ nếu tồn kho bị thay đổi ngoài luồng sau khi khách đã quét QR.
+
+Thiếu cấu hình ngân hàng: chặn tạo đơn chuyển khoản trước khi ghi dữ liệu, giữ nguyên giỏ và cho chọn tiền mặt. Lỗi polling/mạng: ẩn QR cũ cho đến khi tải lại trạng thái server. Các test migration chỉ chạy trên database tạm.
 
 ## Gửi lặp và mất mạng
 

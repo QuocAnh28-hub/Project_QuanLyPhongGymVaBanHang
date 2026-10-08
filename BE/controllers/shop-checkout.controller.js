@@ -13,12 +13,20 @@ const money = value => {
 };
 const decimal = cents => (cents / 100).toFixed(2);
 
-async function stockWarehouse(connection, items, preferredId) {
+async function stockWarehouse(connection, items, preferredId, excludeOrderId = 0) {
   const [warehouses] = await connection.query("SELECT KhoID FROM kho WHERE TrangThai='ACTIVE' ORDER BY KhoID FOR UPDATE");
   const candidates = [...warehouses.filter(k => k.KhoID===preferredId), ...warehouses.filter(k => k.KhoID!==preferredId)];
   for (const warehouse of candidates) {
     const [stock] = await connection.query('SELECT SanPhamID,SoLuongTon FROM tonkho WHERE KhoID=? AND SanPhamID IN (?) ORDER BY SanPhamID FOR UPDATE',[warehouse.KhoID,items.map(item=>item.SanPhamID)]);
-    if (items.every(item => Number(stock.find(s=>s.SanPhamID===item.SanPhamID)?.SoLuongTon || 0)>=item.SoLuong)) return warehouse.KhoID;
+    // Pending orders retain their items until receipt confirmation or cancellation.
+    // Warehouse locks serialize checkout; this read happens after the locks are held.
+    const [reserved] = await connection.query(`SELECT c.SanPhamID,SUM(c.SoLuong) quantity
+      FROM shopcheckout x JOIN donhang o USING(DonHangID) JOIN thanhtoan p USING(ThanhToanID)
+      JOIN chitietdonhang c USING(DonHangID)
+      WHERE x.KhoID=? AND o.TrangThai='PENDING' AND p.TrangThai='PENDING' AND o.DonHangID<>?
+      GROUP BY c.SanPhamID`,[warehouse.KhoID,excludeOrderId]);
+    if (items.every(item => Number(stock.find(s=>s.SanPhamID===item.SanPhamID)?.SoLuongTon || 0)
+      - Number(reserved.find(s=>s.SanPhamID===item.SanPhamID)?.quantity || 0)>=item.SoLuong)) return warehouse.KhoID;
   }
   throw error(409,'Chưa có kho hoạt động nào đủ toàn bộ sản phẩm trong đơn. Vui lòng kiểm tra tồn thực tế hoặc điều chuyển hàng về cùng kho.');
 }
@@ -34,9 +42,9 @@ async function transaction(res, operation) {
   } catch (e) {
     if (!e.status) console.error('[shop-checkout]', e.code || e.name);
     if (connection) { try { await connection.rollback(); } catch (_) {} }
-    const migrationMissing = e.code === 'ER_NO_SUCH_TABLE';
+    const migrationMissing = ['ER_NO_SUCH_TABLE','ER_BAD_FIELD_ERROR','ER_NO_DEFAULT_FOR_FIELD'].includes(e.code);
     return res.status(e.status || 500).json({ message: e.status ? e.message : migrationMissing
-      ? 'Chưa cài đặt bảng thanh toán cửa hàng. Hãy chạy migration 003_shop_checkout.sql.'
+      ? 'Schema checkout chưa tương thích. Nhờ Admin kiểm tra migration 003 và 004_shop_checkout_warehouse.sql; không gửi lại đơn bằng khóa mới.'
       : 'Không xử lý được đơn hàng. Vui lòng thử lại; yêu cầu trùng sẽ không tạo thêm đơn.' });
   } finally { connection?.release(); }
 }
@@ -85,14 +93,30 @@ async function detail(connection, memberId, orderId) {
   const [items] = await connection.query(
     `SELECT c.SanPhamID, c.SoLuong, c.DonGia, c.ThanhTien, s.TenSanPham, s.DonViTinh, s.HinhAnh
      FROM chitietdonhang c JOIN sanpham s ON s.SanPhamID = c.SanPhamID WHERE c.DonHangID = ?`, [orderId]);
-  return { ...rows[0], items, demoEnabled: false, transfer: rows[0].PhuongThucThanhToan === 'CHUYEN_KHOAN' ? transferInfo(rows[0]) : null };
+  const order = rows[0];
+  let paymentBlockReason = null;
+  let transfer = null;
+  if (order.TrangThai==='PENDING' && order.TrangThaiThanhToan==='PENDING') {
+    if (order.PhuongThucThanhToan==='CHUYEN_KHOAN' && !transferInfo(order)) paymentBlockReason='Chưa cấu hình ngân hàng nhận tiền. Vui lòng liên hệ QA-Gym, không chuyển khoản cho đơn này.';
+    else {
+      // Recheck the assigned warehouse before offering payment; never move stock on a GET.
+      const [[link]]=await connection.query('SELECT KhoID FROM shopcheckout WHERE DonHangID=?',[orderId]);
+      try {
+        if (!items.length || !link?.KhoID || await stockWarehouse(connection,items,link.KhoID,orderId)!==link.KhoID)
+          paymentBlockReason='Kho của đơn chưa giữ đủ hàng. Vui lòng liên hệ nhân viên trước khi thanh toán.';
+      } catch(e) { if(e.status===409)paymentBlockReason=e.message;else throw e; }
+      if (!paymentBlockReason && order.PhuongThucThanhToan==='CHUYEN_KHOAN') transfer=transferInfo(order);
+    }
+  }
+  return { ...order, items, demoEnabled: false, transfer, paymentBlockReason };
 }
 
 exports.preview = (req, res) => transaction(res, async connection => {
   const customer = await member(connection, req.params.accountId);
   const data = await cart(connection, customer.HoiVienID);
   return { customer, items: data.items, subtotal: decimal(data.subtotal), shipping: decimal(data.shipping),
-    cartVersion: data.version, requestKey: randomUUID(), demoEnabled: demoEnabled() };
+    cartVersion: data.version, requestKey: randomUUID(), demoEnabled: demoEnabled(),
+    bankTransferAvailable: !!transferInfo({DonHangID:1,ThanhToanID:1,TongTien:decimal(data.subtotal + data.shipping)}) };
 });
 
 function input(body = {}) {
@@ -115,7 +139,7 @@ exports.create = (req, res) => transaction(res, async connection => {
   const data = input(req.body);
   const customer = await member(connection, req.params.accountId);
   const requestHash = hash(data);
-  const [previous] = await connection.query('SELECT DonHangID, RequestHash FROM shopcheckout WHERE HoiVienID = ? AND RequestKey = ?', [customer.HoiVienID, data.requestKey]);
+  const [previous] = await connection.query('SELECT DonHangID, RequestHash FROM shopcheckout WHERE HoiVienID = ? AND RequestKey = ? FOR UPDATE', [customer.HoiVienID, data.requestKey]);
   if (previous.length) {
     if (previous[0].RequestHash !== requestHash) throw error(409, 'Yêu cầu này đã được dùng cho đơn hàng khác.');
     return detail(connection, customer.HoiVienID, previous[0].DonHangID);
@@ -124,6 +148,8 @@ exports.create = (req, res) => transaction(res, async connection => {
   if (current.version !== data.cartVersion) throw error(409, 'Giỏ hàng hoặc giá đã thay đổi. Vui lòng tải lại và kiểm tra trước khi đặt hàng.');
   const shipping = data.delivery === 'DELIVERY' ? current.shipping : 0;
   const total = decimal(current.subtotal + shipping);
+  if (data.paymentMethod==='CHUYEN_KHOAN' && !transferInfo({DonHangID:1,ThanhToanID:1,TongTien:total}))
+    throw error(409,'Chưa cấu hình ngân hàng nhận tiền. Vui lòng chọn tiền mặt hoặc liên hệ QA-Gym; giỏ hàng được giữ nguyên.');
   const warehouseId = await stockWarehouse(connection,current.items,Number(process.env.SHOP_WAREHOUSE_ID || 1));
   const [order] = await connection.query(
     `INSERT INTO donhang (HoiVienID, TongTien, TrangThai, DiaChiGiaoHang, GhiChu)
@@ -180,7 +206,7 @@ async function confirm(connection, orderId, accountId) {
     if (money(order.SoTien)!==money(order.TongTien)) throw error(409,'Số tiền thanh toán không khớp đơn hàng.');
     const [items] = await connection.query('SELECT SanPhamID,SoLuong FROM chitietdonhang WHERE DonHangID=? ORDER BY SanPhamID FOR UPDATE',[order.DonHangID]);
     if (!items.length) throw error(409,'Đơn hàng không có sản phẩm.');
-    const warehouseId = await stockWarehouse(connection,items,order.KhoID);
+    const warehouseId = await stockWarehouse(connection,items,order.KhoID,order.DonHangID);
     if (warehouseId !== order.KhoID) await connection.query('UPDATE shopcheckout SET KhoID=? WHERE DonHangID=?',[warehouseId,order.DonHangID]);
     for (const item of items) {
       const [stock] = await connection.query('UPDATE tonkho SET SoLuongTon=SoLuongTon-? WHERE KhoID=? AND SanPhamID=? AND SoLuongTon>=?',[item.SoLuong,warehouseId,item.SanPhamID,item.SoLuong]);

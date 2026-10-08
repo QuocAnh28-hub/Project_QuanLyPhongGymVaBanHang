@@ -226,6 +226,32 @@ test('shop checkout persists consistent orders and invoices, handles retries and
       const again=await call('confirmManual',{}, {orderId:created.body.DonHangID},{},adminAuth);assert.equal(again.statusCode,200);
       const [[after]]=await connection.query('SELECT SoLuongTon FROM tonkho WHERE KhoID=? AND SanPhamID=?',[alternate.insertId,product.insertId]);assert.equal(after.SoLuongTon,8);
     });
+    await t.test('missing bank config blocks transfer creation but leaves the cart and allows cash',async()=>{
+      const oldBank=process.env.SHOP_BANK_ACCOUNT;
+      delete process.env.SHOP_BANK_ACCOUNT;
+      try {
+        await resetCart();const quote=await call('preview');assert.equal(quote.body.bankTransferAvailable,false);
+        const failed=await call('create',payload(quote.body));assert.equal(failed.statusCode,409);
+        const [[cartState]]=await connection.query('SELECT COUNT(*) n FROM chitietgiohang WHERE GioHangID=?',[cart.insertId]);assert.equal(cartState.n,1);
+        const cash=await call('create',{...payload(quote.body),paymentMethod:'TIEN_MAT'});assert.equal(cash.statusCode,200,JSON.stringify(cash.body));
+        await connection.query("UPDATE donhang SET TrangThai='CANCELLED' WHERE DonHangID=?",[cash.body.DonHangID]);
+      } finally { if(oldBank===undefined)delete process.env.SHOP_BANK_ACCOUNT;else process.env.SHOP_BANK_ACCOUNT=oldBank; }
+    });
+    await t.test('pending orders retain stock; cancellation releases it; existing QR blocks on external stock loss',async()=>{
+      await connection.query('UPDATE tonkho SET SoLuongTon=2 WHERE SanPhamID=?',[product.insertId]);
+      // Keep just the configured warehouse available for this fixture product.
+      await connection.query('UPDATE tonkho SET SoLuongTon=0 WHERE SanPhamID=? AND KhoID<>?',[product.insertId,warehouse.insertId]);
+      await resetCart();const quote=await call('preview');const created=await call('create',payload(quote.body));assert.equal(created.statusCode,200,JSON.stringify(created.body));
+      assert(created.body.transfer);assert.equal(created.body.paymentBlockReason,null);
+      await resetCart();const secondQuote=await call('preview');assert.equal((await call('create',payload(secondQuote.body))).statusCode,409);
+      const [[physical]]=await connection.query('SELECT SoLuongTon FROM tonkho WHERE KhoID=? AND SanPhamID=?',[warehouse.insertId,product.insertId]);assert.equal(physical.SoLuongTon,2);
+      await connection.query('UPDATE tonkho SET SoLuongTon=0 WHERE KhoID=? AND SanPhamID=?',[warehouse.insertId,product.insertId]);
+      const blocked=await call('get',{}, {orderId:created.body.DonHangID});assert.equal(blocked.body.transfer,null);assert(blocked.body.paymentBlockReason);
+      await connection.query('UPDATE tonkho SET SoLuongTon=2 WHERE KhoID=? AND SanPhamID=?',[warehouse.insertId,product.insertId]);
+      await connection.query("UPDATE donhang SET TrangThai='CANCELLED' WHERE DonHangID=?",[created.body.DonHangID]);
+      const cancelled=await call('get',{}, {orderId:created.body.DonHangID});assert.equal(cancelled.body.transfer,null);
+      assert.equal((await call('create',payload(secondQuote.body))).statusCode,200);
+    });
   } finally {
     await connection.rollback();
     connection.release();

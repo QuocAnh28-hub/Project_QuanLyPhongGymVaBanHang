@@ -9,6 +9,7 @@ export type CheckoutItem = {
   DonViTinh: string;
 };
 export type CheckoutPreview = {
+  bankTransferAvailable?: boolean;
   customer: {
     HoTen: string;
     SoDienThoai: string | null;
@@ -32,6 +33,7 @@ export type CheckoutInput = {
   paymentMethod: 'TIEN_MAT' | 'CHUYEN_KHOAN';
 };
 export type ShopOrder = {
+  paymentBlockReason?: string | null;
   transfer: { bankBin: string; accountNo: string; accountName: string; amount: string; content: string; qrPayload: string } | null;
   DonHangID: number;
   NgayDat: string;

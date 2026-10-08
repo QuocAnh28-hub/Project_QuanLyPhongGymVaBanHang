@@ -81,7 +81,7 @@ export default function OrderPaymentScreen() {
     }
   }
   const success = order?.TrangThaiThanhToan === 'SUCCESS';
-  const pending = order?.TrangThaiThanhToan === 'PENDING';
+  const pending = !error && order?.TrangThai === 'PENDING' && order?.TrangThaiThanhToan === 'PENDING';
   return (
     <ShopPage title="THANH TOÁN ĐƠN HÀNG">
       {loading && <ActivityIndicator color="#d9ff00" />}
@@ -96,8 +96,8 @@ export default function OrderPaymentScreen() {
           </Text>
           <Text style={s.muted}>
             {success
-              ? 'Đã ghi nhận thanh toán và lập hóa đơn. Đơn hàng đang được chuẩn bị.'
-              : 'Đơn hàng đã được lưu. Vui lòng hoàn tất thanh toán theo phương thức đã chọn.'}
+              ? `Đã ghi nhận thanh toán và lập hóa đơn. Đơn hàng: ${orderStatus[order.TrangThai] || order.TrangThai}.`
+              : pending ? 'Đơn hàng đã được lưu. Vui lòng hoàn tất thanh toán theo phương thức đã chọn.' : `Đơn hàng: ${orderStatus[order.TrangThai] || order.TrangThai}.`}
           </Text>
           <View style={s.card}>
             <ShopRow label="Mã đơn hàng" value={`#${order.DonHangID}`} />
@@ -139,6 +139,7 @@ export default function OrderPaymentScreen() {
             )}
           </View>
           {pending &&
+            !order.paymentBlockReason &&
             order.PhuongThucThanhToan === 'CHUYEN_KHOAN' && (
               <View style={s.card}>
                 <Text style={s.heading}>Chuyển khoản cho QA-Gym</Text>
@@ -168,7 +169,8 @@ export default function OrderPaymentScreen() {
                 </Text>
               </View>
             )}
-          {pending && order.PhuongThucThanhToan === 'TIEN_MAT' && (
+          {!!order.paymentBlockReason && <Text style={s.error}>{order.paymentBlockReason}</Text>}
+          {pending && !order.paymentBlockReason && order.PhuongThucThanhToan === 'TIEN_MAT' && (
             <Text style={s.text}>
               {order.CachNhan === 'PICKUP'
                 ? 'Thanh toán tại quầy QA-Gym và cung cấp mã đơn hàng.'
