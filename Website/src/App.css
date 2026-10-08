@@ -387,6 +387,39 @@
 }
 
 /* TrainerPages page styles. */
+.trainer-api-page .trainer-directory-table {
+  table-layout: fixed;
+  min-width: 1200px;
+}
+.trainer-api-page .trainer-directory-table th:first-child { width: auto; }
+.trainer-api-page .trainer-directory-table th,
+.trainer-api-page .trainer-directory-table td { padding: 14px 16px; }
+.trainer-api-page .trainer-directory-table td {
+  max-width: none;
+  overflow-wrap: normal;
+  line-height: 1.5;
+}
+.trainer-directory-table .trainer-identity { gap: 12px; }
+.trainer-directory-table .trainer-identity strong { font-weight: 600; }
+.trainer-directory-table .trainer-sub { margin-top: 4px; }
+.trainer-directory-table .trainer-email {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.trainer-api-page .trainer-directory-table th:nth-child(4),
+.trainer-api-page .trainer-directory-table td:nth-child(4) {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.trainer-directory-table td:nth-child(5) { white-space: nowrap; }
+.trainer-api-page .trainer-directory-table .catalog-row-actions { flex-wrap: nowrap; }
+.trainer-api-page .trainer-directory-table .catalog-row-actions button {
+  min-height: 34px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
 .trainer-api-page .catalog-stats {
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 }

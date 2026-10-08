@@ -206,7 +206,14 @@ export default function TrainerPages({
           )}
           <section className="catalog-table-card">
             <div className="catalog-table-scroll">
-              <table className="catalog-table">
+              <table className={`catalog-table${mode === 'trainers' ? ' trainer-directory-table' : ''}`}>
+                {mode === 'trainers' && (
+                  <colgroup>
+                    {[21, 24, 19, 10, 12, 14].map((width, index) => (
+                      <col key={index} style={{ width: `${width}%` }} />
+                    ))}
+                  </colgroup>
+                )}
                 <thead>
                   <tr>
                     {(mode === 'trainers'
@@ -254,7 +261,7 @@ export default function TrainerPages({
                         </td>
                         <td>
                           {t.SoDienThoai || '—'}
-                          <small className="trainer-sub">
+                          <small className="trainer-sub trainer-email" title={t.Email || undefined}>
                             {t.Email || 'Chưa có email'}
                           </small>
                         </td>
@@ -266,7 +273,7 @@ export default function TrainerPages({
                             <button
                               onClick={() => open({ kind: 'trainer', row: t })}
                             >
-                              Hồ sơ / Sửa
+                              Hồ sơ
                             </button>
                             <button
                               className="catalog-danger"
