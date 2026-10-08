@@ -1,7 +1,8 @@
-import { Image } from 'expo-image';
+import BackendImage from '@/components/backend-image';
+import QRCode from 'react-native-qrcode-svg';
 import * as Clipboard from 'expo-clipboard';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import {
   ShopButton,
@@ -12,7 +13,6 @@ import {
 import { DEFAULT_PRODUCT_IMAGE } from '@/constants/shop-image';
 import { useAuth } from '@/context/AuthContext';
 import {
-  confirmDemoOrder,
   getShopOrder,
   orderStatus,
   paymentStatus,
@@ -27,11 +27,9 @@ export default function OrderPaymentScreen() {
   const id = Number(orderId);
   const [order, setOrder] = useState<ShopOrder | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [reload, setReload] = useState(0);
-  const busy = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -69,23 +67,6 @@ export default function OrderPaymentScreen() {
     }, [accountId, id, reload])
   );
 
-  async function simulate() {
-    if (!accountId || busy.current) return;
-    busy.current = true;
-    setSaving(true);
-    setError('');
-    try {
-      await confirmDemoOrder(accountId, id);
-      setReload((n) => n + 1);
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : 'Không xác nhận được thanh toán.'
-      );
-    } finally {
-      busy.current = false;
-      setSaving(false);
-    }
-  }
   async function copy() {
     if (!order) return;
     try {
@@ -158,15 +139,16 @@ export default function OrderPaymentScreen() {
             )}
           </View>
           {pending &&
-            !order.demoEnabled &&
             order.PhuongThucThanhToan === 'CHUYEN_KHOAN' && (
               <View style={s.card}>
                 <Text style={s.heading}>Chuyển khoản cho QA-Gym</Text>
-                <Image
-                  source={require('../../assets/payment/techcombank-vietqr.png')}
-                  style={{ width: '100%', height: 370 }}
-                  contentFit="contain"
-                />
+                {order.transfer ? <>
+                  <View style={{ alignItems:'center',paddingVertical:12 }}>
+                    <QRCode value={order.transfer.qrPayload} size={240} backgroundColor="white" color="black" quietZone={12} />
+                  </View>
+                  <ShopRow label="Số tài khoản" value={order.transfer.accountNo} />
+                  <ShopRow label="Người nhận" value={order.transfer.accountName} />
+                </> : <Text style={s.error}>Chưa cấu hình tài khoản nhận tiền. Vui lòng liên hệ nhân viên QA-Gym trước khi chuyển khoản.</Text>}
                 <Text style={s.muted}>
                   Nhập đúng số tiền {formatPrice(Number(order.TongTien))} và nội
                   dung:
@@ -197,8 +179,9 @@ export default function OrderPaymentScreen() {
             <Text style={s.heading}>Chi tiết đơn hàng</Text>
             {order.items.map((item) => (
               <View key={item.SanPhamID} style={s.row}>
-                <Image
-                  source={DEFAULT_PRODUCT_IMAGE}
+                <BackendImage
+                  value={item.HinhAnh}
+                  fallback={DEFAULT_PRODUCT_IMAGE}
                   style={s.image}
                   contentFit="contain"
                 />
@@ -214,26 +197,12 @@ export default function OrderPaymentScreen() {
               </View>
             ))}
           </View>
-          {pending && order.demoEnabled && (
-            <View style={s.card}>
-              <Text style={s.muted}>
-                Demo bài tập — thao tác này chỉ mô phỏng đã thu tiền.
-              </Text>
-              <ShopButton
-                title={
-                  saving ? 'Đang xác nhận...' : 'Mô phỏng thanh toán thành công'
-                }
-                disabled={saving}
-                onPress={() => void simulate()}
-              />
-            </View>
-          )}
         </>
       )}
       <ShopButton
         title="Tải lại trạng thái"
         secondary
-        disabled={loading || saving}
+        disabled={loading}
         onPress={() => setReload((n) => n + 1)}
       />
       <ShopButton

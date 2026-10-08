@@ -1,6 +1,9 @@
 import { authenticatedFetch, baseUrl } from './account-api';
 
 export { request as shopRequest };
+export class ShopApiError extends Error {
+  constructor(message: string, public status: number) { super(message); }
+}
 
 export type ShopProduct = {
   SanPhamID: number;
@@ -40,9 +43,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       ...init,
       signal: controller.signal,
     });
-    const data = await response.json();
-    if (!response.ok)
-      throw new Error(data?.message || 'Không tải được dữ liệu cửa hàng.');
+    const data = await response.json().catch(() => {
+      if (response.ok) throw new Error('Phản hồi cửa hàng không hợp lệ. Vui lòng tải lại.');
+      return null;
+    });
+    if (!response.ok) {
+      const defaults: Record<number,string> = {
+        400: 'Thông tin đặt hàng không hợp lệ. Vui lòng kiểm tra lại.',
+        401: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+        403: 'Tài khoản không có quyền thực hiện thao tác này.',
+        409: 'Giỏ hàng hoặc đơn hàng đã thay đổi. Vui lòng kiểm tra lại.',
+        500: 'Máy chủ chưa xử lý được đơn hàng. Vui lòng thử lại.',
+      };
+      throw new ShopApiError(data?.message || defaults[response.status] || `Lỗi cửa hàng (HTTP ${response.status}).`, response.status);
+    }
+    if (data === null && !path.includes('/request/')) throw new Error('Phản hồi cửa hàng không hợp lệ. Vui lòng tải lại.');
     return data as T;
   } catch (error) {
     if (
@@ -50,7 +65,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       (error.name === 'AbortError' || error instanceof TypeError)
     ) {
       throw new Error(
-        'Không kết nối được cửa hàng. Vui lòng kiểm tra mạng và thử lại.'
+        'Không kết nối được cửa hàng. Kiểm tra mạng và thử lại; yêu cầu đặt hàng đã gửi sẽ được kiểm tra để tránh tạo trùng.'
       );
     }
     throw error;

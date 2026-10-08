@@ -235,7 +235,7 @@ export default function WarehousePages({ mode }: { mode: WarehouseMode }) {
                           <td>{productUnit(r.SanPhamID)}</td>
                           <td>{r.quantity}</td>
                           <td>{money(r.value)}</td>
-                          <td>Chưa có dữ liệu</td>
+                          <td>{r.available ?? 'Chưa có dữ liệu'}</td>
                         </tr>
                       ))
                     : visibleReceipts.map((r) => (

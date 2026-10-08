@@ -16,7 +16,7 @@ function api(responses) {
   const calls = [];
   const context = {
     exports: {},
-    require: () => ({ baseUrl: 'http://test:3000' }),
+    require: () => ({ baseUrl: 'http://test:3000', authenticatedFetch: (...args) => context.fetch(...args) }),
     AbortController,
     setTimeout,
     clearTimeout,
@@ -26,6 +26,7 @@ function api(responses) {
       assert.ok(response, `Unexpected API request: ${url}`);
       return {
         ok: response.status ? response.status < 400 : true,
+        status: response.status || 200,
         json: async () => response.data,
       };
     },

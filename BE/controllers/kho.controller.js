@@ -1,6 +1,13 @@
 const Kho = require('../models/kho.model');
+const db = require('../common/db');
 
 const KhoController = {
+  getStock: (_req,res) => {
+    db.query('SELECT KhoID,SanPhamID,SoLuongTon,NgayCapNhat FROM tonkho',(error,rows)=>{
+      if (error) return res.status(500).json({message:'Không tải được tồn kho thực tế.'});
+      res.json(rows);
+    });
+  },
 
   getAll: (req, res) => {
     Kho.getAll((err, result) => {

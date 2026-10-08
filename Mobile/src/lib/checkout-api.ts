@@ -1,6 +1,7 @@
 import { shopRequest } from './shop-api';
 
 export type CheckoutItem = {
+  HinhAnh: string | null;
   SanPhamID: number;
   TenSanPham: string;
   SoLuong: number;
@@ -31,6 +32,7 @@ export type CheckoutInput = {
   paymentMethod: 'TIEN_MAT' | 'CHUYEN_KHOAN';
 };
 export type ShopOrder = {
+  transfer: { bankBin: string; accountNo: string; accountName: string; amount: string; content: string; qrPayload: string } | null;
   DonHangID: number;
   NgayDat: string;
   TongTien: string | number;
@@ -81,9 +83,13 @@ export const findCheckoutOrder = (accountId: number, requestKey: string) =>
     `/donhang/account/${accountId}/request/${encodeURIComponent(requestKey)}`
   );
 export const getShopOrders = (accountId: number) =>
-  shopRequest<Omit<ShopOrder, 'items' | 'demoEnabled'>[]>(
+  shopRequest<Omit<ShopOrder, 'demoEnabled' | 'transfer'>[]>(
     `/donhang/account/${accountId}/orders`
   );
+export function latestPendingOrder(orders: Pick<ShopOrder, 'DonHangID' | 'TrangThai' | 'TrangThaiThanhToan'>[]) {
+  return orders.filter(order => order.TrangThai === 'PENDING' && order.TrangThaiThanhToan === 'PENDING')
+    .reduce<number | null>((latest, order) => latest === null || order.DonHangID > latest ? order.DonHangID : latest, null);
+}
 export const confirmDemoOrder = (accountId: number, orderId: number) =>
   shopRequest<ShopOrder>(
     `/donhang/account/${accountId}/orders/${orderId}/demo-confirm`,

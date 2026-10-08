@@ -1,16 +1,27 @@
-const { createHash, randomUUID, timingSafeEqual } = require('node:crypto');
+const { createHash, randomUUID } = require('node:crypto');
 const db = require('../common/db');
+const { transferInfo } = require('../common/shop-payment-qr');
 
 const error = (status, message) => Object.assign(new Error(message), { status });
 const id = value => /^\d+$/.test(String(value)) && Number.isSafeInteger(Number(value)) && Number(value) > 0;
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-const demoEnabled = () => process.env.SHOP_PAYMENT_MODE === 'demo' && process.env.NODE_ENV !== 'production';
+const demoEnabled = () => false;
 const money = value => {
   const cents = Math.round(Number(value) * 100);
   if (!Number.isSafeInteger(cents) || cents < 0) throw error(409, 'Giá sản phẩm không hợp lệ.');
   return cents;
 };
 const decimal = cents => (cents / 100).toFixed(2);
+
+async function stockWarehouse(connection, items, preferredId) {
+  const [warehouses] = await connection.query("SELECT KhoID FROM kho WHERE TrangThai='ACTIVE' ORDER BY KhoID FOR UPDATE");
+  const candidates = [...warehouses.filter(k => k.KhoID===preferredId), ...warehouses.filter(k => k.KhoID!==preferredId)];
+  for (const warehouse of candidates) {
+    const [stock] = await connection.query('SELECT SanPhamID,SoLuongTon FROM tonkho WHERE KhoID=? AND SanPhamID IN (?) ORDER BY SanPhamID FOR UPDATE',[warehouse.KhoID,items.map(item=>item.SanPhamID)]);
+    if (items.every(item => Number(stock.find(s=>s.SanPhamID===item.SanPhamID)?.SoLuongTon || 0)>=item.SoLuong)) return warehouse.KhoID;
+  }
+  throw error(409,'Chưa có kho hoạt động nào đủ toàn bộ sản phẩm trong đơn. Vui lòng kiểm tra tồn thực tế hoặc điều chuyển hàng về cùng kho.');
+}
 
 async function transaction(res, operation) {
   let connection;
@@ -21,6 +32,7 @@ async function transaction(res, operation) {
     await connection.commit();
     return res.json(result);
   } catch (e) {
+    if (!e.status) console.error('[shop-checkout]', e.code || e.name);
     if (connection) { try { await connection.rollback(); } catch (_) {} }
     const migrationMissing = e.code === 'ER_NO_SUCH_TABLE';
     return res.status(e.status || 500).json({ message: e.status ? e.message : migrationMissing
@@ -36,14 +48,14 @@ async function member(connection, accountId) {
   const [rows] = await connection.query(
     `SELECT h.HoiVienID, h.HoTen, h.SoDienThoai, h.DiaChi FROM hoivien h
      JOIN taikhoan t ON t.TaiKhoanID = h.TaiKhoanID
-     WHERE t.TaiKhoanID = ? AND t.TrangThai = 'ACTIVE' AND t.VaiTro = 'CUSTOMER' FOR UPDATE`, [Number(accountId)]);
+    WHERE t.TaiKhoanID = ? AND t.TrangThai = 'ACTIVE' AND t.VaiTro = 'CUSTOMER' AND h.TrangThai='ACTIVE' FOR UPDATE`, [Number(accountId)]);
   if (!rows.length) throw error(403, 'Không tìm thấy tài khoản hội viên đang hoạt động.');
   return rows[0];
 }
 
 async function cart(connection, memberId) {
   const [items] = await connection.query(
-    `SELECT c.SanPhamID, c.SoLuong, s.TenSanPham, s.GiaBan, s.DonViTinh,
+    `SELECT c.SanPhamID, c.SoLuong, s.TenSanPham, s.GiaBan, s.DonViTinh, s.HinhAnh,
             s.TrangThai, d.TrangThai AS DanhMucTrangThai, g.GioHangID
      FROM giohang g JOIN chitietgiohang c ON c.GioHangID = g.GioHangID
      JOIN sanpham s ON s.SanPhamID = c.SanPhamID JOIN danhmuc d ON d.DanhMucID = s.DanhMucID
@@ -71,9 +83,9 @@ async function detail(connection, memberId, orderId) {
   const [rows] = await connection.query(`${orderSql} WHERE o.DonHangID = ? AND o.HoiVienID = ?`, [orderId, memberId]);
   if (!rows.length) throw error(404, 'Không tìm thấy đơn hàng.');
   const [items] = await connection.query(
-    `SELECT c.SanPhamID, c.SoLuong, c.DonGia, c.ThanhTien, s.TenSanPham, s.DonViTinh
+    `SELECT c.SanPhamID, c.SoLuong, c.DonGia, c.ThanhTien, s.TenSanPham, s.DonViTinh, s.HinhAnh
      FROM chitietdonhang c JOIN sanpham s ON s.SanPhamID = c.SanPhamID WHERE c.DonHangID = ?`, [orderId]);
-  return { ...rows[0], items, demoEnabled: demoEnabled() };
+  return { ...rows[0], items, demoEnabled: false, transfer: rows[0].PhuongThucThanhToan === 'CHUYEN_KHOAN' ? transferInfo(rows[0]) : null };
 }
 
 exports.preview = (req, res) => transaction(res, async connection => {
@@ -112,6 +124,7 @@ exports.create = (req, res) => transaction(res, async connection => {
   if (current.version !== data.cartVersion) throw error(409, 'Giỏ hàng hoặc giá đã thay đổi. Vui lòng tải lại và kiểm tra trước khi đặt hàng.');
   const shipping = data.delivery === 'DELIVERY' ? current.shipping : 0;
   const total = decimal(current.subtotal + shipping);
+  const warehouseId = await stockWarehouse(connection,current.items,Number(process.env.SHOP_WAREHOUSE_ID || 1));
   const [order] = await connection.query(
     `INSERT INTO donhang (HoiVienID, TongTien, TrangThai, DiaChiGiaoHang, GhiChu)
      VALUES (?, ?, 'PENDING', ?, ?)`, [customer.HoiVienID, total, data.address || null, data.note || null]);
@@ -124,8 +137,8 @@ exports.create = (req, res) => transaction(res, async connection => {
     `INSERT INTO thanhtoan (HoiVienID, SoTien, PhuongThucThanhToan, NoiDung, TrangThai)
      VALUES (?, ?, ?, ?, 'PENDING')`, [customer.HoiVienID, total, data.paymentMethod, `Thanh toán đơn hàng #${order.insertId}`]);
   await connection.query(
-    `INSERT INTO shopcheckout (DonHangID, ThanhToanID, HoiVienID, RequestKey, RequestHash, TenNguoiNhan, SoDienThoai, CachNhan, PhiVanChuyen)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [order.insertId, payment.insertId, customer.HoiVienID, data.requestKey, requestHash, data.name, data.phone, data.delivery, decimal(shipping)]);
+    `INSERT INTO shopcheckout (DonHangID, ThanhToanID, HoiVienID, KhoID, RequestKey, RequestHash, TenNguoiNhan, SoDienThoai, CachNhan, PhiVanChuyen)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [order.insertId, payment.insertId, customer.HoiVienID, warehouseId, data.requestKey, requestHash, data.name, data.phone, data.delivery, decimal(shipping)]);
   // The cart becomes a pending order atomically. Later additions form a new cart
   // and are never deleted by a delayed payment confirmation.
   await connection.query('DELETE FROM chitietgiohang WHERE GioHangID = ?', [current.items[0].GioHangID]);
@@ -148,39 +161,47 @@ exports.byRequest = (req, res) => transaction(res, async connection => {
 exports.list = (req, res) => transaction(res, async connection => {
   const customer = await member(connection, req.params.accountId);
   const [orders] = await connection.query(`${orderSql} WHERE o.HoiVienID = ? ORDER BY o.DonHangID DESC`, [customer.HoiVienID]);
-  return orders;
+  const [items] = await connection.query(`SELECT c.DonHangID,c.SanPhamID,c.SoLuong,c.DonGia,c.ThanhTien,s.TenSanPham,s.DonViTinh,s.HinhAnh
+    FROM chitietdonhang c JOIN donhang o USING(DonHangID) JOIN shopcheckout x USING(DonHangID)
+    JOIN sanpham s ON s.SanPhamID=c.SanPhamID WHERE o.HoiVienID=? ORDER BY c.ChiTietDonHangID`,[customer.HoiVienID]);
+  return orders.map(order=>({...order,items:items.filter(item=>item.DonHangID===order.DonHangID)}));
 });
 
-async function confirm(connection, orderId, memberId) {
+async function confirm(connection, orderId, accountId) {
   if (!id(orderId)) throw error(400, 'Mã đơn hàng không hợp lệ.');
   const [rows] = await connection.query(
-    `SELECT o.DonHangID, o.HoiVienID, o.TrangThai, t.ThanhToanID, t.TrangThai AS PaymentStatus, t.SoTien
+    `SELECT o.DonHangID, o.HoiVienID, o.TrangThai, o.TongTien, x.KhoID, t.ThanhToanID, t.TrangThai AS PaymentStatus, t.SoTien
      FROM donhang o JOIN shopcheckout x ON x.DonHangID = o.DonHangID
      JOIN thanhtoan t ON t.ThanhToanID = x.ThanhToanID WHERE o.DonHangID = ? FOR UPDATE`, [Number(orderId)]);
   const order = rows[0];
-  if (!order || (memberId && order.HoiVienID !== memberId)) throw error(404, 'Không tìm thấy đơn hàng.');
+  if (!order) throw error(404, 'Không tìm thấy đơn hàng.');
   if (order.PaymentStatus !== 'SUCCESS') {
     if (order.PaymentStatus !== 'PENDING' || order.TrangThai !== 'PENDING') throw error(409, 'Đơn hàng không còn chờ thanh toán.');
-    await connection.query("UPDATE thanhtoan SET TrangThai = 'SUCCESS', NgayThanhToan = NOW() WHERE ThanhToanID = ?", [order.ThanhToanID]);
+    if (money(order.SoTien)!==money(order.TongTien)) throw error(409,'Số tiền thanh toán không khớp đơn hàng.');
+    const [items] = await connection.query('SELECT SanPhamID,SoLuong FROM chitietdonhang WHERE DonHangID=? ORDER BY SanPhamID FOR UPDATE',[order.DonHangID]);
+    if (!items.length) throw error(409,'Đơn hàng không có sản phẩm.');
+    const warehouseId = await stockWarehouse(connection,items,order.KhoID);
+    if (warehouseId !== order.KhoID) await connection.query('UPDATE shopcheckout SET KhoID=? WHERE DonHangID=?',[warehouseId,order.DonHangID]);
+    for (const item of items) {
+      const [stock] = await connection.query('UPDATE tonkho SET SoLuongTon=SoLuongTon-? WHERE KhoID=? AND SanPhamID=? AND SoLuongTon>=?',[item.SoLuong,warehouseId,item.SanPhamID,item.SoLuong]);
+      if (stock.affectedRows!==1) throw error(409,'Không đủ tồn kho để xác nhận đơn hàng. Vui lòng kiểm tra kho trước khi thu tiền.');
+    }
+    const [employees] = await connection.query("SELECT NhanVienID FROM nhanvien WHERE TaiKhoanID=? AND TrangThai='ACTIVE'",[accountId]);
+    const employee = employees[0]?.NhanVienID || null;
+    await connection.query("UPDATE thanhtoan SET TrangThai = 'SUCCESS', NhanVienID=?, NgayThanhToan = NOW() WHERE ThanhToanID = ?", [employee,order.ThanhToanID]);
     await connection.query("UPDATE donhang SET TrangThai = 'CONFIRMED' WHERE DonHangID = ?", [order.DonHangID]);
-    await connection.query("INSERT INTO hoadon (ThanhToanID, TongTien, TrangThai) VALUES (?, ?, 'ACTIVE')", [order.ThanhToanID, order.SoTien]);
+    await connection.query("INSERT INTO hoadon (ThanhToanID, NhanVienID, TongTien, TrangThai) VALUES (?, ?, ?, 'ACTIVE')", [order.ThanhToanID,employee, order.SoTien]);
   }
   return detail(connection, order.HoiVienID, order.DonHangID);
 }
 
 exports.confirmDemo = (req, res) => {
-  if (!demoEnabled()) return res.status(403).json({ message: 'Thanh toán mô phỏng chưa được bật.' });
-  return transaction(res, async connection => {
-    const customer = await member(connection, req.params.accountId);
-    return confirm(connection, req.params.orderId, customer.HoiVienID);
-  });
+  return res.status(403).json({ message: 'Thanh toán sản phẩm chỉ được xác nhận bởi nhân viên/Admin sau khi nhận tiền.' });
 };
 
 exports.confirmManual = (req, res) => {
-  const expected = process.env.SHOP_PAYMENT_CONFIRM_KEY;
-  const supplied = String(req.headers.authorization || '').replace(/^Bearer /, '');
-  if (!expected || Buffer.byteLength(supplied) !== Buffer.byteLength(expected) || !timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))) {
+  if (!['ADMIN','STAFF'].includes(req.auth?.VaiTro)) {
     return res.status(403).json({ message: 'Không có quyền xác nhận đã thu tiền.' });
   }
-  return transaction(res, connection => confirm(connection, req.params.orderId));
+  return transaction(res, connection => confirm(connection, req.params.orderId,req.auth.TaiKhoanID));
 };

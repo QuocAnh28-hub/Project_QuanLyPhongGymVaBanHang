@@ -10,6 +10,7 @@ import {
   type Member,
 } from '../services/members'
 import { dateKey } from '../services/trainers'
+import { confirmShopPayment } from '../services/admin-finance'
 import {
   deliveryPayload,
   loadOrderDetail,
@@ -298,6 +299,20 @@ function OrderDetail({
   )
   const terminal =
     order?.TrangThai === 'COMPLETED' || order?.TrangThai === 'CANCELLED'
+  async function confirmReceived() {
+    if (!order || !checkout || lock.current || terminal || checkout.TrangThaiThanhToan !== 'PENDING') return
+    if (!window.confirm(`Bạn đã nhận đủ ${money(Number(order.TongTien))} cho đơn #${id}? Chỉ xác nhận sau khi kiểm tra tiền thực nhận.`)) return
+    lock.current = true
+    setBusy(true)
+    setSaveError('')
+    try {
+      await confirmShopPayment(id)
+      reload()
+      onSaved()
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : 'Không xác nhận được thu tiền. Tải lại để kiểm tra trạng thái trước khi thử lại.')
+    } finally { lock.current = false; setBusy(false) }
+  }
   async function save(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault()
     if (!data || lock.current) return
@@ -487,6 +502,11 @@ function OrderDetail({
             </form>
           ) : (
             <div className="catalog-actions">
+              {checkout?.TrangThaiThanhToan === 'PENDING' && !terminal && (
+                <button className="catalog-primary" disabled={busy || !!action} onClick={() => void confirmReceived()}>
+                  {busy ? 'Đang xử lý…' : 'Xác nhận đã thu tiền'}
+                </button>
+              )}
               <button
                 disabled={terminal || busy || !!action}
                 onClick={() => {
@@ -496,7 +516,7 @@ function OrderDetail({
               >
                 Sửa giao nhận
               </button>
-              {nextStatuses(order.TrangThai).map((s) => (
+              {nextStatuses(order.TrangThai).filter(s => !(s === 'CONFIRMED' && checkout?.TrangThaiThanhToan === 'PENDING')).map((s) => (
                 <button
                   key={s}
                   disabled={
@@ -527,8 +547,7 @@ function OrderDetail({
           )}
           {checkout?.TrangThaiThanhToan === 'PENDING' && !terminal && (
             <p className="orders-sub">
-              Đơn checkout cần được xác nhận thu tiền qua luồng thanh toán trước
-              khi xử lý.
+              Kiểm tra tiền thực nhận, sau đó bấm “Xác nhận đã thu tiền”. Hệ thống sẽ lập hóa đơn và xác nhận đơn.
             </p>
           )}
           {checkout?.TrangThaiThanhToan === 'SUCCESS' && !terminal && (

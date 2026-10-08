@@ -135,13 +135,6 @@ export default function ProductsScreen() {
                 accessibilityLabel="Tìm sản phẩm"
               />
             </View>
-            <Pressable
-              style={styles.filterButton}
-              onPress={() => router.push('/cart')}
-              accessibilityLabel="Mở giỏ hàng"
-            >
-              <FontAwesome name="shopping-cart" size={20} color="#d9ff00" />
-            </Pressable>
           </View>
           <ScrollView
             horizontal
@@ -304,14 +297,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
   },
   searchInput: { flex: 1, color: '#e6ebe1', fontSize: 12, paddingVertical: 0 },
-  filterButton: {
-    width: 44,
-    height: 42,
-    borderRadius: 9,
-    backgroundColor: '#292d30',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   filterDot: {
     position: 'absolute',
     top: 8,

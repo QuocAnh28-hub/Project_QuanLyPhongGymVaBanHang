@@ -28,22 +28,24 @@ export const receiptLabel = (s: string) =>
     s
   ] || s
 export async function loadWarehouse(signal: AbortSignal) {
-  const [warehouses, receipts, lines, products, employees] = await Promise.all([
+  const [warehouses, receipts, lines, products, employees, inventory] = await Promise.all([
     catalogRequest<Warehouse[]>('kho', { signal }),
     catalogRequest<Receipt[]>('phieunhap', { signal }),
     catalogRequest<ReceiptLine[]>('chitietphieunhap', { signal }),
     catalogRequest<Product[]>('sanpham', { signal }),
     catalogRequest<Employee[]>('nhanvien', { signal }),
+    catalogRequest<{KhoID:number;SanPhamID:number;SoLuongTon:number}[]>('kho/stock',{signal}),
   ])
   if (![warehouses, receipts, lines, products, employees].every(Array.isArray))
     throw new Error('Dữ liệu kho không hợp lệ.')
-  return { warehouses, receipts, lines, products, employees }
+  if (!Array.isArray(inventory)) throw new Error('Dữ liệu tồn kho không hợp lệ.')
+  return { warehouses, receipts, lines, products, employees, inventory }
 }
 export type WarehouseData = Awaited<ReturnType<typeof loadWarehouse>>
 export function summarizeInbound(data: WarehouseData) {
   const rows = new Map<
     string,
-    { KhoID: number; SanPhamID: number; quantity: number; value: number }
+    { KhoID: number; SanPhamID: number; quantity: number; value: number; available?: number }
   >()
   const completed = new Map(
     data.receipts
@@ -63,6 +65,11 @@ export function summarizeInbound(data: WarehouseData) {
     row.quantity += Number(line.SoLuong)
     row.value += Number(line.ThanhTien)
     rows.set(key, row)
+  }
+  for (const item of data.inventory) {
+    const key=`${item.KhoID}:${item.SanPhamID}`
+    const row=rows.get(key)||{KhoID:Number(item.KhoID),SanPhamID:Number(item.SanPhamID),quantity:0,value:0}
+    rows.set(key,{...row,available:Number(item.SoLuongTon)})
   }
   return [...rows.values()]
 }

@@ -1,4 +1,4 @@
-import { Image } from 'expo-image';
+import BackendImage from '@/components/backend-image';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -20,7 +20,7 @@ import {
   type CheckoutPreview,
 } from '@/lib/checkout-api';
 import { readLocal, writeLocal } from '@/lib/local-store';
-import { formatPrice } from '@/lib/shop-api';
+import { formatPrice, ShopApiError } from '@/lib/shop-api';
 
 const emptyForm: Omit<CheckoutInput, 'requestKey' | 'cartVersion'> = {
   name: '',
@@ -71,6 +71,8 @@ export default function CheckoutScreen() {
               });
             return;
           }
+          // An absent order may still be an in-flight POST. Preserve key AND body.
+          setAttempt(draft);
         }
         const data = await getCheckout(accountId);
         if (!active()) return;
@@ -145,6 +147,20 @@ export default function CheckoutScreen() {
           params: { orderId: order.DonHangID },
         });
     } catch (e) {
+      if (e instanceof ShopApiError && [400,409].includes(e.status)) {
+        try {
+          const existing = await findCheckoutOrder(accountId,data.requestKey);
+          if (existing) {
+            await writeLocal(checkoutStorageKey(accountId),null);
+            if (version === generation.current) router.replace({pathname:'/order-payment',params:{orderId:existing.DonHangID}});
+            return;
+          }
+          await writeLocal(checkoutStorageKey(accountId),null);
+          if (version === generation.current) setAttempt(null);
+        } catch {
+          // Keep the saved request when recovery itself loses connectivity.
+        }
+      }
       if (version === generation.current)
         setError(e instanceof Error ? e.message : 'Không tạo được đơn hàng.');
     } finally {
@@ -202,12 +218,14 @@ export default function CheckoutScreen() {
                   onChangeText={(v) => field('phone', v)}
                 />
                 <ShopButton
+                  choice
                   title="Nhận tại QA-Gym"
                   secondary={form.delivery !== 'PICKUP'}
                   disabled={locked}
                   onPress={() => field('delivery', 'PICKUP')}
                 />
                 <ShopButton
+                  choice
                   title="Giao đến địa chỉ"
                   secondary={form.delivery !== 'DELIVERY'}
                   disabled={locked}
@@ -228,8 +246,9 @@ export default function CheckoutScreen() {
                 <Text style={s.heading}>Sản phẩm ({preview.items.length})</Text>
                 {preview.items.map((item) => (
                   <View style={s.row} key={item.SanPhamID}>
-                    <Image
-                      source={DEFAULT_PRODUCT_IMAGE}
+                    <BackendImage
+                      value={item.HinhAnh}
+                      fallback={DEFAULT_PRODUCT_IMAGE}
                       style={s.image}
                       contentFit="contain"
                     />
@@ -249,12 +268,14 @@ export default function CheckoutScreen() {
               <View style={s.card}>
                 <Text style={s.heading}>Phương thức thanh toán</Text>
                 <ShopButton
+                  choice
                   title="Chuyển khoản ngân hàng"
                   secondary={form.paymentMethod !== 'CHUYEN_KHOAN'}
                   disabled={locked}
                   onPress={() => field('paymentMethod', 'CHUYEN_KHOAN')}
                 />
                 <ShopButton
+                  choice
                   title={
                     form.delivery === 'PICKUP'
                       ? 'Tiền mặt tại quầy'
@@ -268,12 +289,6 @@ export default function CheckoutScreen() {
                   Đơn hàng được lưu trước. Trạng thái đã thanh toán được cập
                   nhật sau khi xác nhận đã thu tiền.
                 </Text>
-                {preview.demoEnabled && (
-                  <Text style={s.muted}>
-                    Chế độ demo: có thể mô phỏng thanh toán ở bước tiếp theo,
-                    không thu tiền thật.
-                  </Text>
-                )}
               </View>
               <ShopField
                 label="Ghi chú (không bắt buộc)"
@@ -307,7 +322,7 @@ export default function CheckoutScreen() {
                 disabled={saving}
                 onPress={() => void submit()}
               />
-              {!!attempt && (
+              {(!!attempt || !!error) && (
                 <ShopButton
                   title="Kiểm tra lại giỏ hàng / sửa thông tin"
                   secondary

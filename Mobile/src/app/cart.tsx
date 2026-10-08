@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
+import { checkoutStorageKey, getShopOrders, latestPendingOrder } from '@/lib/checkout-api';
+import { readLocal } from '@/lib/local-store';
 import {
   getCart,
   updateCart,
@@ -29,6 +31,9 @@ export default function CartScreen() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
+  // 0 means a persisted request needs recovery; positive IDs reopen existing orders.
+  const [resumeOrder, setResumeOrder] = useState<number | null>(null);
+  const [resumeError, setResumeError] = useState('');
   const busy = useRef(false);
   const generation = useRef(0);
   const [reload, setReload] = useState(0);
@@ -38,7 +43,20 @@ export default function CartScreen() {
       setItems([]);
       setError('');
       setNotice('');
+      setResumeOrder(null);
+      setResumeError('');
       setLoading(!!accountId);
+      if (accountId) {
+        void (async () => {
+          const saved = await readLocal(checkoutStorageKey(accountId));
+          if (version !== generation.current) return;
+          if (saved) { setResumeOrder(0); return; }
+          const orders = await getShopOrders(accountId);
+          if (version === generation.current) setResumeOrder(latestPendingOrder(orders));
+        })().catch(e => {
+          if (version === generation.current) setResumeError(e instanceof Error ? e.message : 'Không kiểm tra được đơn đang chờ thanh toán.');
+        });
+      }
       if (accountId)
         getCart(accountId)
           .then((data) => {
@@ -119,6 +137,21 @@ export default function CartScreen() {
             </Pressable>
             <Text style={styles.topBarTitle}>GIỎ HÀNG ({count})</Text>
           </View>
+          {resumeOrder !== null && (
+            <Pressable accessibilityRole="button" disabled={saving}
+              style={styles.resumePayment}
+              onPress={() => resumeOrder === 0 ? router.push('/checkout') : router.push({ pathname: '/order-payment', params: { orderId: resumeOrder } })}>
+              <FontAwesome name="credit-card" size={18} color="#d9ff00" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.resumeTitle}>Tiếp tục thanh toán{resumeOrder > 0 ? ` đơn #${resumeOrder}` : ''}</Text>
+                <Text style={styles.resumeSubtitle}>Mở lại thanh toán đang dang dở</Text>
+              </View>
+              <FontAwesome name="angle-right" size={22} color="#d9ff00" />
+            </Pressable>
+          )}
+          {!!resumeError && <Pressable disabled={saving} onPress={() => setReload(n => n + 1)}>
+            <Text style={styles.resumeSubtitle}>{resumeError} Bấm để kiểm tra lại.</Text>
+          </Pressable>}
           {!accountId ? (
             <Pressable onPress={() => router.push('/login')}>
               <Text style={styles.itemName}>Đăng nhập để xem giỏ hàng</Text>
@@ -264,6 +297,9 @@ export default function CartScreen() {
 }
 
 const styles = StyleSheet.create({
+  resumePayment: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, marginBottom: 14, borderRadius: 12, backgroundColor: '#202b1d', borderWidth: 1, borderColor: '#52682b' },
+  resumeTitle: { color: '#d9ff00', fontSize: 14, fontWeight: '700' },
+  resumeSubtitle: { color: '#a6b0a0', fontSize: 12, lineHeight: 18, marginTop: 3 },
   container: { flex: 1, minHeight: 0, backgroundColor: '#0f1213' },
   safeArea: {
     flex: 1,

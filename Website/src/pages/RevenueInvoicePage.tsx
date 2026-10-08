@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { PageTop } from '../components/CommerceUi'
 import { money } from '../data/admin-utils'
-import { getPayments, type Payment } from '../services/admin-finance'
+import { confirmShopPayment, getPayments, type Payment } from '../services/admin-finance'
 
 const statuses = ['', 'PENDING', 'SUCCESS', 'FAILED', 'CANCELLED'],
   methods = ['', 'TIEN_MAT', 'CHUYEN_KHOAN', 'THE']
@@ -9,6 +9,22 @@ const methodLabels: Record<string, string> = { TIEN_MAT: 'Tiền mặt', CHUYEN_
 const statusLabels: Record<string, string> = { PENDING: 'Chờ thanh toán', SUCCESS: 'Thành công', FAILED: 'Thất bại', CANCELLED: 'Đã hủy' }
 const typeLabels: Record<string, string> = { SHOP: 'Đơn hàng', PACKAGE: 'Gói tập', PT: 'Thuê PT', OTHER: 'Khác' }
 export default function RevenueInvoicePage() {
+  const [confirming, setConfirming] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
+  async function confirmReceived() {
+    if (!selected?.DonHangID || selected.Loai !== 'SHOP' || selected.TrangThai !== 'PENDING' || confirming) return
+    if (!window.confirm(`Bạn đã nhận đủ ${money(Number(selected.SoTien))} cho đơn #${selected.DonHangID}? Chỉ xác nhận sau khi kiểm tra tiền thực nhận.`)) return
+    setConfirming(true)
+    setPaymentError('')
+    try {
+      await confirmShopPayment(selected.DonHangID)
+      const rows = await getPayments()
+      setItems(rows)
+      setSelected(rows.find(row => row.ThanhToanID === selected.ThanhToanID))
+    } catch (e) {
+      setPaymentError(e instanceof Error ? e.message : 'Không xác nhận được thu tiền. Tải lại danh sách để kiểm tra trước khi thử lại.')
+    } finally { setConfirming(false) }
+  }
   const [items, setItems] = useState<Payment[]>([]),
     [selected, setSelected] = useState<Payment>(),
     [search, setSearch] = useState(''),
@@ -235,6 +251,12 @@ export default function RevenueInvoicePage() {
                   </div>
                 ))}
               </dl>
+              {selected.Loai === 'SHOP' && selected.DonHangID && selected.TrangThai === 'PENDING' && (
+                <button className="catalog-primary" disabled={confirming} onClick={() => void confirmReceived()}>
+                  {confirming ? 'Đang xác nhận…' : 'Xác nhận đã nhận tiền'}
+                </button>
+              )}
+              {paymentError && <p role="alert" className="catalog-error">{paymentError}</p>}
               <p>
                 Hệ thống chưa có dữ liệu VAT, MST, XML hoặc chữ ký số. Không hỗ
                 trợ hoàn tiền từ trang này.

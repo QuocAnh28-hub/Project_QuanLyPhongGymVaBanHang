@@ -235,7 +235,7 @@ Thanhtoan.confirmPackagePayment = (ThanhToanID, callback) => {
           WHERE d.HoiVienID=? AND d.DangKyID<>? AND d.TrangThai='ACTIVE'
             AND d.NgayBatDau<=CURDATE() AND d.NgayKetThuc>=CURDATE()`, [registration.HoiVienID, payment.DangKyID]);
       } else {
-        const [queue] = await query.query(`SELECT MAX(d.NgayKetThuc) MaxNgayKetThuc
+        const [queue] = await query.query(`SELECT DATE_FORMAT(MAX(d.NgayKetThuc),'%Y-%m-%d') MaxNgayKetThuc
           FROM dangkygoitap d INNER JOIN thanhtoan p ON p.DangKyID=d.DangKyID AND p.TrangThai='SUCCESS'
           WHERE d.HoiVienID=? AND d.DangKyID<>? AND d.TrangThai='ACTIVE' AND d.NgayKetThuc>=CURDATE()`, [registration.HoiVienID, payment.DangKyID]);
         if (queue[0].MaxNgayKetThuc) start = nextDay(queue[0].MaxNgayKetThuc);
