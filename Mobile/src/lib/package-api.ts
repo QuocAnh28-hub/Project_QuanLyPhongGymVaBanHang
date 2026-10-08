@@ -5,6 +5,19 @@ import type {
   PrivilegeCode,
 } from '@/lib/packages';
 import { getPackagePresentation } from '@/lib/packages';
+import type { Voucher } from '@/lib/package-logic';
+
+export async function getPackageVoucher(packageId:number,durationId:number,code:string):Promise<Voucher> {
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),15000);
+  try {
+    const response=await authenticatedFetch(`${baseUrl}/goitap/active/${packageId}/voucher?durationId=${durationId}&code=${encodeURIComponent(code.trim().toUpperCase())}`,{signal:controller.signal});
+    const data=await response.json().catch(()=>null);
+    if(!response.ok)throw new Error(data?.message||'Không kiểm tra được mã voucher. Vui lòng đăng nhập lại hoặc thử lại.');
+    if(!data||data.type!=='fixed'||!Number.isFinite(data.value)||data.value<=0||!data.code)throw new Error('Phản hồi voucher không hợp lệ.');
+    return data;
+  }catch(e){if(e instanceof Error&&(e.name==='AbortError'||e instanceof TypeError))throw new Error('Không kết nối được để kiểm tra voucher. Vui lòng thử lại.');throw e;}
+  finally{clearTimeout(timer);}
+}
 
 export type ApiPackage = {
   GoiTapID: number;

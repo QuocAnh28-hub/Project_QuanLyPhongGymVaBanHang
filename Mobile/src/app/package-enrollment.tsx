@@ -2,6 +2,7 @@ import { enrollmentGifts, homeClubs } from '@/constants/package-detail';
 import { type GymPackage } from '@/lib/packages';
 import {
   getActivePackageDetail,
+  getPackageVoucher,
   packageFromApiDetail,
 } from '@/lib/package-api';
 import {
@@ -20,7 +21,6 @@ import { useAuth } from '@/context/AuthContext';
 import { type PaymentMethod } from '@/lib/membership';
 import {
   calculatePrice,
-  findVoucher,
   formatVND,
   localDate,
   startOfDay,
@@ -138,6 +138,9 @@ export default function PackageEnrollmentScreen() {
   const [voucherCode, setVoucherCode] = useState('');
   const [appliedVoucher, setAppliedVoucher] = useState<Voucher | null>(null);
   const [voucherError, setVoucherError] = useState('');
+  const [checkingVoucher,setCheckingVoucher]=useState(false);
+  const voucherBusy=useRef(false);
+  const voucherVersion=useRef(0);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethod>('vietqr');
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -152,6 +155,8 @@ export default function PackageEnrollmentScreen() {
     if (!validPackageId) return;
 
     let active = true;
+    voucherVersion.current++;
+    setAppliedVoucher(null);
     getActivePackageDetail(packageId)
       .then((detail) => {
         if (!active) return;
@@ -171,6 +176,7 @@ export default function PackageEnrollmentScreen() {
 
     return () => {
       active = false;
+      voucherVersion.current++;
     };
   }, [packageId, validPackageId]);
 
@@ -235,20 +241,20 @@ export default function PackageEnrollmentScreen() {
     change('activationDate', localDate(date));
     setPicker(null);
   }
-  function applyVoucher() {
+  async function applyVoucher() {
+    if(voucherBusy.current||submitting.current)return;
+    const code=voucherCode.trim().toUpperCase();
+    if(!code){setVoucherError('Vui lòng nhập mã voucher.');return;}
+    if(!selectedOption.durationId){setVoucherError('Vui lòng chọn thời hạn gói tập.');return;}
     if (appliedVoucher?.code === voucherCode.trim().toUpperCase()) {
       setVoucherError('Mã này đã được áp dụng.');
       return;
     }
-    const result = findVoucher(
-      voucherCode,
-      calculatePrice(selectedOption).subtotal
-    );
-    setVoucherError(result.error);
-    if (result.voucher) {
-      setAppliedVoucher(result.voucher);
-      setVoucherCode(result.voucher.code);
-    }
+    const version=++voucherVersion.current;
+    voucherBusy.current=true;setCheckingVoucher(true);setVoucherError('');
+    try{const voucher=await getPackageVoucher(packageId,selectedOption.durationId,code);if(version===voucherVersion.current){setAppliedVoucher(voucher);setVoucherCode(voucher.code);}}
+    catch(e){if(version===voucherVersion.current){setAppliedVoucher(null);setVoucherError(e instanceof Error?e.message:'Không kiểm tra được mã.');}}
+    finally{voucherBusy.current=false;setCheckingVoucher(false);}
   }
   function chooseMode(mode: ActivationMode) {
     if (mode === 'QUEUE_AFTER_CURRENT') return setActivationMode(mode);
@@ -263,7 +269,7 @@ export default function PackageEnrollmentScreen() {
     }
   }
   async function submit() {
-    if (submitting.current) return;
+    if (submitting.current || voucherBusy.current) return;
     const next: Errors = validateMemberForm(form);
     if (!termsAccepted) next.terms = 'Bạn cần đồng ý điều khoản để tiếp tục.';
     if (Object.keys(next).length) {
@@ -488,17 +494,19 @@ export default function PackageEnrollmentScreen() {
             <View style={s.voucherRow}>
               <TextInput
                 style={[s.input, { flex: 1 }]}
-                value={voucherCode}
+                  value={voucherCode}
+                  editable={!checkingVoucher&&!isSubmitting}
                 onChangeText={(value) => {
-                  setVoucherCode(value.toUpperCase());
+                    setVoucherCode(value.toUpperCase());
+                    setAppliedVoucher(null);
                   setVoucherError('');
                 }}
                 placeholder="NHẬP MÃ"
                 placeholderTextColor={C.muted}
                 autoCapitalize="characters"
               />
-              <Pressable style={s.apply} onPress={applyVoucher}>
-                <Text style={s.primaryText}>ÁP DỤNG</Text>
+              <Pressable style={s.apply} disabled={checkingVoucher||isSubmitting} onPress={()=>void applyVoucher()}>
+                <Text style={s.primaryText}>{checkingVoucher?'ĐANG KIỂM TRA…':'ÁP DỤNG'}</Text>
               </Pressable>
             </View>
             {voucherError ? <Text style={s.error}>{voucherError}</Text> : null}
@@ -660,9 +668,9 @@ export default function PackageEnrollmentScreen() {
             </Text>
           </View>
           <Pressable
-            disabled={isSubmitting}
+            disabled={isSubmitting || checkingVoucher}
             onPress={submit}
-            style={[s.primary, s.submit, isSubmitting && s.disabled]}
+            style={[s.primary, s.submit, (isSubmitting || checkingVoucher) && s.disabled]}
           >
             <Text style={s.primaryText}>
               {isSubmitting ? 'ĐANG TẠO ĐƠN...' : 'TIẾN HÀNH THANH TOÁN'}
