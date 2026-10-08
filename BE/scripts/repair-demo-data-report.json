@@ -1,0 +1,59 @@
+{
+  "removedTestPackages": [
+    6,
+    12
+  ],
+  "removedRegistrations": [
+    7,
+    8,
+    10,
+    11,
+    12,
+    15,
+    16,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    9
+  ],
+  "removedPayments": [
+    6,
+    8,
+    9,
+    10,
+    11,
+    12,
+    14,
+    15,
+    21,
+    40,
+    41,
+    42,
+    43,
+    47,
+    48
+  ],
+  "removedTestBookings": [
+    4,
+    5
+  ],
+  "improvedMemberProfiles": 60,
+  "variedCheckIns": 325,
+  "variedOrders": 90,
+  "noTestPackages": "passed",
+  "validMembershipDates": "passed",
+  "membershipPaymentTotals": "passed",
+  "invoiceTotals": "passed",
+  "receiptTotals": "passed",
+  "orderTotals": "passed",
+  "noNegativeStock": "passed",
+  "validVisitDurations": "passed",
+  "noDoubleMembership": "passed",
+  "sqlFile": "C:\\Users\\Hoang\\Documents\\mobie da nen tang\\BTL\\Project_QuanLyPhongGymVaBanHang\\BE\\sql\\repair-realistic-data-20261008.sql",
+  "backupFile": "C:\\Users\\Hoang\\Documents\\mobie da nen tang\\BTL\\Project_QuanLyPhongGymVaBanHang\\BE\\backups\\before-data-repair-1791424018390.sql",
+  "statements": 860
+}

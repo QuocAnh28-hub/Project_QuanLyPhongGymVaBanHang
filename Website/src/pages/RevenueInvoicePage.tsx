@@ -5,6 +5,9 @@ import { getPayments, type Payment } from '../services/admin-finance'
 
 const statuses = ['', 'PENDING', 'SUCCESS', 'FAILED', 'CANCELLED'],
   methods = ['', 'TIEN_MAT', 'CHUYEN_KHOAN', 'THE']
+const methodLabels: Record<string, string> = { TIEN_MAT: 'Tiền mặt', CHUYEN_KHOAN: 'Chuyển khoản', THE: 'Thẻ' }
+const statusLabels: Record<string, string> = { PENDING: 'Chờ thanh toán', SUCCESS: 'Thành công', FAILED: 'Thất bại', CANCELLED: 'Đã hủy' }
+const typeLabels: Record<string, string> = { SHOP: 'Đơn hàng', PACKAGE: 'Gói tập', PT: 'Thuê PT', OTHER: 'Khác' }
 export default function RevenueInvoicePage() {
   const [items, setItems] = useState<Payment[]>([]),
     [selected, setSelected] = useState<Payment>(),
@@ -120,6 +123,9 @@ export default function RevenueInvoicePage() {
           </header>
           <div className="commerce-table-wrap">
             <table className="commerce-table finance-table">
+              <colgroup>
+                {[13, 18, 29, 13, 14, 13].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}
+              </colgroup>
               <thead>
                 <tr>
                   <th>MÃ / NGÀY</th>
@@ -138,11 +144,20 @@ export default function RevenueInvoicePage() {
                       selected?.ThanhToanID === x.ThanhToanID ? 'selected' : ''
                     }
                     onClick={() => setSelected(x)}
+                    tabIndex={0}
+                    aria-label={`Xem thanh toán TT-${x.ThanhToanID} của ${x.HoiVien}`}
+                    onKeyDown={event => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        setSelected(x)
+                      }
+                    }}
                   >
                     <td>
                       <b className="transaction-id">TT-{x.ThanhToanID}</b>
                       <small>
-                        {new Date(x.NgayThanhToan).toLocaleString('vi-VN')}
+                        <span>{new Date(x.NgayThanhToan).toLocaleDateString('vi-VN')}</span>
+                        <span className="finance-time">{new Date(x.NgayThanhToan).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
                       </small>
                     </td>
                     <td>
@@ -150,22 +165,22 @@ export default function RevenueInvoicePage() {
                       <small>HV-{x.HoiVienID}</small>
                     </td>
                     <td>
-                      {x.NoiDung || '—'}
-                      <small>{x.Loai}</small>
+                      <span className="finance-note" title={x.NoiDung || undefined}>{x.NoiDung || '—'}</span>
+                      <small>{typeLabels[x.Loai] || x.Loai}</small>
                     </td>
                     <td className="numeric amount-cell">
                       {money(Number(x.SoTien))}
                     </td>
                     <td>
                       <span className="method-chip">
-                        {x.PhuongThucThanhToan}
+                        {methodLabels[x.PhuongThucThanhToan] || x.PhuongThucThanhToan}
                       </span>
                     </td>
                     <td>
                       <span
                         className={`status-badge status-${x.TrangThai.toLowerCase()}`}
                       >
-                        {x.TrangThai}
+                        {statusLabels[x.TrangThai] || x.TrangThai}
                       </span>
                     </td>
                   </tr>
@@ -191,7 +206,7 @@ export default function RevenueInvoicePage() {
                 <span
                   className={`status-badge status-${selected.TrangThai.toLowerCase()}`}
                 >
-                  {selected.TrangThai}
+                  {statusLabels[selected.TrangThai] || selected.TrangThai}
                 </span>
               </div>
               <strong className="detail-amount">
@@ -201,8 +216,8 @@ export default function RevenueInvoicePage() {
                 {[
                   ['Hội viên', selected.HoiVien],
                   ['Nội dung', selected.NoiDung || '—'],
-                  ['Loại', selected.Loai],
-                  ['Phương thức', selected.PhuongThucThanhToan],
+                  ['Loại', typeLabels[selected.Loai] || selected.Loai],
+                  ['Phương thức', methodLabels[selected.PhuongThucThanhToan] || selected.PhuongThucThanhToan],
                   [
                     'Ngày thanh toán',
                     new Date(selected.NgayThanhToan).toLocaleString('vi-VN'),

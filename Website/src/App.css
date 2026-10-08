@@ -11077,19 +11077,24 @@ input[type='range'] {
 
 /* Payment list and detail keep long notes inside their own columns. */
 .finance-admin-page .finance-split > .commerce-card { min-width: 0; padding: 20px; }
-.finance-admin-page .finance-table { min-width: 1080px; table-layout: fixed; }
-.finance-admin-page .finance-table th:nth-child(1) { width: 12%; }
-.finance-admin-page .finance-table th:nth-child(2) { width: 15%; }
-.finance-admin-page .finance-table th:nth-child(3) { width: 31%; }
-.finance-admin-page .finance-table th:nth-child(4) { width: 16%; }
-.finance-admin-page .finance-table th:nth-child(5) { width: 14%; }
-.finance-admin-page .finance-table th:nth-child(6) { width: 12%; }
+.finance-admin-page .finance-split { grid-template-columns: minmax(0, 1fr) 320px; }
+.finance-admin-page .finance-table { min-width: 960px; table-layout: fixed; }
+.finance-admin-page .finance-table th { width: auto; }
 .finance-admin-page .finance-table th { padding: 14px 12px; font-size: 11px; text-align: left; }
-.finance-admin-page .finance-table td { height: auto; padding: 16px 12px; vertical-align: middle; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.finance-admin-page .finance-table td { height: auto; padding: 14px 12px; vertical-align: middle; font-size: 13px; line-height: 1.5; overflow-wrap: normal; }
 .finance-admin-page .finance-table td > b,
 .finance-admin-page .finance-table td > small { display: block; }
 .finance-admin-page .finance-table td > small { margin-top: 5px; color: var(--qa-muted); font-size: 11px; line-height: 1.5; }
 .finance-admin-page .finance-table .amount-cell { white-space: nowrap; }
+.finance-table td:first-child small > span { display: block; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.finance-table .finance-time { color: var(--qa-muted); }
+.finance-table .finance-note { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.finance-admin-page .finance-table .method-chip,
+.finance-admin-page .finance-table .status-badge { white-space: nowrap; padding: 5px 8px; letter-spacing: 0; }
+.finance-admin-page .finance-table tbody tr:focus-visible { outline: 2px solid var(--qa-primary); outline-offset: -2px; }
+@media (max-width: 1100px) {
+  .finance-admin-page .finance-split { grid-template-columns: minmax(0, 1fr); }
+}
 .finance-admin-page .finance-table .method-chip,
 .finance-admin-page .finance-table .status-badge { font-size: 10px; }
 .finance-admin-page .finance-table tbody tr { cursor: pointer; }
