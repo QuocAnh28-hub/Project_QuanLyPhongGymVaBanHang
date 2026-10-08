@@ -13,9 +13,9 @@ const expoHost = Constants.expoConfig?.hostUri?.split(':')[0];
 
 export const baseUrl = (
   process.env.EXPO_PUBLIC_API_URL ||
-  (Platform.OS === 'android'
-    ? `http://${expoHost || '10.0.2.2'}:3000`
-    : 'http://localhost:3000')
+  (Platform.OS === 'web'
+    ? 'http://localhost:3000'
+    : `http://${expoHost || (Platform.OS === 'android' ? '10.0.2.2' : 'localhost')}:3000`)
 ).replace(/\/$/, '');
 
 export async function authenticatedFetch(input: string, init: RequestInit = {}) {
