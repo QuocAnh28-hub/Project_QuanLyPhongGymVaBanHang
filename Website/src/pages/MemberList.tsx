@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import PersonAvatar from '../components/PersonAvatar'
 import {
   exportCsv,
   formatDate,
@@ -155,7 +156,7 @@ export default function MemberList({
                             className="member-profile member-profile-button"
                             onClick={() => onSelectMember(m)}
                           >
-                            <i>{m.HoTen?.slice(0, 1) || 'HV'}</i>
+                            <PersonAvatar name={m.HoTen} image={m.AnhDaiDien} />
                             <div>
                               <strong>{m.HoTen}</strong>
                               <small>{memberCode(m.HoiVienID)}</small>

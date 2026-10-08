@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import PersonAvatar from '../components/PersonAvatar'
 import { MetricCard, Modal } from '../components/AdminLayout'
 import { checkout, getTodayCheckIns, type CheckInRow } from '../services/checkins'
 import { resolveBackendImageUrl } from '../services/images'
@@ -159,7 +160,7 @@ export default function CheckInLivePage() {
         <div className="live-feed">
           {shown.map((x) => (
             <article key={x.CheckInID}>
-              <i>{x.HoTen[0]}</i>
+              <PersonAvatar name={x.HoTen} image={x.AnhDaiDien} />
               <div>
                 <h3>
                   {x.HoTen}{' '}

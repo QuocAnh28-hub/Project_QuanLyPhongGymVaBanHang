@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import PersonAvatar from '../components/PersonAvatar'
 import ImageInput from '../components/ImageInput'
 import { Modal } from '../components/AdminLayout'
 import { Pagination } from '../components/MemberUi'
@@ -243,8 +244,13 @@ export default function TrainerPages({
                     visibleTrainers.map((t) => (
                       <tr key={t.PTID}>
                         <td>
-                          <strong>{t.HoTen}</strong>
-                          <small className="trainer-sub">PT #{t.PTID}</small>
+                          <div className="trainer-identity">
+                            <PersonAvatar name={t.HoTen} image={t.AnhDaiDien} />
+                            <div>
+                              <strong>{t.HoTen}</strong>
+                              <small className="trainer-sub">PT #{t.PTID}</small>
+                            </div>
+                          </div>
                         </td>
                         <td>
                           {t.SoDienThoai || '—'}

@@ -5,6 +5,7 @@ export type Member = {
   HoiVienID: number
   TaiKhoanID: number | null
   HoTen: string
+  AnhDaiDien?: string | null
   SoDienThoai: string | null
   Email: string | null
   NgaySinh: string | null
