@@ -1,5 +1,6 @@
 // Fictional gym demo data. Preview: node scripts/seed-gym-expansion.js
 // Commit: node scripts/seed-gym-expansion.js --apply
+// Order/warehouse/invoice/check-in expansion: add --operations (batch 2026-10-08).
 const path = require('node:path');
 const fs = require('node:fs');
 const crypto = require('node:crypto');
@@ -8,8 +9,13 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const mysql = require('mysql2/promise');
 const { hashPassword } = require('../common/password');
 
-const batch = 'gym-expansion-20261007';
-const today = '2026-10-07';
+const operations = process.argv.includes('--operations');
+const batch = operations ? 'gym-operations-20261008' : 'gym-expansion-20261007';
+const today = operations ? '2026-10-08' : '2026-10-07';
+const memberCount = operations ? 120 : 80;
+const activeCount = operations ? 100 : 60;
+const orderCount = operations ? 240 : 120;
+const reportName = operations ? 'seed-gym-operations' : 'seed-gym-expansion';
 const apply = process.argv.includes('--apply');
 const date = (base, offset = 0) => {
   const d = new Date(`${base}T00:00:00Z`);
@@ -78,20 +84,20 @@ async function main() {
     };
     const notice = async (m, d, title, body, kind, action, payload) => add('thongbao', { TaiKhoanID: m.account, NgayTao: d, TieuDe: title, NoiDung: body, Loai: kind, DanhMuc: 'TRANSACTION', ActionType: action, ActionPayload: JSON.stringify(payload), NgayDoc: m.index % 3 ? time(d.slice(0, 10), '21:00:00') : null });
     const members = [];
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < memberCount; i++) {
       const female = i % 2 === 0;
-      const HoTen = `${surnames[Math.floor(i / 8)]} ${(female ? femaleNames : maleNames)[Math.floor(i / 2) % 8]}`;
+      const HoTen = `${surnames[Math.floor(i / 8) % surnames.length]} ${operations && i >= 80 ? (female ? 'Thị ' : 'Văn ') : ''}${(female ? femaleNames : maleNames)[Math.floor(i / 2) % 8]}`;
       const Email = `${batch}.member${String(i + 1).padStart(3, '0')}@example.com`;
       const signup = date('2026-06-15', i % 45);
       const account = await add('taikhoan', { Email, MatKhau: password, VaiTro: 'CUSTOMER', NgayTao: time(signup) });
-      const phone = `089761${String(i + 1000)}`;
+      const phone = `${operations ? '089763' : '089761'}${String(i + 1000)}`;
       const address = `${18 + (i * 7) % 180} ${streets[i % streets.length]}`;
       const height = female ? 154 + i % 17 : 166 + i % 19;
       const weight = Math.round(height * height / 10000 * (20 + i % 9) * 10) / 10;
       const id = await add('hoivien', { TaiKhoanID: account, HoTen, NgaySinh: `${1985 + i % 23}-${String(1 + i % 12).padStart(2, '0')}-${String(1 + i % 27).padStart(2, '0')}`, GioiTinh: female ? 'NU' : 'NAM', SoDienThoai: phone, Email, DiaChi: address, NgayDangKy: time(signup), ChieuCao: height, CanNang: weight, MucTieuTheHinh: ['Giảm mỡ, duy trì thói quen tập 3 buổi mỗi tuần', 'Tăng cơ, cải thiện sức mạnh thân trên', 'Duy trì vóc dáng và tăng sức bền', 'Cải thiện tư thế và độ linh hoạt'][i % 4] });
       const m = { id, account, index: i, name: HoTen, phone, address }; members.push(m);
       await add('caidatthongbao', { TaiKhoanID: account, PushEnabled: 1, SmsEnabled: 0, PromotionEnabled: i % 4 ? 1 : 0 });
-      const status = i < 60 ? 'ACTIVE' : i < 70 ? 'EXPIRED' : i < 75 ? 'PENDING' : 'CANCELLED';
+      const status = i < activeCount ? 'ACTIVE' : i < activeCount + 10 ? 'EXPIRED' : i < activeCount + 15 ? 'PENDING' : 'CANCELLED';
       const term = status === 'EXPIRED' ? monthly[i % monthly.length] : longer[i % longer.length];
       const start = status === 'EXPIRED' ? '2026-08-01' : status === 'PENDING' ? '2026-10-08' : date('2026-09-01', i % 15);
       const purchased = status === 'PENDING' ? '2026-10-06' : status === 'CANCELLED' ? '2026-08-30' : start;
@@ -114,7 +120,7 @@ async function main() {
         }
       }
     }
-    const category = await add('danhmuc', { TenDanhMuc: 'Phụ kiện và đồ uống tại quầy', MoTa: 'Các mặt hàng phục vụ hội viên trước, trong và sau buổi tập.' });
+    const category = await add('danhmuc', { TenDanhMuc: operations ? 'Phụ kiện tập luyện và dinh dưỡng tiện lợi' : 'Phụ kiện và đồ uống tại quầy', MoTa: 'Các mặt hàng phục vụ hội viên trước, trong và sau buổi tập.' });
     const catalog = [
       ['Bình nước thể thao 750ml', 145000, 'Cái', 35], ['Khăn tập microfiber 40x80cm', 85000, 'Cái', 50],
       ['Dây kháng lực mức nhẹ', 95000, 'Cái', 40], ['Dây kháng lực mức vừa', 115000, 'Cái', 40],
@@ -124,20 +130,40 @@ async function main() {
       ['Thanh protein vị cacao 60g', 45000, 'Thanh', 100], ['Sữa protein ít đường 250ml', 39000, 'Hộp', 90],
     ];
     const products = [];
-    for (const [name, price, unit, qty] of catalog) {
+    const variants = ['Bình nước thể thao 1000ml', 'Khăn tập microfiber 50x100cm', 'Dây kháng lực vòng mức nhẹ', 'Dây kháng lực vòng mức nặng', 'Dây nhảy có đếm số vòng', 'Băng quấn cổ tay bản 8cm', 'Bóng massage đôi', 'Thảm tập yoga TPE 8mm', 'Nước điện giải vị chanh 500ml', 'Nước khoáng 350ml tại quầy', 'Thanh protein vị đậu phộng 60g', 'Sữa protein vị cacao 250ml'];
+    const variantPrices = [175000, 105000, 85000, 145000, 165000, 185000, 110000, 350000, 25000, 8000, 45000, 39000];
+    for (const [index, item] of catalog.entries()) {
+      const [originalName, originalPrice, unit, qty] = item;
+      const name = operations ? variants[index] : originalName;
+      const price = operations ? variantPrices[index] : originalPrice;
       const id = await add('sanpham', { DanhMucID: category, TenSanPham: name, GiaBan: price, DonViTinh: unit, MoTa: `${name}, bán tại quầy phòng gym; phù hợp nhu cầu tập luyện hằng ngày.` });
       products.push({ id, price, qty, cost: Math.round(price * 0.62 / 1000) * 1000 });
+    }
+    if (operations) {
+      warehouses.length = 0;
+      for (const [TenKho, DiaChi, MoTa] of [
+        ['Kho phụ kiện bán tại quầy QA-Gym', 'Khu lưu hàng phía sau quầy lễ tân QA-Gym, Hà Nội', 'Lưu bình nước, khăn tập, dây kháng lực và dụng cụ nhỏ; tách khỏi thiết bị tập của phòng gym.'],
+        ['Kho đồ uống và dinh dưỡng QA-Gym', 'Khu bảo quản hàng đóng gói QA-Gym, Hà Nội', 'Bảo quản đồ uống và thanh protein theo hướng dẫn trên bao bì; xuất hàng theo hạn sử dụng.'],
+      ]) warehouses.push({ KhoID: await add('kho', { TenKho, DiaChi, MoTa }) });
     }
     for (let chunk = 0; chunk < 3; chunk++) {
       const goods = products.slice(chunk * 4, chunk * 4 + 4);
       const amount = goods.reduce((s, p) => s + p.qty * p.cost, 0);
-      const receipt = await add('phieunhap', { KhoID: warehouses[0].KhoID, NhanVienID: employee(chunk), NgayNhap: time('2026-09-15', '08:00:00'), TongTien: amount, GhiChu: `Bổ sung hàng bán tại quầy tháng 9; nhóm ${chunk + 1}.`, TrangThai: 'COMPLETED' });
+      const receipt = await add('phieunhap', { KhoID: warehouses[operations && chunk === 2 ? 1 : 0].KhoID, NhanVienID: employee(chunk), NgayNhap: time('2026-09-15', '08:00:00'), TongTien: amount, GhiChu: `Bổ sung hàng bán tại quầy tháng 9; nhóm ${chunk + 1}.`, TrangThai: 'COMPLETED' });
       for (const p of goods) await add('chitietphieunhap', { PhieuNhapID: receipt, SanPhamID: p.id, SoLuong: p.qty, DonGia: p.cost, ThanhTien: p.qty * p.cost });
     }
-    for (let i = 0; i < 120; i++) {
-      const m = members[i % 70];
-      const status = i < 102 ? 'COMPLETED' : ['PROCESSING', 'CONFIRMED', 'PENDING', 'CANCELLED'][i % 4];
-      const d = i < 102 ? date('2026-09-17', i % 18) : '2026-10-06';
+    if (operations) {
+      for (let chunk = 0; chunk < 3; chunk++) {
+        const goods = products.slice(chunk * 4, chunk * 4 + 4);
+        const receipt = await add('phieunhap', { KhoID: warehouses[chunk === 2 ? 1 : 0].KhoID, NhanVienID: employee(chunk), NgayNhap: time('2026-09-28', '08:30:00'), TongTien: goods.reduce((s, p) => s + p.qty * p.cost, 0), GhiChu: 'Nhập bổ sung cho nhu cầu mua hàng cuối tháng 9 và đầu tháng 10.', TrangThai: 'COMPLETED' });
+        for (const p of goods) await add('chitietphieunhap', { PhieuNhapID: receipt, SanPhamID: p.id, SoLuong: p.qty, DonGia: p.cost, ThanhTien: p.qty * p.cost });
+      }
+    }
+    for (let i = 0; i < orderCount; i++) {
+      const m = members[i % (activeCount + 10)];
+      const cutoff = operations ? 216 : 102;
+      const status = i < cutoff ? 'COMPLETED' : ['PROCESSING', 'CONFIRMED', 'PENDING', 'CANCELLED'][i % 4];
+      const d = i < cutoff ? date('2026-09-17', i % (operations ? 20 : 18)) : operations ? '2026-10-07' : '2026-10-06';
       const items = [{ p: products[i % 12], qty: i % 12 >= 8 ? 1 + i % 3 : 1 }];
       if (i % 3 === 0) items.push({ p: products[9], qty: 1 });
       // Combine repeated product lines (e.g. buying two bottles of water).
@@ -159,7 +185,7 @@ async function main() {
       ['Lê Quang Minh', 'NAM', '1990-11-08', 'Sức bền, cải thiện tư thế tập', 350000, 9],
       ['Phạm Thảo Nguyên', 'NU', '1994-02-12', 'Yoga, vận động linh hoạt', 300000, 6],
     ];
-    for (let t = 0; t < trainerProfiles.length; t++) {
+    for (let t = 0; t < (operations ? 0 : trainerProfiles.length); t++) {
       const [name, sex, birthday, specialty, price, experience] = trainerProfiles[t];
       const trainer = await add('pt', { HoTen: name, GioiTinh: sex, NgaySinh: birthday, ChuyenMon: specialty, GiaThue: price, KinhNghiem: `${experience} năm huấn luyện; đánh giá thể lực ban đầu và theo dõi tiến bộ định kỳ.`, Email: `${batch}.pt${t + 1}@example.com`, SoDienThoai: `089762100${t}` });
       for (let n = 0; n < 42; n++) {
@@ -196,10 +222,15 @@ async function main() {
     await verify('Orders and payment totals', `SELECT COUNT(*) n FROM shopcheckout s JOIN donhang d USING(DonHangID) JOIN thanhtoan p USING(ThanhToanID) WHERE s.RequestKey LIKE ? AND (s.HoiVienID<>d.HoiVienID OR p.HoiVienID<>d.HoiVienID OR d.TongTien<>p.SoTien OR d.TongTien<>(SELECT SUM(ThanhTien) FROM chitietdonhang c WHERE c.DonHangID=d.DonHangID)+s.PhiVanChuyen OR (d.TrangThai IN ('COMPLETED','PROCESSING','CONFIRMED') AND p.TrangThai<>'SUCCESS') OR (d.TrangThai='CANCELLED' AND p.TrangThai<>'CANCELLED'))`, [`${batch}%`]);
     await verify('Invoices match successful payments', `SELECT COUNT(*) n FROM thanhtoan p LEFT JOIN hoadon h USING(ThanhToanID) WHERE p.HoiVienID IN (?) AND ((p.TrangThai='SUCCESS' AND (h.HoaDonID IS NULL OR h.TongTien<>p.SoTien)) OR (p.TrangThai<>'SUCCESS' AND h.HoaDonID IS NOT NULL))`, [memberIds]);
     await verify('No negative stock for added products', `SELECT COUNT(*) n FROM sanpham s WHERE s.SanPhamID IN (?) AND COALESCE((SELECT SUM(c.SoLuong) FROM chitietphieunhap c JOIN phieunhap p USING(PhieuNhapID) WHERE c.SanPhamID=s.SanPhamID AND p.TrangThai='COMPLETED'),0)<COALESCE((SELECT SUM(c.SoLuong) FROM chitietdonhang c JOIN donhang d USING(DonHangID) WHERE c.SanPhamID=s.SanPhamID AND d.TrangThai IN ('COMPLETED','PROCESSING','CONFIRMED')),0)`, [ids.sanpham]);
-    await verify('PT booking chronology and membership', `SELECT COUNT(*) n FROM thuept b JOIN lichpt l USING(LichPTID) WHERE b.ThuePTID IN (?) AND (b.PTID<>l.PTID OR b.NgayDat>=TIMESTAMP(l.NgayLam,l.GioBatDau) OR (b.TrangThai='COMPLETED' AND l.NgayLam>=?) OR (b.TrangThai IN ('CONFIRMED','COMPLETED') AND l.TrangThai<>'BOOKED') OR NOT EXISTS (SELECT 1 FROM dangkygoitap d WHERE d.HoiVienID=b.HoiVienID AND d.TrangThai='ACTIVE' AND l.NgayLam BETWEEN d.NgayBatDau AND d.NgayKetThuc))`, [ids.thuept, today]);
+    if (ids.thuept) await verify('PT booking chronology and membership', `SELECT COUNT(*) n FROM thuept b JOIN lichpt l USING(LichPTID) WHERE b.ThuePTID IN (?) AND (b.PTID<>l.PTID OR b.NgayDat>=TIMESTAMP(l.NgayLam,l.GioBatDau) OR (b.TrangThai='COMPLETED' AND l.NgayLam>=?) OR (b.TrangThai IN ('CONFIRMED','COMPLETED') AND l.TrangThai<>'BOOKED') OR NOT EXISTS (SELECT 1 FROM dangkygoitap d WHERE d.HoiVienID=b.HoiVienID AND d.TrangThai='ACTIVE' AND l.NgayLam BETWEEN d.NgayBatDau AND d.NgayKetThuc))`, [ids.thuept, today]);
     await verify('No overlapping PT bookings for members', `SELECT COUNT(*) n FROM thuept a JOIN lichpt x ON x.LichPTID=a.LichPTID JOIN thuept b ON b.HoiVienID=a.HoiVienID AND b.ThuePTID>a.ThuePTID JOIN lichpt y ON y.LichPTID=b.LichPTID WHERE a.HoiVienID IN (?) AND a.TrangThai<>'CANCELLED' AND b.TrangThai<>'CANCELLED' AND x.NgayLam=y.NgayLam AND x.GioBatDau<y.GioKetThuc AND y.GioBatDau<x.GioKetThuc`, [memberIds]);
     await verify('Receipt totals', `SELECT COUNT(*) n FROM phieunhap p WHERE p.PhieuNhapID IN (?) AND p.TongTien<>(SELECT SUM(ThanhTien) FROM chitietphieunhap c WHERE c.PhieuNhapID=p.PhieuNhapID)`, [ids.phieunhap]);
     await verify('Order line arithmetic', 'SELECT COUNT(*) n FROM chitietdonhang WHERE DonHangID IN (?) AND (SoLuong<=0 OR ThanhTien<>SoLuong*DonGia)', [ids.donhang]);
+    await verify('Stock available before each sale', `SELECT COUNT(*) n FROM chitietdonhang x JOIN donhang d USING(DonHangID) WHERE x.DonHangID IN (?) AND d.TrangThai IN ('COMPLETED','PROCESSING','CONFIRMED') AND
+      COALESCE((SELECT SUM(c.SoLuong) FROM chitietphieunhap c JOIN phieunhap p USING(PhieuNhapID) WHERE c.SanPhamID=x.SanPhamID AND p.TrangThai='COMPLETED' AND p.NgayNhap<=d.NgayDat),0)<
+      COALESCE((SELECT SUM(c.SoLuong) FROM chitietdonhang c JOIN donhang o USING(DonHangID) WHERE c.SanPhamID=x.SanPhamID AND o.TrangThai IN ('COMPLETED','PROCESSING','CONFIRMED') AND (o.NgayDat<d.NgayDat OR (o.NgayDat=d.NgayDat AND o.DonHangID<=d.DonHangID))),0)`, [ids.donhang]);
+    await verify('No overlapping visits', `SELECT COUNT(*) n FROM checkin a JOIN checkin b ON a.HoiVienID=b.HoiVienID AND a.CheckInID<b.CheckInID WHERE a.HoiVienID IN (?) AND a.ThoiGianCheckIn<b.ThoiGianCheckOut AND b.ThoiGianCheckIn<a.ThoiGianCheckOut`, [memberIds]);
+    await verify('Receipt line arithmetic', 'SELECT COUNT(*) n FROM chitietphieunhap WHERE PhieuNhapID IN (?) AND (SoLuong<=0 OR ThanhTien<>SoLuong*DonGia)', [ids.phieunhap]);
     const summary = [];
     for (const [table, addedIds] of Object.entries(ids)) {
       const [[r]] = await c.query('SELECT COUNT(*) n FROM ??', [table]);
@@ -208,10 +239,10 @@ async function main() {
     }
     const report = { batch, database: process.env.DB_NAME, date: today, fictional: true, committed: apply, totalAdded: summary.reduce((s, t) => s + t.added, 0), summary, checks, ids, demoLogin: { email: `${batch}.member001@example.com`, password: 'GymDemo@2026' } };
     // Save the audit before committing so filesystem failure cannot hide a successful seed.
-    fs.writeFileSync(path.join(__dirname, apply ? 'seed-gym-expansion-report.json' : 'seed-gym-expansion-preview.json'), JSON.stringify({ ...report, committed: false }, null, 2));
+    fs.writeFileSync(path.join(__dirname, `${reportName}-${apply ? 'report' : 'preview'}.json`), JSON.stringify({ ...report, committed: false }, null, 2));
     if (apply) {
       await c.commit(); committed = true;
-      fs.writeFileSync(path.join(__dirname, 'seed-gym-expansion-report.json'), JSON.stringify(report, null, 2));
+      fs.writeFileSync(path.join(__dirname, `${reportName}-report.json`), JSON.stringify(report, null, 2));
     } else await c.rollback();
     console.log(JSON.stringify({ ...report, ids: undefined, demoLogin: undefined }, null, 2));
     console.log(apply ? 'Committed successfully.' : 'Preview passed; rolled back. Use --apply to save.');
