@@ -1,0 +1,17 @@
+[
+ {"name":"percentage","patch":{},"valid":true},
+ {"name":"fixed","patch":{"PhanTramGiam":0,"SoTienGiam":50000},"valid":true},
+ {"name":"both","patch":{"SoTienGiam":50000},"valid":false},
+ {"name":"zero","patch":{"PhanTramGiam":0},"valid":false},
+ {"name":"over percentage","patch":{"PhanTramGiam":101},"valid":false},
+ {"name":"negative amount","patch":{"PhanTramGiam":0,"SoTienGiam":-1},"valid":false},
+ {"name":"precision","patch":{"PhanTramGiam":10.123},"valid":false},
+ {"name":"bad number","patch":{"PhanTramGiam":"NaN"},"valid":false},
+ {"name":"overflow","patch":{"PhanTramGiam":0,"SoTienGiam":10000000000000},"valid":false},
+ {"name":"bad code","patch":{"MaKhuyenMai":"HAS SPACE"},"valid":false},
+ {"name":"blank name","patch":{"TenKhuyenMai":" "},"valid":false},
+ {"name":"invalid calendar","patch":{"NgayBatDau":"2026-02-31 00:00:00"},"valid":false},
+ {"name":"reversed period","patch":{"NgayBatDau":"2026-12-01 00:00:00"},"valid":false},
+ {"name":"bad stored status","patch":{"TrangThai":"UPCOMING"},"valid":false},
+ {"name":"same instant","patch":{"NgayKetThuc":"2026-10-01 00:00:00"},"valid":true}
+]

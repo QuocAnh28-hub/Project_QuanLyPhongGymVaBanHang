@@ -11140,6 +11140,30 @@ input[type='range'] {
 .finance-admin-page .payment-detail > p { margin: 16px 0 0; color: var(--qa-muted); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
 
 /* Promotion tables render outside module-content, so controls are scoped here. */
+.promotion-capabilities { margin: 0 0 18px; padding: 12px 16px; border: 1px solid var(--qa-border); border-radius: 10px; color: var(--qa-muted); background: var(--qa-surface); font-size: 12px; line-height: 1.7; }
+.promotion-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.promotion-filters input,.promotion-filters select,.promotion-filters button { min-height: 42px; padding: 10px 12px; border: 1px solid var(--qa-border); border-radius: 8px; background: var(--qa-surface-high); color: var(--qa-text); font: inherit; font-size: 12px; }
+.promotion-filters input { flex: 1; min-width: 200px; }
+.promotion-filters > * { box-sizing: border-box; max-width: 100%; }
+.promotion-filters button { flex-shrink: 0; cursor: pointer; white-space: nowrap; }
+.promotion-condition { display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.promotion-state-active { color: var(--mint); background: rgba(78,222,163,.1); }
+.promotion-state-upcoming { color: #b9d3ee; background: rgba(100,160,220,.12); }
+.promotion-state-expired,.promotion-state-stopped,.status-unverified { color: var(--qa-muted); background: var(--qa-surface-high); }
+.promotion-form .promotion-form-body { display: grid; grid-template-columns: 1fr; padding: 0; border: 0; min-width: 0; gap: 16px; }
+.promotion-form fieldset { min-width: 0; }
+.promotion-form .promotion-wide { grid-column: 1 / -1; }
+.promotion-form .promotion-help { margin: 0; color: var(--qa-muted); font-size: 12px; line-height: 1.7; align-self: center; }
+.promotion-form input,.promotion-form select,.promotion-form textarea { box-sizing: border-box; max-width: 100%; font-size: 13px; }
+.promotion-form textarea { width: 100%; padding: 12px; border: 1px solid var(--qa-border); border-radius: 8px; background: var(--qa-surface); color: var(--qa-text); font: inherit; }
+.promotion-stop { color: var(--qa-text); font-size: 14px; line-height: 1.7; }
+.promotion-form label { font-size: 12px; }
+.promotions-admin-page button:disabled,.promotion-form button:disabled { opacity: .55; cursor: default; }
+@media (max-width: 600px) {
+  .promotion-filters input,.promotion-filters select { flex: 1 1 100%; width: 100%; min-width: 0; }
+  .promotion-form .promotion-form-body > fieldset { grid-template-columns: 1fr; }
+  .promotions-admin-page .history-table { min-width: 800px; }
+}
 .promotions-admin-page .commerce-card {
   min-width: 0;
   padding: 20px;
@@ -11249,6 +11273,115 @@ input[type='range'] {
 
 .promotion-form .modal-actions button {
   min-width: 110px;
+}
+.promotions-admin-page .heading-actions button:not(.primary) {
+  border-color: var(--qa-border);
+  background: var(--qa-surface-high);
+  color: var(--qa-text);
+}
+.promotions-admin-page .member-pagination {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--qa-border);
+  font-size: 12px;
+}
+.promotions-admin-page .member-pagination > div { gap: 10px; flex-wrap: wrap; }
+.promotions-admin-page .member-pagination button {
+  width: auto;
+  height: auto;
+  min-height: 36px;
+  min-width: 76px;
+  padding: 8px 12px;
+  border: 1px solid var(--qa-border);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.promotions-admin-page .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(4px);
+}
+.promotions-admin-page .modal {
+  box-sizing: border-box;
+  width: min(760px,100%);
+  max-width: 100%;
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px;
+  border: 1px solid var(--qa-border);
+  border-radius: 16px;
+  background: var(--qa-surface);
+  color: var(--qa-text);
+  font: 400 14px/1.6 var(--font-body);
+  box-shadow: 0 24px 80px rgba(0,0,0,.5);
+}
+.promotions-admin-page .modal > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+.promotions-admin-page .modal > header h2 { min-width: 0; margin: 0; font: 700 22px/1.3 var(--font-heading); }
+.promotions-admin-page .modal > header button {
+  display: grid; place-items: center; flex: 0 0 38px; width: 38px; height: 38px;
+  padding: 0; border: 1px solid var(--qa-border); border-radius: 9px;
+  background: var(--qa-surface-high); color: var(--qa-text); font: 400 24px/1 var(--font-body); cursor: pointer;
+}
+.promotions-admin-page .promotion-form-body > fieldset { padding: 16px; gap: 14px; border-color: var(--qa-border); border-radius: 12px; }
+.promotions-admin-page .promotion-form legend { padding: 0 8px; color: var(--qa-primary); font: 600 12px/1.5 var(--font-heading); letter-spacing: 0; }
+.promotions-admin-page .promotion-form label { gap: 8px; color: var(--qa-muted); font: 500 13px/1.5 var(--font-body); }
+.promotions-admin-page .promotion-form input,.promotions-admin-page .promotion-form select,.promotions-admin-page .promotion-form textarea {
+  min-height: 44px; border-radius: 9px; background: var(--qa-surface-lowest); color: var(--qa-text); font: 400 14px/1.5 var(--font-body);
+}
+.promotions-admin-page .promotion-form .promotion-help { font-size: 12px; line-height: 1.7; }
+.promotions-admin-page .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--qa-border); }
+.promotions-admin-page .modal-actions button { min-height: 42px; padding: 10px 18px; }
+.promotion-form label { min-width: 0; }
+.promotion-form input,.promotion-form select,.promotion-form textarea {
+  min-width: 0;
+  color-scheme: dark;
+}
+.promotions-admin-page .modal-actions button {
+  border: 1px solid var(--qa-border);
+  color: var(--qa-text);
+  background: var(--qa-surface-high);
+  font: 600 13px/1.4 var(--font-body);
+  white-space: normal;
+}
+.promotions-admin-page .modal-actions button.primary {
+  border-color: var(--qa-primary);
+  color: var(--qa-primary-text);
+  background: var(--qa-primary);
+}
+.promotion-filters input:focus-visible,.promotion-filters select:focus-visible,
+.promotion-form input:focus-visible,.promotion-form select:focus-visible,.promotion-form textarea:focus-visible {
+  outline: 2px solid var(--qa-primary);
+  outline-offset: 2px;
+}
+.promotion-form label,.promotion-form legend { font-size: 12px; }
+.promotion-form input,.promotion-form select { font-size: 13px; }
+@media (max-width: 600px) {
+  .promotions-admin-page .modal-backdrop { padding: 12px; }
+  .promotions-admin-page .modal { padding: 18px 14px; max-height: calc(100dvh - 24px); border-radius: 12px; }
+  .promotions-admin-page .modal > header h2 { font-size: 20px; }
+  .promotions-admin-page .promotion-form-body > fieldset { padding: 12px; }
+  .promotions-admin-page .member-pagination > div { width: 100%; margin-left: 0; justify-content: space-between; }
+  .promotions-admin-page .modal-actions { display: flex; flex-wrap: wrap; }
+  .promotions-admin-page .modal-actions button { flex: 1 1 120px; min-width: 0; }
+  .promotion-form .promotion-form-body > fieldset { grid-template-columns: minmax(0,1fr); }
+  .promotions-admin-page .promotion-table { display: block; min-width: 0; width: 100%; }
+  .promotions-admin-page .promotion-table thead { display: none; }
+  .promotions-admin-page .promotion-table tbody { display: grid; gap: 12px; }
+  .promotions-admin-page .promotion-table tr { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); padding: 12px; border: 1px solid var(--qa-border); border-radius: 12px; background: var(--qa-surface); }
+  .promotions-admin-page .promotion-table td { display: block; padding: 8px; min-width: 0; border: 0; text-align: left !important; white-space: normal !important; }
+  .promotions-admin-page .promotion-table td:first-child,.promotions-admin-page .promotion-table td:last-child { grid-column: 1 / -1; }
+  .promotions-admin-page .promotion-table td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 5px; color: var(--qa-muted); font-size: 10px; font-weight: 500; }
+  .promotions-admin-page .promotion-table .row-actions { display: flex; gap: 8px; }
+  .promotions-admin-page .promotion-table .row-actions button { flex: 1; }
+  .promotions-admin-page .promotion-table .row-actions button + button { margin: 0; }
 }
 
 .reports-admin-page {

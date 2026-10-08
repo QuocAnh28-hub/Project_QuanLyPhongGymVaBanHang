@@ -369,7 +369,7 @@ Thanhtoan.getAll = (callback) => {
       callback(null, result);
     });
   });
-};
+  };
 
 Thanhtoan.insert = (thanhtoan, callback) => {
   const sqlString = "INSERT INTO `thanhtoan` SET ?";

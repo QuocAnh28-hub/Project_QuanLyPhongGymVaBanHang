@@ -23,6 +23,7 @@ export type Payment = {
   DonHangID: number | null
 }
 export type Promotion = {
+  TinhTrang: 'UPCOMING' | 'ACTIVE' | 'EXPIRED' | 'STOPPED'
   KhuyenMaiID: number
   MaKhuyenMai: string
   TenKhuyenMai: string
@@ -42,6 +43,8 @@ export type PromotionStats = {
   TongSoTienGiam: number | string
 }
 export type PromotionHistory = {
+  KhuyenMaiID: number
+  TinhTrangThanhToan: 'SUCCESS' | 'PENDING' | 'FAILED' | 'CANCELLED' | 'UNVERIFIED'
   ApDungKhuyenMaiID: number
   MaKhuyenMai: string
   TenKhuyenMai: string
