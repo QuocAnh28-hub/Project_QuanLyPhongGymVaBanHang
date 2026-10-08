@@ -43,6 +43,13 @@ Maqr.getMembers = (ids, callback) => {
   db.query("SELECT HoiVienID,HoTen,SoDienThoai FROM hoivien WHERE HoiVienID IN (?)", [ids], callback);
 };
 
+Maqr.cleanupExpired = (callback) => {
+  db.query("DELETE FROM maqr WHERE TrangThai='EXPIRED' OR NgayHetHan<=NOW()", (error, result) => {
+    if (error) return callback(error);
+    callback(null, { deleted: result.affectedRows });
+  });
+};
+
 Maqr.revoke = (id, callback) => {
   db.query("UPDATE maqr SET TrangThai='INACTIVE' WHERE MaQRID=? AND TrangThai='ACTIVE' AND (NgayHetHan IS NULL OR NgayHetHan>=NOW())", [id], (error, result) => {
     if (error) return callback(error);

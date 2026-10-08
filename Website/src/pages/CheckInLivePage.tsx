@@ -3,8 +3,10 @@ import PersonAvatar from '../components/PersonAvatar'
 import { MetricCard, Modal } from '../components/AdminLayout'
 import { checkout, getTodayCheckIns, type CheckInRow } from '../services/checkins'
 import { resolveBackendImageUrl } from '../services/images'
+import { matchesCheckIn } from '../services/checkin-search'
 
 export default function CheckInLivePage() {
+  const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
@@ -72,8 +74,8 @@ export default function CheckInLivePage() {
     }
   }
   const shown = useMemo(
-    () => rows.filter((row) => filter === 'all' || row.TrangThai === filter),
-    [rows, filter]
+    () => rows.filter((row) => (filter === 'all' || row.TrangThai === filter) && matchesCheckIn(row, search)),
+    [rows, filter, search]
   )
   const exportCsv = () => {
     const csv = [
@@ -154,6 +156,16 @@ export default function CheckInLivePage() {
               </button>
             ))}
           </div>
+        </div>
+        <div className="checkin-search">
+          <label htmlFor="checkin-member-search">Tìm hội viên để check-out</label>
+          <div className="checkin-search-controls">
+            <input id="checkin-member-search" type="search" value={search}
+              placeholder="Nhập tên, số điện thoại hoặc mã hội viên (VD: HV-62)…"
+              onChange={event => setSearch(event.target.value)} />
+            {search && <button type="button" onClick={() => setSearch('')}>Xóa tìm kiếm</button>}
+          </div>
+          <small role="status">{shown.length} lượt phù hợp · Chọn CHECK-OUT bên cạnh đúng hội viên.</small>
         </div>
         {loading && <div className="empty-state">Đang tải...</div>}
         {error && <div className="empty-state">{error}</div>}

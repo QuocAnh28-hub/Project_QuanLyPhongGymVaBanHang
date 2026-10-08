@@ -17,6 +17,13 @@ const mask = token => token.startsWith('v1.') ? `${token.slice(0, 10)}...${token
 
 const MaqrController = {
 
+  cleanupExpired: (_req, res) => {
+    Maqr.cleanupExpired((error, result) => {
+      if (error) return res.status(500).json({ message: 'Không thể dọn QR hết hạn' });
+      res.json({ message: `Đã xóa ${result.deleted} mã QR hết hạn.`, data: result });
+    });
+  },
+
   getAdmin: (_req, res) => {
     Maqr.getAdmin((err, rows) => {
       if (err) return res.status(500).json({ message: 'Không thể tải danh sách QR' });

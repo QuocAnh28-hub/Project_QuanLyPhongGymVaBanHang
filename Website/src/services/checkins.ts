@@ -62,6 +62,8 @@ export const getCheckInHistory = (params: URLSearchParams) =>
     pageSize: number
   }>(`/api/checkin/admin/history?${params}`)
 export const getQrRecords = () => request<QrRecord[]>('/api/maqr/admin')
+export const cleanupExpiredQr = () =>
+  request<{ message: string; data: { deleted: number } }>('/api/maqr/admin/expired', { method: 'DELETE' })
 export const issueQr = (TaiKhoanID: number) =>
   request<IssuedQr>('/api/checkin/token', {
     method: 'POST',

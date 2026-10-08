@@ -387,6 +387,32 @@
 }
 
 /* TrainerPages page styles. */
+.checkin-search { display: grid; gap: 8px; margin: 16px 0; }
+.checkin-search label { font-size: 13px; font-weight: 600; color: var(--qa-text); }
+.checkin-search-controls { display: flex; gap: 10px; }
+.checkin-search input {
+  flex: 1; min-width: 0; width: 100%; min-height: 46px; box-sizing: border-box;
+  padding: 12px 16px; border: 1px solid var(--qa-border); border-radius: 10px;
+  background: var(--qa-surface); color: var(--qa-text); font: inherit; font-size: 14px;
+}
+.checkin-search input:focus-visible { outline: 2px solid var(--qa-primary); outline-offset: 2px; }
+.checkin-search small { color: var(--qa-muted); font-size: 12px; }
+.checkin-search-controls button {
+  flex-shrink: 0;
+  min-height: 46px;
+  padding: 10px 16px;
+  border: 1px solid var(--qa-border);
+  border-radius: 10px;
+  background: var(--qa-surface-high);
+  color: var(--qa-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.checkin-search-controls button:hover { border-color: var(--qa-primary); color: var(--qa-primary); }
+.checkin-search-controls button:focus-visible { outline: 2px solid var(--qa-primary); outline-offset: 2px; }
+@media (max-width: 600px) { .checkin-search-controls { flex-wrap: wrap; } }
 .trainer-api-page .trainer-directory-table {
   table-layout: fixed;
   min-width: 1200px;

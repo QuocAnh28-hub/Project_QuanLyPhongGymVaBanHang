@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { MetricCard } from '../components/AdminLayout'
 import {
   getQrRecords,
+  cleanupExpiredQr,
   issueQr,
   revokeQr,
   searchMembers,
@@ -11,6 +12,7 @@ import {
 } from '../services/checkins'
 
 export default function CheckInQrPage() {
+  const [cleaning, setCleaning] = useState(false)
   const [rows, setRows] = useState<QrRecord[]>([]),
     [members, setMembers] = useState<MemberOption[]>([]),
     [selected, setSelected] = useState<MemberOption | null>(null),
@@ -79,6 +81,20 @@ export default function CheckInQrPage() {
       notify('Đã sao chép token')
     }
   }
+  const cleanup = async () => {
+    if (cleaning) return
+    setCleaning(true)
+    try {
+      const result = await cleanupExpiredQr()
+      if (issued && new Date(issued.expiresAt).getTime() <= Date.now()) setIssued(null)
+      await load()
+      notify(result.message)
+    } catch (e) {
+      notify(e instanceof Error ? e.message : 'Không thể dọn QR hết hạn')
+    } finally {
+      setCleaning(false)
+    }
+  }
   return (
     <div className="admin-page checkin-page qr-page">
       <div className="security-strip">
@@ -96,6 +112,11 @@ export default function CheckInQrPage() {
           <span className="online-badge">● MYSQL · SIGNED TOKEN</span>
         </div>
         <div className="heading-actions">
+          <button disabled={loading || busy || cleaning || !!error || !rows.some(row => row.TrangThai === 'EXPIRED')}
+            title="Xóa QR hết hạn, giữ nguyên lịch sử check-in"
+            onClick={() => void cleanup()}>
+            {cleaning ? 'Đang dọn QR…' : 'Dọn QR hết hạn'}
+          </button>
           <button onClick={() => void load()}>↻ LÀM MỚI</button>
         </div>
       </header>
