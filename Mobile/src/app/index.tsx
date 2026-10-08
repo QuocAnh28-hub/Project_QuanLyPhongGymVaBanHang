@@ -15,6 +15,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Header from '@/app/Common/header';
 import PendingPackageNotice from '@/components/pending-package-notice';
 import GymCrowdingCard from '@/components/gym-crowding';
+import GymEquipmentSection from '@/components/gym-equipment';
 
 const images = {
   hero: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=85',
@@ -180,6 +181,8 @@ export default function HomeScreen() {
               tag="YÊN TĨNH"
             />
           </ScrollView>
+
+          <GymEquipmentSection />
 
           <SectionTitle title="Lớp Group-X hôm nay" />
           <View style={styles.schedule}>

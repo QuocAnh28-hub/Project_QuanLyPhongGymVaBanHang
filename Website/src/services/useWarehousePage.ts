@@ -12,7 +12,7 @@ import {
   type ReceiptDraftLine,
 } from './warehouse'
 
-export type WarehouseMode = 'inbound' | 'inventory' | 'history'
+export type WarehouseMode = 'inbound' | 'inventory'
 type DraftLine = ReceiptDraftLine & { key: number }
 export function useWarehousePage(mode: WarehouseMode) {
   const { data, loading, error, reload } = useMemberData(loadWarehouse)

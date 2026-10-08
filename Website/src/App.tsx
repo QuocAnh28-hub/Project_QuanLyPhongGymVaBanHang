@@ -101,11 +101,10 @@ function App() {
     },
     'Đơn hàng': { tabs: [], pages: [<ShopOrdersPage key="orders" />] },
     'Kho hàng': {
-      tabs: ['Nhập kho', 'Tồn kho', 'Lịch sử kho'],
+      tabs: ['Nhập kho', 'Tồn kho'],
       pages: [
         <WarehousePages key="inbound" mode="inbound" />,
         <WarehousePages key="inventory" mode="inventory" />,
-        <WarehousePages key="audit" mode="history" />,
       ],
     },
     'Hóa đơn': { tabs: [], pages: [<RevenueInvoicePage key="vat" />] },

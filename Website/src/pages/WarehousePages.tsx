@@ -67,14 +67,10 @@ export default function WarehousePages({ mode }: { mode: WarehouseMode }) {
           <h1>
             {mode === 'inbound'
               ? 'Quản lý nhập kho'
-              : mode === 'inventory'
-                ? 'Tồn kho & tổng hợp nhập hàng'
-                : 'Lịch sử kho'}
+              : 'Tồn kho & tổng hợp nhập hàng'}
           </h1>
           <p>
-            {mode === 'history'
-              ? 'Tra cứu phiếu nhập đã ghi nhận và trạng thái hiện tại.'
-              : 'Theo dõi kho, sản phẩm và phiếu nhập hàng.'}
+            Theo dõi kho, sản phẩm và phiếu nhập hàng.
           </p>
         </div>
         <div className="catalog-actions">
@@ -100,12 +96,6 @@ export default function WarehousePages({ mode }: { mode: WarehouseMode }) {
           Chưa có số dư tồn thực tế hoặc dữ liệu xuất kho. Bảng dưới chỉ tổng
           hợp hàng từ phiếu đã nhập kho, chưa trừ xuất bán, điều chuyển hay kiểm
           kê.
-        </p>
-      )}
-      {mode === 'history' && (
-        <p className="catalog-notice">
-          Lịch sử hiện gồm các phiếu nhập và trạng thái hiện tại; chưa có nhật
-          ký xuất kho, điều chuyển hoặc thời điểm từng lần đổi trạng thái.
         </p>
       )}
       {notice && (
