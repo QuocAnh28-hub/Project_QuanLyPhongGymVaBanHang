@@ -90,6 +90,7 @@ const routes = [
   ['/khuyenmai', './routes/khuyenmai.route'],
   ['/lichpt', './routes/lichpt.route'],
   ['/maqr', './routes/maqr.route'],
+  ['/maytap', './routes/maytap.route'],
   ['/nhanvien', './routes/nhanvien.route'],
   ['/phieunhap', './routes/phieunhap.route'],
   ['/pt', './routes/pt.route'],
@@ -140,6 +141,7 @@ async function authorizeApi(req, res, next) {
   next();
 }
 function protectApi(req, res, next) {
+  if (req.baseUrl === '/maytap' && req.method === 'GET' && req.path === '/active') return next();
   if ((req.baseUrl === '/taikhoan' && req.path === '/register') || (req.baseUrl === '/checkin' && req.path === '/scan')) return next();
   requireAuth(req, res, error => error ? next(error) : Promise.resolve(authorizeApi(req, res, next)).catch(next));
 }

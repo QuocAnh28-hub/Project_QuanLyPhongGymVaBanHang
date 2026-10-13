@@ -31,6 +31,7 @@ test('image upload validation, authorization and static delivery', async () => {
       ['/pt/upload-image', 'pt', 'image/jpeg', 'photo.jpg', Buffer.from([255, 216, 255, 224])],
       ['/hoivien/5/upload-image', 'members', 'image/png', 'photo.png', Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])],
       ['/sanpham/upload-image', 'products', 'image/webp', 'photo.webp', Buffer.from('RIFF0000WEBP')],
+      ['/maytap/upload-image', 'equipment', 'image/png', 'machine.png', Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])],
     ]) {
       const response = await send(endpoint, bytes, type, filename);
       assert.equal(response.status, 200, await response.clone().text());

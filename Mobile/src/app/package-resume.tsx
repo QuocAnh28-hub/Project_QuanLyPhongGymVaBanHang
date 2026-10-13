@@ -83,7 +83,7 @@ export default function PackageResumeScreen() {
   </ScrollView></SafeAreaView>;
 }
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#111316' }, content: { padding: 20, paddingBottom: 40, gap: 16, width: '100%', maxWidth: 560, alignSelf: 'center' },
+  safe: { flex: 1, backgroundColor: '#111316' }, content: { padding: 20, paddingBottom: 26, gap: 16, width: '100%', maxWidth: 560, alignSelf: 'center' },
   back: { color: '#c3f400', paddingVertical: 8, fontWeight: '600' }, title: { color: '#e2e2e6', fontSize: 25, fontWeight: '800' },
   note: { color: '#aeb59e', fontSize: 13, lineHeight: 20 }, text: { color: '#e2e2e6', fontSize: 14 },
   card: { padding: 18, borderRadius: 12, borderWidth: 1, borderColor: '#343b36', backgroundColor: '#1a1c1f', gap: 12 },

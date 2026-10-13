@@ -5,6 +5,7 @@ export type Contract = {
   time: string
   member: string
   memberId: string
+  memberNumericId: number
   phone: string
   age: number
   cccd: string
@@ -60,6 +61,7 @@ export const getRegistrations = async (): Promise<Contract[]> =>
     time: r.NgayDangKy,
     member: r.HoTen,
     memberId: `HV-${r.HoiVienID}`,
+    memberNumericId: Number(r.HoiVienID),
     phone: r.SoDienThoai || '',
     age: 0,
     cccd: '—',

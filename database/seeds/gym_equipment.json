@@ -1,0 +1,162 @@
+[
+  {
+    "MaMay": "treadmill",
+    "TenMay": "Máy chạy bộ",
+    "NhomMay": "CARDIO",
+    "NhomCo": "Toàn thân · Sức bền",
+    "MoTa": "Đi bộ hoặc chạy với tốc độ và độ dốc tùy chỉnh, phù hợp cho khởi động và các buổi cardio.",
+    "HinhAnh": "/uploads/equipment/treadmill.jpg"
+  },
+  {
+    "MaMay": "exercise-bike",
+    "TenMay": "Xe đạp tập",
+    "NhomMay": "CARDIO",
+    "NhomCo": "Chân · Sức bền",
+    "MoTa": "Đạp xe tại chỗ với mức kháng lực điều chỉnh để luyện sức bền và vận động cơ chân.",
+    "HinhAnh": "/uploads/equipment/exercise-bike.jpg"
+  },
+  {
+    "MaMay": "chest-press",
+    "TenMay": "Máy đẩy ngực",
+    "NhomMay": "STRENGTH",
+    "NhomCo": "Ngực · Vai · Tay sau",
+    "MoTa": "Tập động tác đẩy theo đường dẫn của máy, dễ lựa chọn mức tạ phù hợp với buổi tập thân trên.",
+    "HinhAnh": "/uploads/equipment/chest-press.jpg"
+  },
+  {
+    "MaMay": "lat-pulldown",
+    "TenMay": "Máy kéo xô",
+    "NhomMay": "STRENGTH",
+    "NhomCo": "Lưng · Tay trước",
+    "MoTa": "Kéo thanh từ trên xuống để tập cơ lưng và tay trước, với mức tạ thay đổi theo khả năng.",
+    "HinhAnh": "/uploads/equipment/lat-pulldown.jpg"
+  },
+  {
+    "MaMay": "leg-press",
+    "TenMay": "Máy đạp chân",
+    "NhomMay": "STRENGTH",
+    "NhomCo": "Đùi · Mông",
+    "MoTa": "Đẩy bàn đạp bằng chân từ tư thế ngồi tựa lưng, dành cho các bài tập sức mạnh thân dưới.",
+    "HinhAnh": "/uploads/equipment/leg-press.jpg"
+  },
+  {
+    "MaMay": "cable-machine",
+    "TenMay": "Máy cáp đa năng",
+    "NhomMay": "MULTI",
+    "NhomCo": "Ngực · Lưng · Vai · Tay",
+    "MoTa": "Thay đổi tay cầm và vị trí dây cáp để thực hiện nhiều bài kéo, đẩy và tập tay trong một khu vực.",
+    "HinhAnh": "/uploads/equipment/cable-machine.jpg"
+  },
+  {
+    "MaMay": "elliptical",
+    "TenMay": "Máy trượt tuyết",
+    "NhomMay": "CARDIO",
+    "NhomCo": "Chân · Tay · Sức bền",
+    "MoTa": "Di chuyển chân theo quỹ đạo elip kết hợp tay cầm chuyển động để tập cardio toàn thân.",
+    "HinhAnh": "/uploads/equipment/elliptical.jpg"
+  },
+  {
+    "MaMay": "stair-climber",
+    "TenMay": "Máy leo cầu thang",
+    "NhomMay": "CARDIO",
+    "NhomCo": "Đùi · Mông · Sức bền",
+    "MoTa": "Mô phỏng bước lên cầu thang liên tục, điều chỉnh tốc độ để thay đổi cường độ buổi tập.",
+    "HinhAnh": "/uploads/equipment/stair-climber.jpg"
+  },
+  {
+    "MaMay": "rowing-machine",
+    "TenMay": "Máy chèo thuyền",
+    "NhomMay": "CARDIO",
+    "NhomCo": "Chân · Lưng · Tay",
+    "MoTa": "Kết hợp đẩy chân, ngả thân và kéo tay cầm trong động tác chèo để luyện sức bền toàn thân.",
+    "HinhAnh": "/uploads/equipment/rowing-machine.jpg"
+  },
+  {
+    "MaMay": "ski-erg",
+    "TenMay": "Máy kéo SkiErg",
+    "NhomMay": "CARDIO",
+    "NhomCo": "Tay · Lưng · Core",
+    "MoTa": "Kéo hai tay cầm từ trên xuống như động tác trượt tuyết, kết hợp thân người để tập sức bền.",
+    "HinhAnh": "/uploads/equipment/ski-erg.png"
+  },
+  {
+    "MaMay": "smith-machine",
+    "TenMay": "Máy Smith",
+    "NhomMay": "MULTI",
+    "NhomCo": "Chân · Mông · Ngực · Vai",
+    "MoTa": "Thanh tạ di chuyển trên ray dẫn hướng, dùng cho nhiều bài squat, đẩy ngực và đẩy vai.",
+    "HinhAnh": "/uploads/equipment/smith-machine.jpg"
+  },
+  {
+    "MaMay": "hack-squat",
+    "TenMay": "Máy Hack Squat",
+    "NhomMay": "STRENGTH",
+    "NhomCo": "Đùi trước · Mông",
+    "MoTa": "Tập squat với vai và lưng tựa vào đệm máy, di chuyển bàn trượt theo đường dẫn cố định.",
+    "HinhAnh": "/uploads/equipment/hack-squat.jpg"
+  },
+  {
+    "MaMay": "leg-extension",
+    "TenMay": "Máy duỗi đùi",
+    "NhomMay": "STRENGTH",
+    "NhomCo": "Đùi trước",
+    "MoTa": "Ngồi duỗi gối để nâng đệm chân, tập trung vào nhóm cơ đùi trước với mức tạ tùy chỉnh.",
+    "HinhAnh": "/uploads/equipment/leg-extension.jpg"
+  },
+  {
+    "MaMay": "leg-curl",
+    "TenMay": "Máy cuốn đùi sau",
+    "NhomMay": "STRENGTH",
+    "NhomCo": "Đùi sau",
+    "MoTa": "Gập gối để kéo đệm chân về phía cơ thể, bổ sung bài tập riêng cho nhóm cơ đùi sau.",
+    "HinhAnh": "/uploads/equipment/leg-curl.jpg"
+  },
+  {
+    "MaMay": "calf-raise",
+    "TenMay": "Máy nhón bắp chân",
+    "NhomMay": "STRENGTH",
+    "NhomCo": "Bắp chân",
+    "MoTa": "Nâng và hạ gót chân dưới tải trọng của máy để tập cơ bắp chân qua động tác nhón chân.",
+    "HinhAnh": "/uploads/equipment/calf-raise.jpg"
+  },
+  {
+    "MaMay": "hip-abductor",
+    "TenMay": "Máy mở đùi",
+    "NhomMay": "STRENGTH",
+    "NhomCo": "Mông · Hông ngoài",
+    "MoTa": "Ngồi đẩy hai đệm chân ra ngoài để tập nhóm cơ dạng hông và phần ngoài của cơ mông.",
+    "HinhAnh": "/uploads/equipment/hip-abductor.jpg"
+  },
+  {
+    "MaMay": "hip-adductor",
+    "TenMay": "Máy khép đùi",
+    "NhomMay": "STRENGTH",
+    "NhomCo": "Đùi trong",
+    "MoTa": "Khép hai chân vào giữa để di chuyển đệm máy, tập trung vào nhóm cơ phía trong đùi.",
+    "HinhAnh": "/uploads/equipment/hip-adductor.jpg"
+  },
+  {
+    "MaMay": "shoulder-press",
+    "TenMay": "Máy đẩy vai",
+    "NhomMay": "STRENGTH",
+    "NhomCo": "Vai · Tay sau",
+    "MoTa": "Ngồi đẩy tay cầm lên trên theo đường dẫn của máy để tập vai và hỗ trợ cơ tay sau.",
+    "HinhAnh": "/uploads/equipment/shoulder-press.jpg"
+  },
+  {
+    "MaMay": "pec-deck",
+    "TenMay": "Máy ép ngực",
+    "NhomMay": "STRENGTH",
+    "NhomCo": "Ngực",
+    "MoTa": "Khép hai tay cầm về phía trước cơ thể theo chuyển động vòng cung để tập nhóm cơ ngực.",
+    "HinhAnh": "/uploads/equipment/pec-deck.jpg"
+  },
+  {
+    "MaMay": "assisted-pull-up",
+    "TenMay": "Máy hỗ trợ hít xà",
+    "NhomMay": "MULTI",
+    "NhomCo": "Lưng · Tay · Ngực",
+    "MoTa": "Bệ trợ lực hỗ trợ động tác hít xà và dips; điều chỉnh mức hỗ trợ theo khả năng tập luyện.",
+    "HinhAnh": "/uploads/equipment/assisted-pull-up.jpg"
+  }
+]

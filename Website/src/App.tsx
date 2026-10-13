@@ -16,6 +16,7 @@ import Reports from './pages/Reports'
 import Employees from './pages/Employees'
 import PackagesPage from './pages/PackagesPage'
 import RegistrationsPage from './pages/RegistrationsPage'
+import EquipmentPage from './pages/EquipmentPage'
 import CheckInLivePage from './pages/CheckInLivePage'
 import CheckInHistoryPage from './pages/CheckInHistoryPage'
 import CheckInQrPage from './pages/CheckInQrPage'
@@ -66,6 +67,7 @@ function App() {
   }, [])
 
   const moduleViews: Record<string, { tabs: string[]; pages: ReactNode[] }> = {
+    'Máy tập': { tabs: [], pages: [<EquipmentPage key="equipment" />] },
     'Gói tập': {
       tabs: ['Danh sách gói tập', 'Quản lý đăng ký'],
       pages: [

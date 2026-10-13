@@ -16,6 +16,7 @@ const navigation: { group: string; items: NavigationItem[] }[] = [
       { label: 'Dashboard', icon: '▦' },
       { label: 'Hội viên', icon: '♙' },
       { label: 'Gói tập', icon: '◇' },
+      { label: 'Máy tập', icon: '⚒' },
       { label: 'Check-In', icon: '✓' },
       { label: 'Huấn luyện viên', icon: '♟' },
     ],

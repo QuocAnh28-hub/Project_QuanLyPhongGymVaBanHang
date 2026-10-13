@@ -568,7 +568,7 @@ const s = StyleSheet.create({
     maxWidth: 540,
     alignSelf: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 32,
+    paddingBottom: 26,
   },
   micro: {
     height: 62,

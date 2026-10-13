@@ -243,7 +243,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#101210' },
   safeArea: { flex: 1, width: '100%', maxWidth: 540, alignSelf: 'center' },
-  content: { paddingHorizontal: 16, paddingBottom: 120 },
+  content: { paddingHorizontal: 16, paddingBottom: 26 },
   checkInShortcut: {
     position: 'absolute',
     right: 16,

@@ -1,7 +1,7 @@
 import { catalogRequest } from './catalog'
 
 export function isImagePath(value: string) {
-  return /^https?:\/\//i.test(value) || /^\/uploads\/(?:pt|members|products)\/[a-zA-Z0-9_-]+\.(?:jpe?g|png|webp)$/i.test(value)
+  return /^https?:\/\//i.test(value) || /^\/uploads\/(?:pt|members|products|equipment)\/[a-zA-Z0-9_-]+\.(?:jpe?g|png|webp)$/i.test(value)
 }
 export function resolveBackendImageUrl(value: string | null | undefined) {
   if (!value || !isImagePath(value)) return undefined

@@ -73,6 +73,8 @@ export type Report = {
   topTrainers: { PTID: number; HoTen: string; rentals: number }[]
 }
 export const getPayments = () => request<Payment[]>('thanhtoan')
+export const confirmPackagePayment = (paymentId: number) =>
+  request<{ message: string }>(`thanhtoan/${paymentId}/confirm`, { method: 'POST' })
 export const confirmShopPayment = (orderId: number) =>
   request(`donhang/${orderId}/confirm-payment`, { method:'POST' })
 export const getPromotions = () => request<Promotion[]>('khuyenmai')

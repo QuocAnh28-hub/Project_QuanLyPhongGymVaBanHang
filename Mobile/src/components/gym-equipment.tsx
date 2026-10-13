@@ -1,16 +1,40 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { Image } from 'expo-image';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
-import { gymEquipment } from '@/constants/gym-equipment';
+import { equipmentImageUrl, getGymEquipment, type GymEquipment } from '@/lib/equipment-api';
 
 const categories = ['Tất cả', 'Cardio', 'Sức mạnh', 'Đa năng'] as const;
+const groups = {
+  CARDIO: { label: 'Cardio', icon: 'walk-outline', color: '#8cebd2' },
+  STRENGTH: { label: 'Sức mạnh', icon: 'barbell-outline', color: '#d9ff00' },
+  MULTI: { label: 'Đa năng', icon: 'body-outline', color: '#8fb7ff' },
+} as const;
 
 export default function GymEquipmentSection() {
   const { width } = useWindowDimensions();
   const cardWidth = Math.min(280, width - 64);
   const [category, setCategory] = useState<(typeof categories)[number]>('Tất cả');
-  const equipmentList = gymEquipment.filter(equipment => category === 'Tất cả' || equipment.category === category.toLocaleUpperCase('vi-VN'));
+  const [equipment, setEquipment] = useState<GymEquipment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [reload, setReload] = useState(0);
+  useFocusEffect(useCallback(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let active = true;
+    setLoading(true); setError('');
+    getGymEquipment(controller.signal)
+      .then(rows => { if (active) setEquipment(rows); })
+      .catch(() => { if (active) { setEquipment([]); setError('Chưa tải được máy tập. Vui lòng thử lại.'); } })
+      .finally(() => { clearTimeout(timeout); if (active) setLoading(false); });
+    return () => { active = false; clearTimeout(timeout); controller.abort(); };
+  // Reload intentionally restarts the request when the user taps "Thử lại".
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reload]));
+  const equipmentList = equipment.filter(item => category === 'Tất cả' || groups[item.NhomMay]?.label === category);
 
   return (
     <View style={styles.section}>
@@ -27,10 +51,15 @@ export default function GymEquipmentSection() {
             onPress={() => setCategory(item)}
             style={[styles.filter, item === category && styles.selectedFilter]}
           >
-            <Text style={[styles.filterText, item === category && styles.selectedFilterText]}>{item}{item === 'Tất cả' ? ` (${gymEquipment.length})` : ''}</Text>
+            <Text style={[styles.filterText, item === category && styles.selectedFilterText]}>
+              {item} ({item === 'Tất cả' ? equipment.length : equipment.filter(machine => groups[machine.NhomMay]?.label === item).length})
+            </Text>
           </Pressable>
         ))}
       </ScrollView>
+      {loading && <Text style={styles.state}>Đang tải máy tập…</Text>}
+      {!!error && <View style={styles.stateBox}><Text style={styles.state}>{error}</Text><Pressable accessibilityRole="button" onPress={() => setReload(value => value + 1)}><Text style={styles.retry}>Thử lại</Text></Pressable></View>}
+      {!loading && !error && !equipmentList.length && <Text style={styles.state}>Chưa có máy tập trong nhóm này.</Text>}
       <ScrollView
         key={category}
         horizontal
@@ -40,19 +69,23 @@ export default function GymEquipmentSection() {
         snapToAlignment="start"
         decelerationRate="fast"
       >
-        {equipmentList.map((equipment) => (
-          <View key={equipment.id} style={[styles.card, { width: cardWidth }]}>
+        {!loading && !error && equipmentList.map((item) => {
+          const appearance = groups[item.NhomMay] || groups.STRENGTH;
+          const image = equipmentImageUrl(item.HinhAnh);
+          return <View key={item.MayTapID} style={[styles.card, { width: cardWidth }]}>
+            {image && <Image source={{ uri: image }} style={styles.image} contentFit="contain" accessibilityLabel={item.TenMay} />}
             <View style={styles.cardHeading}>
-              <View style={[styles.icon, { backgroundColor: `${equipment.color}15` }]}>
-                <Ionicons name={equipment.icon} size={32} color={equipment.color} />
+              <View style={[styles.icon, { backgroundColor: `${appearance.color}15` }]}>
+                <Ionicons name={appearance.icon} size={32} color={appearance.color} />
               </View>
-              <Text style={[styles.category, { color: equipment.color }]}>{equipment.category}</Text>
+              <Text style={[styles.category, { color: appearance.color }]}>{appearance.label.toLocaleUpperCase('vi-VN')}</Text>
             </View>
-            <Text style={styles.name}>{equipment.name}</Text>
-            <Text style={[styles.muscles, { color: equipment.color }]}>{equipment.muscles}</Text>
-            <Text style={styles.description}>{equipment.description}</Text>
+            <Text style={styles.name}>{item.TenMay}</Text>
+            {!!item.NhomCo && <Text style={[styles.muscles, { color: appearance.color }]}>{item.NhomCo}</Text>}
+            <Text style={styles.description}>{item.MoTa}</Text>
+            <Text style={styles.metadata}>{item.SoLuong} máy{item.ViTri ? ` · ${item.ViTri}` : ''}</Text>
           </View>
-        ))}
+        })}
       </ScrollView>
       <View style={styles.tip}>
         <Ionicons name="information-circle-outline" size={18} color="#aeb59e" />
@@ -64,6 +97,11 @@ export default function GymEquipmentSection() {
 
 const styles = StyleSheet.create({
   section: { marginBottom: 24 },
+  image: { width: '100%', height: 140, borderRadius: 10, marginBottom: 14 },
+  metadata: { color: '#8f9b92', fontSize: 11, lineHeight: 17, marginTop: 14 },
+  state: { color: '#aeb59e', fontSize: 13, lineHeight: 20, paddingVertical: 12 },
+  stateBox: { marginBottom: 12 },
+  retry: { color: '#d9ff00', fontSize: 13, fontWeight: '700', paddingVertical: 8 },
   heading: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   title: { color: '#f2f6ea', fontSize: 16, fontWeight: '800' },
   hint: { color: '#c9ed00', fontSize: 11, fontWeight: '600' },

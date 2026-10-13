@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { PageTop } from '../components/CommerceUi'
 import { money } from '../data/admin-utils'
-import { confirmShopPayment, getPayments, type Payment } from '../services/admin-finance'
+import { confirmPackagePayment, confirmShopPayment, getPayments, type Payment } from '../services/admin-finance'
 
 const statuses = ['', 'PENDING', 'SUCCESS', 'FAILED', 'CANCELLED'],
   methods = ['', 'TIEN_MAT', 'CHUYEN_KHOAN', 'THE']
@@ -11,19 +11,37 @@ const typeLabels: Record<string, string> = { SHOP: 'Đơn hàng', PACKAGE: 'Gói
 export default function RevenueInvoicePage() {
   const [confirming, setConfirming] = useState(false)
   const [paymentError, setPaymentError] = useState('')
+  const [paymentNotice, setPaymentNotice] = useState('')
+  const paymentBusy = useRef(false)
   async function confirmReceived() {
-    if (!selected?.DonHangID || selected.Loai !== 'SHOP' || selected.TrangThai !== 'PENDING' || confirming) return
-    if (!window.confirm(`Bạn đã nhận đủ ${money(Number(selected.SoTien))} cho đơn #${selected.DonHangID}? Chỉ xác nhận sau khi kiểm tra tiền thực nhận.`)) return
+    if (!selected || !canConfirm || paymentBusy.current) return
+    const payment = selected
+    const reference = payment.Loai === 'PACKAGE' ? `đăng ký gói tập #${payment.DangKyID}` : `đơn hàng #${payment.DonHangID}`
+    if (!window.confirm(`Bạn đã nhận đủ ${money(Number(payment.SoTien))} cho ${reference}? Chỉ xác nhận sau khi kiểm tra tiền thực nhận.`)) return
+    paymentBusy.current = true
     setConfirming(true)
     setPaymentError('')
+    setPaymentNotice('')
     try {
-      await confirmShopPayment(selected.DonHangID)
-      const rows = await getPayments()
-      setItems(rows)
-      setSelected(rows.find(row => row.ThanhToanID === selected.ThanhToanID))
+      if (payment.Loai === 'PACKAGE') {
+        const result = await confirmPackagePayment(payment.ThanhToanID)
+        setPaymentNotice(result.message)
+      } else {
+        await confirmShopPayment(payment.DonHangID!)
+        setPaymentNotice('Đã xác nhận nhận tiền đơn hàng.')
+      }
+      setItems(current => current.map(row => row.ThanhToanID === payment.ThanhToanID ? { ...row, TrangThai: 'SUCCESS' } : row))
+      setSelected(current => current?.ThanhToanID === payment.ThanhToanID ? { ...current, TrangThai: 'SUCCESS' } : current)
+      try {
+        const rows = await getPayments()
+        setItems(rows)
+        setSelected(current => rows.find(row => row.ThanhToanID === current?.ThanhToanID))
+      } catch {
+        setPaymentError('Thanh toán đã được xác nhận nhưng chưa tải lại được biên nhận. Vui lòng tải lại trang để cập nhật dữ liệu.')
+      }
     } catch (e) {
       setPaymentError(e instanceof Error ? e.message : 'Không xác nhận được thu tiền. Tải lại danh sách để kiểm tra trước khi thử lại.')
-    } finally { setConfirming(false) }
+    } finally { paymentBusy.current = false; setConfirming(false) }
   }
   const [items, setItems] = useState<Payment[]>([]),
     [selected, setSelected] = useState<Payment>(),
@@ -33,6 +51,10 @@ export default function RevenueInvoicePage() {
     [from, setFrom] = useState(''),
     [to, setTo] = useState(''),
     [error, setError] = useState('')
+  const canConfirm = selected?.TrangThai === 'PENDING' && (
+    (selected.Loai === 'SHOP' && !!selected.DonHangID) ||
+    (selected.Loai === 'PACKAGE' && !!selected.DangKyID)
+  )
   useEffect(() => {
     getPayments()
       .then((rows) => {
@@ -159,13 +181,13 @@ export default function RevenueInvoicePage() {
                     className={
                       selected?.ThanhToanID === x.ThanhToanID ? 'selected' : ''
                     }
-                    onClick={() => setSelected(x)}
+                    onClick={() => { if (!confirming) { setSelected(x); setPaymentError(''); setPaymentNotice('') } }}
                     tabIndex={0}
                     aria-label={`Xem thanh toán TT-${x.ThanhToanID} của ${x.HoiVien}`}
                     onKeyDown={event => {
                       if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault()
-                        setSelected(x)
+                        if (!confirming) { setSelected(x); setPaymentError(''); setPaymentNotice('') }
                       }
                     }}
                   >
@@ -251,12 +273,14 @@ export default function RevenueInvoicePage() {
                   </div>
                 ))}
               </dl>
-              {selected.Loai === 'SHOP' && selected.DonHangID && selected.TrangThai === 'PENDING' && (
-                <button className="catalog-primary" disabled={confirming} onClick={() => void confirmReceived()}>
+              {canConfirm && (
+                <button className="payment-confirm-button" disabled={confirming} aria-busy={confirming} onClick={() => void confirmReceived()}>
+                  <span aria-hidden="true">{confirming ? '…' : '✓'}</span>
                   {confirming ? 'Đang xác nhận…' : 'Xác nhận đã nhận tiền'}
                 </button>
               )}
-              {paymentError && <p role="alert" className="catalog-error">{paymentError}</p>}
+              {paymentNotice && <p className="payment-feedback payment-feedback-success" role="status">{paymentNotice}</p>}
+              {paymentError && <p role="alert" className="payment-feedback payment-feedback-error">{paymentError}</p>}
               <p>
                 Hệ thống chưa có dữ liệu VAT, MST, XML hoặc chữ ký số. Không hỗ
                 trợ hoàn tiền từ trang này.

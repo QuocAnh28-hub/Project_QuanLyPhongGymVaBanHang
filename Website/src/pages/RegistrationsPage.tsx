@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import MemberDetail from './MemberDetail'
+import ActivityHistory from './ActivityHistory'
+import { getApi, useMemberData, type Member } from '../services/members'
 import { MetricCard } from '../components/AdminLayout'
 import { money } from '../data/admin-utils'
 import {
@@ -20,6 +23,8 @@ const statusFilters = [
 ]
 export default function RegistrationsPage() {
   const [contracts, setContracts] = useState<Contract[]>([])
+  const [profile, setProfile] = useState<Member | null>(null)
+  const [showHistory, setShowHistory] = useState(false)
   const [selected, setSelected] = useState(0)
   const [ids, setIds] = useState<number[]>([])
   const [loading, setLoading] = useState(true)
@@ -62,7 +67,7 @@ export default function RegistrationsPage() {
             c.status === filter ||
             (filter === 'SẮP HẾT HẠN' &&
               c.status === 'ACTIVE' &&
-              (c.daysLeft ?? 0) <= 30)) &&
+              c.daysLeft != null && c.daysLeft >= 0 && c.daysLeft <= 30)) &&
           (!search ||
             `${c.code} ${c.member} ${c.phone} ${c.coach}`
               .toLowerCase()
@@ -73,13 +78,20 @@ export default function RegistrationsPage() {
     [contracts, filter, search, branch, payment]
   )
   const pageRows = filtered.slice((page - 1) * 5, page * 5),
-    detail = contracts.find((c) => c.id === selected) || contracts[0]
+    detail = pageRows.find((c) => c.id === selected) || pageRows[0]
   const toggleAll = () =>
     setIds(
       pageRows.every((c) => ids.includes(c.id))
         ? ids.filter((id) => !pageRows.some((c) => c.id === id))
         : [...new Set([...ids, ...pageRows.map((c) => c.id)])]
     )
+  if (profile) {
+    return showHistory ? (
+      <ActivityHistory member={profile} onBack={() => setShowHistory(false)} />
+    ) : (
+      <MemberDetail member={profile} onBack={() => setProfile(null)} onActivityHistory={() => setShowHistory(true)} />
+    )
+  }
   return (
     <div className="admin-page registrations-page">
       <header className="page-heading">
@@ -127,7 +139,7 @@ export default function RegistrationsPage() {
         <MetricCard
           label="ĐÃ KÍCH HOẠT"
           value={String(contracts.filter((c) => c.status === 'ACTIVE').length)}
-          note={`${contracts.filter((c) => c.status === 'ACTIVE' && (c.daysLeft ?? 0) <= 30).length} gói sắp hết hạn`}
+          note={`${contracts.filter((c) => c.status === 'ACTIVE' && c.daysLeft != null && c.daysLeft >= 0 && c.daysLeft <= 30).length} gói sắp hết hạn`}
           tone="mint"
         />
         <MetricCard
@@ -156,7 +168,7 @@ export default function RegistrationsPage() {
                         c.status === s ||
                         (s === 'SẮP HẾT HẠN' &&
                           c.status === 'ACTIVE' &&
-                          (c.daysLeft ?? 0) <= 30)
+                          c.daysLeft != null && c.daysLeft >= 0 && c.daysLeft <= 30)
                     ).length}
               </small>
             </button>
@@ -325,7 +337,9 @@ export default function RegistrationsPage() {
         </section>
         {detail && (
           <ContractDetail
+            key={detail.id}
             contract={detail}
+            onMember={(member) => { setProfile(member); setShowHistory(false) }}
             confirming={confirmingPaymentId !== null}
             onConfirm={async () => {
               if (!detail.paymentId || paymentBusy.current) return
@@ -399,6 +413,7 @@ function ContractDetail({
   onRenew,
   onReject,
   onPdf,
+  onMember,
 }: {
   contract: Contract
   confirming: boolean
@@ -406,7 +421,14 @@ function ContractDetail({
   onRenew: () => void
   onReject: () => void
   onPdf: () => void
+  onMember: (member: Member) => void
 }) {
+  const loader = useCallback(
+    (signal: AbortSignal) => getApi<Member>(`hoivien/${c.memberNumericId}`, signal),
+    [c.memberNumericId]
+  )
+  const { data: member, loading, error, reload } = useMemberData(loader)
+  const phone = member?.SoDienThoai || c.phone
   return (
     <aside className="contract-detail">
       <header>
@@ -424,13 +446,24 @@ function ContractDetail({
       <div className="detail-member">
         <i>{c.member.charAt(0)}</i>
         <div>
-          <b>{c.member}</b>
+          <b>{member?.HoTen || c.member}</b>
           <small>
-            CCCD: {c.cccd} · {c.age} tuổi
+            {c.memberId}
           </small>
         </div>
-        <button>⌕</button>
+        <button type="button" title="Xem chi tiết hội viên" aria-label="Xem chi tiết hội viên" disabled={!member} onClick={() => member && onMember(member)}>⌕</button>
       </div>
+      <section className="renewal-contact" aria-label="Liên hệ hội viên để gia hạn">
+        <h3>Liên hệ đề xuất gia hạn</h3>
+        {loading && <p role="status">Đang tải thông tin hội viên...</p>}
+        {error && <p role="alert">{error} <button type="button" onClick={reload}>Thử lại</button></p>}
+        <dl>
+          <div><dt>Số điện thoại:</dt><dd>{phone ? <a href={`tel:${phone.replace(/[^+\d]/g, '')}`}>{phone}</a> : 'Chưa cập nhật'}</dd></div>
+          <div><dt>Email:</dt><dd>{member?.Email ? <a href={`mailto:${member.Email}?subject=${encodeURIComponent(`Tư vấn gia hạn ${c.packageName}`)}`}>{member.Email}</a> : 'Chưa cập nhật'}</dd></div>
+          <div><dt>Thời hạn còn lại:</dt><dd>{c.daysLeft != null ? (c.daysLeft >= 0 ? `${c.daysLeft} ngày` : `Đã hết hạn ${Math.abs(c.daysLeft)} ngày`) : 'Chưa cập nhật'}</dd></div>
+        </dl>
+        <button className="renewal-profile-button" type="button" disabled={!member} onClick={() => member && onMember(member)}>Xem chi tiết hội viên <span aria-hidden="true">↗</span></button>
+      </section>
       <dl>
         <div>
           <dt>Gói hội viên:</dt>
