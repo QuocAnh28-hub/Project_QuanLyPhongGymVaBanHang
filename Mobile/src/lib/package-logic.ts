@@ -120,7 +120,6 @@ export function validateMemberForm(
     phone: string;
     email: string;
     activationDate: string;
-    homeClubId: string;
   },
   today = new Date()
 ) {
@@ -138,7 +137,6 @@ export function validateMemberForm(
   max.setDate(max.getDate() + 30);
   if (!activation || activation < min || activation > max)
     errors.activationDate = 'Ngày kích hoạt phải nằm trong 30 ngày tới.';
-  if (!form.homeClubId) errors.homeClubId = 'Vui lòng chọn câu lạc bộ chính.';
   return errors;
 }
 export function addCalendarMonths(date: Date, months: number) {

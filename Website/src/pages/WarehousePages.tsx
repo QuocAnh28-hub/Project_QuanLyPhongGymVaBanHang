@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Modal } from '../components/AdminLayout'
 import { Pagination } from '../components/MemberUi'
 import { formatDate, money } from '../services/members'
@@ -8,6 +9,7 @@ import {
 } from '../services/useWarehousePage'
 
 export default function WarehousePages({ mode }: { mode: WarehouseMode }) {
+  const [receiptWarehouse, setReceiptWarehouse] = useState('')
   const {
     changeSearch,
     changeWarehouse,
@@ -59,6 +61,13 @@ export default function WarehousePages({ mode }: { mode: WarehouseMode }) {
     save,
     download,
   } = useWarehousePage(mode)
+  const selectedWarehouse = activeWarehouses.find(w => String(w.KhoID) === receiptWarehouse)
+  const receiptProducts = products.filter(p => {
+    if (!selectedWarehouse) return false
+    const name = p.TenSanPham.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase()
+    const food = /^(nuoc|thanh protein|sua protein|whey|creatine|bcaa|pre workout|protein)\b/.test(name)
+    return selectedWarehouse.TenKho === 'Kho thực phẩm' ? food : !food
+  })
   return (
     <div className="catalog-page warehouse-api-page member-api-page">
       <header className="catalog-heading">
@@ -84,7 +93,7 @@ export default function WarehousePages({ mode }: { mode: WarehouseMode }) {
             <button
               className="catalog-primary"
               disabled={loading || !!error}
-              onClick={openCreate}
+              onClick={() => { setReceiptWarehouse(''); openCreate() }}
             >
               ＋ Tạo phiếu nhập
             </button>
@@ -93,9 +102,8 @@ export default function WarehousePages({ mode }: { mode: WarehouseMode }) {
       </header>
       {mode === 'inventory' && (
         <p className="catalog-notice">
-          Chưa có số dư tồn thực tế hoặc dữ liệu xuất kho. Bảng dưới chỉ tổng
-          hợp hàng từ phiếu đã nhập kho, chưa trừ xuất bán, điều chuyển hay kiểm
-          kê.
+          Hàng được phân theo Kho đồ tập và Kho thực phẩm. Số tồn thực tế lấy
+          từ dữ liệu tồn kho; số lượng và giá trị nhập tổng hợp từ phiếu đã nhập.
         </p>
       )}
       {notice && (
@@ -362,7 +370,10 @@ export default function WarehousePages({ mode }: { mode: WarehouseMode }) {
             <fieldset disabled={busy}>
               <label>
                 Kho nhận *
-                <select name="warehouse" required defaultValue="">
+                <select name="warehouse" required value={receiptWarehouse} onChange={e => {
+                  setReceiptWarehouse(e.target.value)
+                  draft.forEach(l => changeLine(l.key, 'product', ''))
+                }}>
                   <option value="" disabled>
                     Chọn kho
                   </option>
@@ -393,15 +404,16 @@ export default function WarehousePages({ mode }: { mode: WarehouseMode }) {
                       Sản phẩm {i + 1}
                       <select
                         required
+                        disabled={!receiptWarehouse}
                         value={l.product}
                         onChange={(e) =>
                           changeLine(l.key, 'product', e.target.value)
                         }
                       >
                         <option value="" disabled>
-                          Chọn sản phẩm
+                          {receiptWarehouse ? 'Chọn sản phẩm' : 'Chọn kho trước'}
                         </option>
-                        {products.map((p) => (
+                        {receiptProducts.map((p) => (
                           <option key={p.SanPhamID} value={p.SanPhamID}>
                             {p.TenSanPham}
                           </option>

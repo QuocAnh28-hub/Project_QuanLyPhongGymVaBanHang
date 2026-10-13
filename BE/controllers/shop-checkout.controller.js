@@ -14,7 +14,27 @@ const money = value => {
 const decimal = cents => (cents / 100).toFixed(2);
 
 async function stockWarehouse(connection, items, preferredId, excludeOrderId = 0) {
-  const [warehouses] = await connection.query("SELECT KhoID FROM kho WHERE TrangThai='ACTIVE' ORDER BY KhoID FOR UPDATE");
+  const [warehouses] = await connection.query("SELECT KhoID,TenKho FROM kho WHERE TrangThai='ACTIVE' ORDER BY KhoID FOR UPDATE");
+  if (warehouses.length === 2 && warehouses.some(w => w.TenKho === 'Kho đồ tập') && warehouses.some(w => w.TenKho === 'Kho thực phẩm')) {
+    const [stock] = await connection.query('SELECT KhoID,SanPhamID,SoLuongTon FROM tonkho WHERE KhoID IN (?) AND SanPhamID IN (?) ORDER BY KhoID,SanPhamID FOR UPDATE',
+      [warehouses.map(w => w.KhoID), items.map(i => i.SanPhamID)]);
+    // Each product belongs to one warehouse. Pending mixed orders reserve each
+    // product there, independently of the checkout's summary warehouse.
+    const [reserved] = await connection.query(`SELECT c.SanPhamID,SUM(c.SoLuong) quantity
+      FROM shopcheckout x JOIN donhang o USING(DonHangID) JOIN thanhtoan p USING(ThanhToanID)
+      JOIN chitietdonhang c USING(DonHangID)
+      WHERE o.TrangThai='PENDING' AND p.TrangThai='PENDING' AND o.DonHangID<>?
+      GROUP BY c.SanPhamID`, [excludeOrderId]);
+    for (const item of items) {
+      const rows = stock.filter(s => s.SanPhamID === item.SanPhamID);
+      const held = Number(reserved.find(r => r.SanPhamID === item.SanPhamID)?.quantity || 0);
+      if (rows.length !== 1 || Number(rows[0].SoLuongTon) - held < item.SoLuong)
+        throw error(409, 'Sản phẩm chưa đủ tồn trong kho tương ứng. Vui lòng kiểm tra tồn kho trước khi thanh toán.');
+      item.KhoID = rows[0].KhoID;
+    }
+    const gear = warehouses.find(w => w.TenKho === 'Kho đồ tập').KhoID;
+    return items.every(i => i.KhoID === items[0].KhoID) ? items[0].KhoID : gear;
+  }
   const candidates = [...warehouses.filter(k => k.KhoID===preferredId), ...warehouses.filter(k => k.KhoID!==preferredId)];
   for (const warehouse of candidates) {
     const [stock] = await connection.query('SELECT SanPhamID,SoLuongTon FROM tonkho WHERE KhoID=? AND SanPhamID IN (?) ORDER BY SanPhamID FOR UPDATE',[warehouse.KhoID,items.map(item=>item.SanPhamID)]);
@@ -209,7 +229,7 @@ async function confirm(connection, orderId, accountId) {
     const warehouseId = await stockWarehouse(connection,items,order.KhoID,order.DonHangID);
     if (warehouseId !== order.KhoID) await connection.query('UPDATE shopcheckout SET KhoID=? WHERE DonHangID=?',[warehouseId,order.DonHangID]);
     for (const item of items) {
-      const [stock] = await connection.query('UPDATE tonkho SET SoLuongTon=SoLuongTon-? WHERE KhoID=? AND SanPhamID=? AND SoLuongTon>=?',[item.SoLuong,warehouseId,item.SanPhamID,item.SoLuong]);
+      const [stock] = await connection.query('UPDATE tonkho SET SoLuongTon=SoLuongTon-? WHERE KhoID=? AND SanPhamID=? AND SoLuongTon>=?',[item.SoLuong,item.KhoID || warehouseId,item.SanPhamID,item.SoLuong]);
       if (stock.affectedRows!==1) throw error(409,'Không đủ tồn kho để xác nhận đơn hàng. Vui lòng kiểm tra kho trước khi thu tiền.');
     }
     const [employees] = await connection.query("SELECT NhanVienID FROM nhanvien WHERE TaiKhoanID=? AND TrangThai='ACTIVE'",[accountId]);

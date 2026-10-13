@@ -1,4 +1,4 @@
-import { enrollmentGifts, homeClubs } from '@/constants/package-detail';
+import { enrollmentGifts } from '@/constants/package-detail';
 import { type GymPackage } from '@/lib/packages';
 import {
   getActivePackageDetail,
@@ -54,7 +54,6 @@ type Errors = Partial<
     | 'phone'
     | 'email'
     | 'activationDate'
-    | 'homeClubId'
     | 'terms'
     | 'submit',
     string
@@ -123,16 +122,14 @@ export default function PackageEnrollmentScreen() {
     phone: string;
     email: string;
     activationDate: string;
-    homeClubId: string;
   }>({
     name: user?.name ?? '',
     phone: user?.phone ?? '',
     email: user?.email ?? '',
     activationDate: localDate(today),
-    homeClubId: homeClubs[0].id,
   });
   const [activationOption, setActivationOption] = useState('today');
-  const [picker, setPicker] = useState<'activation' | 'custom' | 'club' | null>(
+  const [picker, setPicker] = useState<'activation' | 'custom' | null>(
     null
   );
   const [voucherCode, setVoucherCode] = useState('');
@@ -189,7 +186,6 @@ export default function PackageEnrollmentScreen() {
 
   const option = item?.durations.find((row) => row.durationId === durationId);
   const pricing = option ? calculatePrice(option, appliedVoucher) : null;
-  const club = homeClubs.find((row) => row.id === form.homeClubId);
   const dates = Array.from({ length: 31 }, (_, days) => {
     const date = new Date(today);
     date.setDate(date.getDate() + days);
@@ -476,13 +472,6 @@ export default function PackageEnrollmentScreen() {
               Thời hạn thẻ được bảo lưu kích hoạt tối đa trong 30 ngày kể từ hôm
               nay.
             </Text>
-            <Select
-              label="CÂU LẠC BỘ CHÍNH (HOME CLUB)"
-              value={club?.name ?? 'Chọn câu lạc bộ'}
-              icon="location-outline"
-              onPress={() => setPicker('club')}
-              error={errors.homeClubId}
-            />
           </Card>
           <Card>
             <View style={s.sectionHead}>
@@ -682,27 +671,13 @@ export default function PackageEnrollmentScreen() {
       <PickerModal
         visible={!!picker}
         title={
-          picker === 'club'
-            ? 'Chọn câu lạc bộ chính'
-            : picker === 'custom'
+          picker === 'custom'
               ? 'Chọn ngày kích hoạt'
               : 'Ngày kích hoạt'
         }
         onClose={() => setPicker(null)}
       >
-        {picker === 'club'
-          ? homeClubs.map((row) => (
-              <Choice
-                key={row.id}
-                label={row.name}
-                selected={form.homeClubId === row.id}
-                onPress={() => {
-                  change('homeClubId', row.id);
-                  setPicker(null);
-                }}
-              />
-            ))
-          : picker === 'custom'
+        {picker === 'custom'
             ? dates.map((date) => (
                 <Choice
                   key={localDate(date)}

@@ -31,12 +31,21 @@ exports.create = async (req, res) => {
   try {
     connection = await db.promise().getConnection();
     await connection.beginTransaction();
-    const [warehouses] = await connection.query("SELECT KhoID FROM kho WHERE KhoID = ? AND TrangThai = 'ACTIVE' FOR UPDATE", [input.KhoID]);
+    const [warehouses] = await connection.query("SELECT KhoID,TenKho FROM kho WHERE KhoID = ? AND TrangThai = 'ACTIVE' FOR UPDATE", [input.KhoID]);
     const [employees] = await connection.query("SELECT NhanVienID FROM nhanvien WHERE NhanVienID = ? AND TrangThai = 'ACTIVE' FOR UPDATE", [input.NhanVienID]);
     if (!warehouses.length || !employees.length) { const e = new Error('Kho hoặc nhân viên không còn hoạt động.'); e.status = 409; throw e; }
     const ids = input.items.map(item => item.SanPhamID).sort((a, b) => a - b);
-    const [products] = await connection.query('SELECT SanPhamID FROM sanpham WHERE SanPhamID IN (?) ORDER BY SanPhamID FOR UPDATE', [ids]);
+    const [products] = await connection.query('SELECT SanPhamID,TenSanPham FROM sanpham WHERE SanPhamID IN (?) ORDER BY SanPhamID FOR UPDATE', [ids]);
     if (products.length !== ids.length) { const e = new Error('Có sản phẩm không còn tồn tại.'); e.status = 409; throw e; }
+    const warehouseName = warehouses[0].TenKho;
+    if (['Kho đồ tập', 'Kho thực phẩm'].includes(warehouseName)) {
+      const isFood = p => /^(nuoc|thanh protein|sua protein|whey|creatine|bcaa|pre workout|protein)\b/.test(
+        p.TenSanPham.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').toLowerCase());
+      if (products.some(p => isFood(p) !== (warehouseName === 'Kho thực phẩm'))) {
+        const e = new Error('Sản phẩm không thuộc loại hàng của kho nhận. Vui lòng chọn đúng kho đồ tập hoặc kho thực phẩm.');
+        e.status = 400; throw e;
+      }
+    }
     const [receipt] = await connection.query("INSERT INTO phieunhap (KhoID, NhanVienID, TongTien, GhiChu, TrangThai) VALUES (?, ?, ?, ?, 'PENDING')", [input.KhoID, input.NhanVienID, input.TongTien, input.GhiChu]);
     await connection.query('INSERT INTO chitietphieunhap (PhieuNhapID, SanPhamID, SoLuong, DonGia, ThanhTien) VALUES ?', [input.items.map(i => [receipt.insertId, i.SanPhamID, i.SoLuong, i.DonGia, i.ThanhTien])]);
     await connection.commit();
