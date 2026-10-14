@@ -178,6 +178,18 @@ async function main() {
       const labels = { COMPLETED: 'đã hoàn tất', PROCESSING: 'đang chuẩn bị hàng', CONFIRMED: 'đã xác nhận', PENDING: 'đang chờ thanh toán', CANCELLED: 'đã hủy' };
       await notice(m, time(d, '12:16:00'), 'Cập nhật đơn hàng', `Đơn hàng #${id} ${labels[status]}.`, 'ORDER_STATUS', 'ORDER', { DonHangID: id });
     }
+    // Receipts and sales above are inserted directly, so initialize their net stock explicitly.
+    for (const p of products) {
+      const [inbound] = await c.query(`SELECT r.KhoID,SUM(l.SoLuong) quantity FROM phieunhap r
+        JOIN chitietphieunhap l USING(PhieuNhapID) WHERE l.SanPhamID=? AND r.TrangThai='COMPLETED'
+        GROUP BY r.KhoID`, [p.id]);
+      assert.equal(inbound.length, 1, 'Seed product must belong to one warehouse');
+      const [[sold]] = await c.query(`SELECT COALESCE(SUM(l.SoLuong),0) quantity FROM chitietdonhang l
+        JOIN donhang o USING(DonHangID) WHERE l.SanPhamID=? AND o.TrangThai IN ('CONFIRMED','PROCESSING','COMPLETED')`, [p.id]);
+      const quantity = Number(inbound[0].quantity) - Number(sold.quantity);
+      assert(quantity >= 0, 'Negative seed stock');
+      await add('tonkho', { KhoID: inbound[0].KhoID, SanPhamID: p.id, SoLuongTon: quantity });
+    }
     for (let i = 0; i < 24; i++) await add('chitietgiohang', { GioHangID: members[i].cart, SanPhamID: products[i % 12].id, SoLuong: 1 });
     const trainerProfiles = [
       ['Nguyễn Đức Thành', 'NAM', '1992-04-16', 'Tăng cơ, kỹ thuật tập sức mạnh', 320000, 7],

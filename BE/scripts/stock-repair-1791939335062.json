@@ -1,0 +1,270 @@
+{
+  "existing": [
+    {
+      "KhoID": 1,
+      "SanPhamID": 1,
+      "SoLuongTon": 30,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 2,
+      "SoLuongTon": 20,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 3,
+      "SoLuongTon": 20,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 4,
+      "SoLuongTon": 15,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 5,
+      "SoLuongTon": 10,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 6,
+      "SoLuongTon": 30,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 7,
+      "SoLuongTon": 20,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 8,
+      "SoLuongTon": 20,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 9,
+      "SoLuongTon": 10,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 10,
+      "SoLuongTon": 10,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 11,
+      "SoLuongTon": 20,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 12,
+      "SoLuongTon": 15,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 13,
+      "SoLuongTon": 10,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 14,
+      "SoLuongTon": 10,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 15,
+      "SoLuongTon": 10,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 16,
+      "SoLuongTon": 10,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 17,
+      "SoLuongTon": 10,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 18,
+      "SoLuongTon": 10,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 36,
+      "SoLuongTon": 35,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 37,
+      "SoLuongTon": 50,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 38,
+      "SoLuongTon": 40,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 39,
+      "SoLuongTon": 40,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 40,
+      "SoLuongTon": 30,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 41,
+      "SoLuongTon": 30,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 42,
+      "SoLuongTon": 35,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 43,
+      "SoLuongTon": 25,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 2,
+      "SanPhamID": 44,
+      "SoLuongTon": 120,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 2,
+      "SanPhamID": 45,
+      "SoLuongTon": 180,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 2,
+      "SanPhamID": 46,
+      "SoLuongTon": 100,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    },
+    {
+      "KhoID": 2,
+      "SanPhamID": 47,
+      "SoLuongTon": 90,
+      "NgayCapNhat": "2026-10-13T03:42:02.000Z"
+    }
+  ],
+  "missing": [
+    {
+      "KhoID": 1,
+      "SanPhamID": 60,
+      "inbound": 70,
+      "sold": 20,
+      "SoLuongTon": 50
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 61,
+      "inbound": 100,
+      "sold": 20,
+      "SoLuongTon": 80
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 62,
+      "inbound": 80,
+      "sold": 18,
+      "SoLuongTon": 62
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 63,
+      "inbound": 80,
+      "sold": 18,
+      "SoLuongTon": 62
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 64,
+      "inbound": 60,
+      "sold": 20,
+      "SoLuongTon": 40
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 65,
+      "inbound": 60,
+      "sold": 20,
+      "SoLuongTon": 40
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 66,
+      "inbound": 70,
+      "sold": 18,
+      "SoLuongTon": 52
+    },
+    {
+      "KhoID": 1,
+      "SanPhamID": 67,
+      "inbound": 50,
+      "sold": 18,
+      "SoLuongTon": 32
+    },
+    {
+      "KhoID": 2,
+      "SanPhamID": 68,
+      "inbound": 240,
+      "sold": 60,
+      "SoLuongTon": 180
+    },
+    {
+      "KhoID": 2,
+      "SanPhamID": 69,
+      "inbound": 360,
+      "sold": 96,
+      "SoLuongTon": 264
+    },
+    {
+      "KhoID": 2,
+      "SanPhamID": 70,
+      "inbound": 200,
+      "sold": 36,
+      "SoLuongTon": 164
+    },
+    {
+      "KhoID": 2,
+      "SanPhamID": 71,
+      "inbound": 180,
+      "sold": 54,
+      "SoLuongTon": 126
+    }
+  ]
+}

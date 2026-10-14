@@ -221,20 +221,14 @@ export default function HomeScreen() {
         </ScrollView>
       </SafeAreaView>
       <TouchableOpacity
-        style={[styles.checkInShortcut, { bottom: Math.max(insets.bottom, 16) + 12 }]}
+        style={[styles.checkInShortcut, { bottom: Math.max(insets.bottom, 2) }]}
         onPress={() => router.push('/check-in-pass')}
         activeOpacity={0.8}
         accessibilityRole="button"
         accessibilityLabel="Mở mã QR check-in"
         accessibilityHint="Mở màn hình mã QR để vào phòng tập"
       >
-        <View style={styles.checkInBot}>
-          <MaterialCommunityIcons name="robot-outline" size={30} color="#161e00" />
-          <View style={styles.checkInQrBadge}>
-            <Ionicons name="qr-code" size={13} color="#161e00" />
-          </View>
-        </View>
-        <Text style={styles.checkInShortcutLabel}>QR check-in</Text>
+        <MaterialCommunityIcons name="qrcode-scan" size={24} color="#101210" />
       </TouchableOpacity>
     </View>
   );
@@ -246,43 +240,16 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingBottom: 26 },
   checkInShortcut: {
     position: 'absolute',
-    right: 16,
-    zIndex: 10,
-    alignItems: 'center',
-    gap: 6,
-    padding: 10,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#c3f40055',
-    backgroundColor: '#1e2023',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-  },
-  checkInBot: {
+    left: '50%',
+    marginLeft: -24,
     width: 48,
     height: 48,
+    zIndex: 10,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 24,
-    backgroundColor: '#c3f400',
+    backgroundColor: '#c3ff00',
   },
-  checkInQrBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 21,
-    height: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: '#1e2023',
-    backgroundColor: '#f0f5e9',
-  },
-  checkInShortcutLabel: { color: '#e2e2e6', fontSize: 11, fontWeight: '700' },
   greeting: { marginBottom: 18 },
   kicker: {
     color: '#c1da00',

@@ -51,3 +51,52 @@ test('rolls back entire receipt when item insertion fails', async () => {
   assert.equal(res.code, 500);
   assert.deepEqual(events, ['begin', 'header', 'items', 'rollback', 'release']);
 });
+
+function transitionSetup({ failStock = false, receiptStatus = 'PENDING' } = {}) {
+  const events = [];
+  const connection = {
+    beginTransaction: async () => events.push('begin'),
+    commit: async () => events.push('commit'),
+    rollback: async () => events.push('rollback'),
+    release: () => events.push('release'),
+    query: async (sql, params) => {
+      if (sql.includes('FROM phieunhap')) return [[{ KhoID: 1, TrangThai: receiptStatus }]];
+      if (sql.includes('FROM chitietphieunhap')) return [[{ SanPhamID: 3, SoLuong: 5 }]];
+      if (sql.includes('INSERT INTO tonkho')) {
+        assert.deepEqual(Array.from(params), [1, 3, 5]);
+        events.push('stock');
+        if (failStock) throw new Error('stock failure');
+        return [{ affectedRows: 1 }];
+      }
+      if (sql.includes('UPDATE phieunhap')) { events.push('status'); return [{ affectedRows: 1 }]; }
+      throw new Error('Unexpected SQL');
+    },
+  };
+  const context = { exports: {}, require: () => ({ promise: () => ({ getConnection: async () => connection }) }) };
+  vm.runInNewContext(source, context);
+  return { api: context.exports, events };
+}
+test('completion adds inventory and receipt status in one transaction', async () => {
+  const { api, events } = transitionSetup(); const res = response();
+  await api.transition({ params: { PhieuNhapID: 9 }, body: { TrangThai: 'COMPLETED' } }, res);
+  assert.equal(res.code, 200);
+  assert.deepEqual(events, ['begin', 'stock', 'status', 'commit', 'release']);
+});
+test('stock failure rolls back receipt completion', async () => {
+  const { api, events } = transitionSetup({ failStock: true }); const res = response();
+  await api.transition({ params: { PhieuNhapID: 9 }, body: { TrangThai: 'COMPLETED' } }, res);
+  assert.equal(res.code, 500);
+  assert.deepEqual(events, ['begin', 'stock', 'rollback', 'release']);
+});
+test('repeated completion cannot credit inventory twice', async () => {
+  const { api, events } = transitionSetup({ receiptStatus: 'COMPLETED' }); const res = response();
+  await api.transition({ params: { PhieuNhapID: 9 }, body: { TrangThai: 'COMPLETED' } }, res);
+  assert.equal(res.code, 409);
+  assert.deepEqual(events, ['begin', 'rollback', 'release']);
+});
+test('cancelling pending receipt does not add inventory', async () => {
+  const { api, events } = transitionSetup(); const res = response();
+  await api.transition({ params: { PhieuNhapID: 9 }, body: { TrangThai: 'CANCELLED' } }, res);
+  assert.equal(res.code, 200);
+  assert.deepEqual(events, ['begin', 'status', 'commit', 'release']);
+});
