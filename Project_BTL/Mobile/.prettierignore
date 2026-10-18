@@ -1,0 +1,11 @@
+node_modules/
+.expo/
+dist/
+web-build/
+android/
+ios/
+package-lock.json
+expo-env.d.ts
+*.tsbuildinfo
+*.bak
+.env*

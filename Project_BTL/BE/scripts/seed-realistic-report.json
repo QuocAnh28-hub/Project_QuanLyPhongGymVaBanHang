@@ -1,0 +1,195 @@
+{
+  "batch": "demo20261007",
+  "database": "gym_management",
+  "date": "2026-10-07",
+  "totalAdded": 2889,
+  "fictional": true,
+  "summary": [
+    {
+      "table": "apdungkhuyenmaidonhang",
+      "before": 2,
+      "added": 30,
+      "after": 32
+    },
+    {
+      "table": "apdungkhuyenmaigoitap",
+      "before": 2,
+      "added": 20,
+      "after": 22
+    },
+    {
+      "table": "apdungkhuyenmaipt",
+      "before": 2,
+      "added": 64,
+      "after": 66
+    },
+    {
+      "table": "caidatthongbao",
+      "before": 0,
+      "added": 68,
+      "after": 68
+    },
+    {
+      "table": "checkin",
+      "before": 12,
+      "added": 324,
+      "after": 336
+    },
+    {
+      "table": "chitietdonhang",
+      "before": 5,
+      "added": 180,
+      "after": 185
+    },
+    {
+      "table": "chitietgiohang",
+      "before": 6,
+      "added": 120,
+      "after": 126
+    },
+    {
+      "table": "chitietphieunhap",
+      "before": 5,
+      "added": 72,
+      "after": 77
+    },
+    {
+      "table": "dangkygoitap",
+      "before": 24,
+      "added": 60,
+      "after": 84
+    },
+    {
+      "table": "danhmuc",
+      "before": 4,
+      "added": 6,
+      "after": 10
+    },
+    {
+      "table": "donhang",
+      "before": 4,
+      "added": 90,
+      "after": 94
+    },
+    {
+      "table": "giohang",
+      "before": 4,
+      "added": 60,
+      "after": 64
+    },
+    {
+      "table": "goitap",
+      "before": 9,
+      "added": 6,
+      "after": 15
+    },
+    {
+      "table": "goitapthoihan",
+      "before": 25,
+      "added": 24,
+      "after": 49
+    },
+    {
+      "table": "hoadon",
+      "before": 22,
+      "added": 136,
+      "after": 158
+    },
+    {
+      "table": "hoivien",
+      "before": 6,
+      "added": 60,
+      "after": 66
+    },
+    {
+      "table": "kho",
+      "before": 2,
+      "added": 3,
+      "after": 5
+    },
+    {
+      "table": "khuyenmai",
+      "before": 4,
+      "added": 12,
+      "after": 16
+    },
+    {
+      "table": "lichpt",
+      "before": 64,
+      "added": 432,
+      "after": 496
+    },
+    {
+      "table": "maqr",
+      "before": 47,
+      "added": 324,
+      "after": 371
+    },
+    {
+      "table": "nhanvien",
+      "before": 2,
+      "added": 8,
+      "after": 10
+    },
+    {
+      "table": "phieunhap",
+      "before": 2,
+      "added": 12,
+      "after": 14
+    },
+    {
+      "table": "pt",
+      "before": 12,
+      "added": 8,
+      "after": 20
+    },
+    {
+      "table": "quyenloigoitap",
+      "before": 36,
+      "added": 24,
+      "after": 60
+    },
+    {
+      "table": "sanpham",
+      "before": 8,
+      "added": 24,
+      "after": 32
+    },
+    {
+      "table": "shopcheckout",
+      "before": 1,
+      "added": 90,
+      "after": 91
+    },
+    {
+      "table": "taikhoan",
+      "before": 8,
+      "added": 68,
+      "after": 76
+    },
+    {
+      "table": "thanhtoan",
+      "before": 25,
+      "added": 150,
+      "after": 175
+    },
+    {
+      "table": "thongbao",
+      "before": 17,
+      "added": 150,
+      "after": 167
+    },
+    {
+      "table": "thuept",
+      "before": 6,
+      "added": 192,
+      "after": 198
+    },
+    {
+      "table": "tonkho",
+      "before": 3,
+      "added": 72,
+      "after": 75
+    }
+  ]
+}

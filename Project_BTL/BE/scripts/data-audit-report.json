@@ -1,0 +1,23 @@
+{
+  "testPackages": 0,
+  "testProducts": 0,
+  "invalidMembershipDates": 0,
+  "inconsistentMembershipPayments": 0,
+  "inconsistentInvoices": 0,
+  "missingPaidInvoices": 0,
+  "futureOrders": 0,
+  "futurePayments": 0,
+  "futureCheckIns": 0,
+  "invalidCheckOuts": 0,
+  "staleActiveCheckIns": 0,
+  "incorrectReceiptTotals": 0,
+  "incorrectOrderTotals": 0,
+  "incorrectLineTotals": 0,
+  "incorrectStockLedger": 0,
+  "negativeStock": 0,
+  "duplicateActiveMemberships": 0,
+  "invalidPtRelations": 0,
+  "duplicatePtBookings": 0,
+  "incorrectPtPrices": 0,
+  "foreignKeyOrphans": 0
+}
