@@ -24,6 +24,7 @@ function AuthStack() {
         <Stack.Protected guard={!!user}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="index" />
+          <Stack.Screen name="ai-chat" />
           <Stack.Screen name="packages" />
           <Stack.Screen name="product" />
           <Stack.Screen name="pt" />

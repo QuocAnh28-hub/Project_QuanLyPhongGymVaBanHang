@@ -69,6 +69,7 @@ app.get('/health', (req, res) => {
 });
 
 const routes = [
+  ['/ai-agent', './routes/ai-agent.route'],
   ['/auth/admin', './routes/admin-auth.route'],
   ['/auth', './routes/auth.route', 'router'],
   ['/auth', './routes/recovery.route'],
@@ -104,6 +105,7 @@ const routes = [
 
 const adminOnly = new Set(['/apdungkhuyenmaidonhang','/apdungkhuyenmaigoitap','/apdungkhuyenmaipt','/danhmuc','/goitap','/hoadon','/kho','/khuyenmai','/nhanvien','/phieunhap','/reports','/sanpham','/taikhoan']);
 const customerPaths = [
+  /^POST \/ai-agent\/chat$/,
   /^GET \/checkin\/crowding$/,
   /^GET \/(?:goitap\/active|pt\/active|lichpt\/available|sanpham|danhmuc)(?:\/|$)/,
   /^(?:GET|PUT) \/hoivien\/account\/\d+$/, /^POST \/taikhoan\/\d+\/change-password$/,
@@ -116,6 +118,30 @@ async function authorizeApi(req, res, next) {
   if (req.auth.VaiTro === 'ADMIN') return next();
   if (req.auth.VaiTro === 'STAFF') return adminOnly.has(req.baseUrl) ? res.status(403).json({ message: 'Chỉ Admin được thực hiện thao tác này.' }) : next();
   const fullPath = req.baseUrl + req.path;
+
+  console.log("===== DEBUG AI AGENT =====");
+  console.log("Method:", req.method);
+  console.log("Base URL:", req.baseUrl);
+  console.log("Path:", req.path);
+  console.log("Full Path:", fullPath);
+  console.log("VaiTro:", req.auth?.VaiTro);
+  console.log("TaiKhoanID:", req.auth?.TaiKhoanID);
+  console.log(
+    "Matched:",
+    customerPaths.some(pattern =>
+      pattern.test(`${req.method} ${fullPath}`)
+    )
+  );
+  console.log("==========================");
+
+  console.log('===== KIỂM TRA AI AGENT =====');
+  console.log('Method:', req.method);
+  console.log('Base URL:', req.baseUrl);
+  console.log('Path:', req.path);
+  console.log('Full Path:', fullPath);
+  console.log('VaiTro:', req.auth.VaiTro);
+  console.log('TaiKhoanID:', req.auth.TaiKhoanID);
+  console.log('============================');
   if (!customerPaths.some(pattern => pattern.test(`${req.method} ${fullPath}`))) return res.status(403).json({ message: 'Bạn không có quyền thực hiện thao tác này.' });
   const pathId = fullPath.match(/(?:account|taikhoan)\/(\d+)/i)?.[1] || (req.baseUrl === '/taikhoan' ? req.path.match(/^\/(\d+)/)?.[1] : null);
   const bodyId = req.body?.TaiKhoanID ?? req.body?.accountId;

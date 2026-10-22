@@ -117,6 +117,32 @@ export default function HomeScreen() {
           <Header />
           <PendingPackageNotice />
 
+          {/* AI CHAT SHORTCUT */}
+            <TouchableOpacity
+              style={styles.aiShortcut}
+              activeOpacity={0.85}
+              onPress={() => router.push('/ai-chat')}
+            >
+              <View style={styles.aiShortcutIcon}>
+                <Ionicons name="sparkles" size={22} color="#101210" />
+              </View>
+
+              <View style={styles.aiShortcutContent}>
+                <Text style={styles.aiShortcutTitle}>
+                  Trợ lý AI QA-Gym
+                </Text>
+                <Text style={styles.aiShortcutDescription}>
+                  Hỏi đáp về gói tập, sản phẩm và hội viên
+                </Text>
+              </View>
+
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color="#c3ff00"
+              />
+            </TouchableOpacity>
+
           <View style={styles.greeting}>
             <Text style={styles.kicker}>Wellcome</Text>
             <Text style={styles.greetingTitle}>Sẵn sàng bứt phá?</Text>
@@ -438,4 +464,40 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
   },
+  aiShortcut: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#1c2417',
+  borderWidth: 1,
+  borderColor: '#48552d',
+  borderRadius: 12,
+  padding: 13,
+  marginBottom: 20,
+  gap: 12,
+},
+
+aiShortcutIcon: {
+  width: 42,
+  height: 42,
+  borderRadius: 21,
+  backgroundColor: '#c3ff00',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+aiShortcutContent: {
+  flex: 1,
+},
+
+aiShortcutTitle: {
+  color: '#c3ff00',
+  fontSize: 14,
+  fontWeight: '800',
+},
+
+aiShortcutDescription: {
+  color: '#a6b09d',
+  fontSize: 11,
+  marginTop: 4,
+},
 });
