@@ -19,19 +19,19 @@ export default function AppTabs() {
       <TabSlot style={{ height: '100%' }} />
       <TabList asChild>
         <CustomTabList>
-          <TabTrigger name="home" href="/" asChild>
+          <TabTrigger name="home" href="/(tabs)" asChild>
             <TabButton>Tổng quan</TabButton>
           </TabTrigger>
-          <TabTrigger name="packages" href="/packages" asChild>
+          <TabTrigger name="packages" href="/(tabs)/packages" asChild>
             <TabButton>Gói tập</TabButton>
           </TabTrigger>
-          <TabTrigger name="product" href="/product" asChild>
+          <TabTrigger name="product" href="/(tabs)/product" asChild>
             <TabButton>Sản phẩm</TabButton>
           </TabTrigger>
-          <TabTrigger name="pt" href="/pt" asChild>
+          <TabTrigger name="pt" href="/(tabs)/pt" asChild>
             <TabButton>HLV</TabButton>
           </TabTrigger>
-          <TabTrigger name="profile" href="/profile" asChild>
+          <TabTrigger name="profile" href="/(tabs)/profile" asChild>
             <TabButton>Cá nhân</TabButton>
           </TabTrigger>
         </CustomTabList>
@@ -43,6 +43,7 @@ export default function AppTabs() {
 export function TabButton({
   children,
   isFocused,
+  ref: _ref,
   ...props
 }: TabTriggerSlotProps) {
   return (

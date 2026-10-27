@@ -38,6 +38,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  type ScrollViewInstance,
   StyleSheet,
   Text,
   TextInput,
@@ -145,7 +146,7 @@ export default function PackageEnrollmentScreen() {
   const [activationMode, setActivationMode] = useState<ActivationMode | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const submitting = useRef(false);
 
   useEffect(() => {
